@@ -8,6 +8,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ArchitectureLayers from "./pages/ArchitectureLayers";
+import Users from "./pages/admin/Users";
+import Roles from "./pages/admin/Roles";
+import Permissions from "./pages/admin/Permissions";
 import MainLayout from "./components/layout/MainLayout";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +39,21 @@ const App: React.FC = () => (
           <Route path="/architecture/layers" element={
             <MainLayout>
               <ArchitectureLayers />
+            </MainLayout>
+          } />
+          <Route path="/admin/users" element={
+            <MainLayout>
+              <Users />
+            </MainLayout>
+          } />
+          <Route path="/admin/roles" element={
+            <MainLayout>
+              <Roles />
+            </MainLayout>
+          } />
+          <Route path="/admin/permissions" element={
+            <MainLayout>
+              <Permissions />
             </MainLayout>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
