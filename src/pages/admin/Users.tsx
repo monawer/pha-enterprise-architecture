@@ -70,7 +70,7 @@ const Users = () => {
       setError(null);
       console.log('Fetching users from database...');
       
-      // جلب ملفات المستخدمين
+      // جلب ملفات المستخدمين فقط
       const { data: profilesData, error: profilesError } = await supabase
         .from('user_profiles')
         .select('*')
@@ -83,29 +83,37 @@ const Users = () => {
 
       console.log('User profiles fetched successfully:', profilesData?.length, 'users');
 
-      // جلب جميع أدوار المستخدمين مع أسماء الأدوار
+      // جلب أدوار المستخدمين بشكل منفصل
       const { data: userRolesData, error: userRolesError } = await supabase
         .from('user_roles')
-        .select(`
-          user_id,
-          roles!inner(name)
-        `);
+        .select('user_id, role_id');
 
       if (userRolesError) {
         console.error('Error fetching user roles:', userRolesError);
-        // لا نرمي خطأ هنا، فقط نسجل المشكلة
       }
 
-      console.log('User roles fetched:', userRolesData?.length || 0, 'roles');
+      // جلب أسماء الأدوار
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('roles')
+        .select('id, name');
 
-      // دمج البيانات
+      if (rolesError) {
+        console.error('Error fetching roles:', rolesError);
+      }
+
+      console.log('User roles and roles data fetched');
+
+      // دمج البيانات يدوياً
       const usersWithRoles = (profilesData || []).map(profile => {
-        const userRoles = userRolesData?.filter(ur => ur.user_id === profile.id) || [];
-        const roles = userRoles.map(ur => ur.roles.name);
+        const userRoleIds = userRolesData?.filter(ur => ur.user_id === profile.id) || [];
+        const roleNames = userRoleIds.map(ur => {
+          const role = rolesData?.find(r => r.id === ur.role_id);
+          return role ? role.name : 'دور غير معروف';
+        });
         
         return {
           ...profile,
-          roles: roles.length > 0 ? roles : undefined
+          roles: roleNames.length > 0 ? roleNames : undefined
         };
       });
 
