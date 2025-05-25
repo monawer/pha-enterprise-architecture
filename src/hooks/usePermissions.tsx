@@ -27,7 +27,7 @@ export const usePermissions = (user: User | null) => {
         console.log('Fetching permissions for user:', user.id);
         console.log('User email:', user.email);
         
-        // تحقق خاص لمدير النظام - تجنب استدعاءات قاعدة البيانات المعقدة
+        // تحقق خاص لمدير النظام
         if (user.email === 'monawer@monawer.com') {
           console.log('User is system admin, granting all permissions');
           const allPermissions = [
@@ -55,10 +55,9 @@ export const usePermissions = (user: User | null) => {
           return;
         }
         
-        // استعلام مبسط للمستخدمين العاديين - تجنب RLS المعقد
+        // للمستخدمين العاديين، جلب الصلاحيات من قاعدة البيانات
         console.log('Fetching permissions for regular user');
         
-        // جرب استعلام مباشر بدون RLS معقد
         const { data: userRoles, error: rolesError } = await supabase
           .from('user_roles')
           .select('role_id')
@@ -66,7 +65,6 @@ export const usePermissions = (user: User | null) => {
 
         if (rolesError) {
           console.error('Error fetching user roles:', rolesError);
-          // إعطاء صلاحيات افتراضية للمستخدم العادي
           const defaultPermissions = [
             { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
             { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
@@ -103,7 +101,6 @@ export const usePermissions = (user: User | null) => {
 
         if (permissionsError) {
           console.error('Error fetching role permissions:', permissionsError);
-          // إعطاء صلاحيات افتراضية
           const defaultPermissions = [
             { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
             { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
@@ -124,7 +121,6 @@ export const usePermissions = (user: User | null) => {
         }
       } catch (error) {
         console.error('Exception fetching permissions:', error);
-        // في حالة أي خطأ، إعطاء صلاحيات افتراضية
         const defaultPermissions = [
           { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
           { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
@@ -139,7 +135,6 @@ export const usePermissions = (user: User | null) => {
   }, [user]);
 
   const hasPermission = (permissionCode: string) => {
-    // تحقق خاص لمدير النظام
     if (user?.email === 'monawer@monawer.com') {
       console.log(`Admin user checking permission '${permissionCode}': true`);
       return true;
@@ -147,12 +142,10 @@ export const usePermissions = (user: User | null) => {
 
     const hasPermissionResult = permissions.some(p => p.permission_code === permissionCode);
     console.log(`Checking permission '${permissionCode}':`, hasPermissionResult);
-    console.log('Available permissions:', permissions.map(p => p.permission_code));
     return hasPermissionResult;
   };
 
   const hasAnyPermission = (permissionCodes: string[]) => {
-    // تحقق خاص لمدير النظام
     if (user?.email === 'monawer@monawer.com') {
       return true;
     }

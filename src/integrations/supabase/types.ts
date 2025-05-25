@@ -2686,6 +2686,10 @@ export type Database = {
           role_name: string
         }[]
       }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       user_has_permission: {
         Args: { user_uuid: string; permission_code_param: string }
         Returns: boolean
