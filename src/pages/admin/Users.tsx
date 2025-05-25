@@ -18,11 +18,7 @@ interface UserProfile {
   department: string | null;
   is_active: boolean;
   created_at: string;
-  user_roles?: {
-    roles: {
-      name: string;
-    };
-  }[] | null;
+  roles?: string[];
 }
 
 const Users = () => {
@@ -74,7 +70,7 @@ const Users = () => {
       setError(null);
       console.log('Fetching users from database...');
       
-      // First fetch user profiles without roles to avoid relation errors
+      // جلب ملفات المستخدمين
       const { data: profilesData, error: profilesError } = await supabase
         .from('user_profiles')
         .select('*')
@@ -87,40 +83,31 @@ const Users = () => {
 
       console.log('User profiles fetched successfully:', profilesData?.length, 'users');
 
-      // Then fetch roles separately for each user
-      const usersWithRoles = await Promise.all(
-        (profilesData || []).map(async (profile) => {
-          try {
-            const { data: rolesData, error: rolesError } = await supabase
-              .from('user_roles')
-              .select(`
-                roles (
-                  name
-                )
-              `)
-              .eq('user_id', profile.id);
+      // جلب جميع أدوار المستخدمين مع أسماء الأدوار
+      const { data: userRolesData, error: userRolesError } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          roles!inner(name)
+        `);
 
-            if (rolesError) {
-              console.error('Error fetching roles for user:', profile.id, rolesError);
-              return {
-                ...profile,
-                user_roles: null
-              };
-            }
+      if (userRolesError) {
+        console.error('Error fetching user roles:', userRolesError);
+        // لا نرمي خطأ هنا، فقط نسجل المشكلة
+      }
 
-            return {
-              ...profile,
-              user_roles: rolesData || null
-            };
-          } catch (error) {
-            console.error('Exception fetching roles for user:', profile.id, error);
-            return {
-              ...profile,
-              user_roles: null
-            };
-          }
-        })
-      );
+      console.log('User roles fetched:', userRolesData?.length || 0, 'roles');
+
+      // دمج البيانات
+      const usersWithRoles = (profilesData || []).map(profile => {
+        const userRoles = userRolesData?.filter(ur => ur.user_id === profile.id) || [];
+        const roles = userRoles.map(ur => ur.roles.name);
+        
+        return {
+          ...profile,
+          roles: roles.length > 0 ? roles : undefined
+        };
+      });
 
       setUsers(usersWithRoles);
     } catch (error: any) {
@@ -137,10 +124,10 @@ const Users = () => {
   };
 
   const getUserRoles = (user: UserProfile) => {
-    if (!user.user_roles || user.user_roles.length === 0) {
+    if (!user.roles || user.roles.length === 0) {
       return 'لا يوجد دور';
     }
-    return user.user_roles.map(ur => ur.roles.name).join(', ');
+    return user.roles.join(', ');
   };
 
   const filteredUsers = users.filter(user =>
