@@ -21,11 +21,6 @@ interface UserProfile {
   email?: string;
 }
 
-interface Role {
-  id: string;
-  name: string;
-}
-
 const Users = () => {
   const navigate = useNavigate();
   const { toast } = useToast();

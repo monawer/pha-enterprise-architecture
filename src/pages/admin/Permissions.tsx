@@ -85,7 +85,8 @@ const Permissions = () => {
     const moduleLabels: { [key: string]: string } = {
       'architecture': 'البنية المؤسسية',
       'admin': 'الإدارة',
-      'reports': 'التقارير'
+      'reports': 'التقارير',
+      'general': 'عام'
     };
     return moduleLabels[module] || module;
   };

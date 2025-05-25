@@ -22,6 +22,7 @@ export const usePermissions = (user: User | null) => {
       }
 
       try {
+        console.log('Fetching permissions for user:', user.id);
         const { data, error } = await supabase.rpc('get_user_permissions', {
           user_uuid: user.id
         });
@@ -30,6 +31,7 @@ export const usePermissions = (user: User | null) => {
           console.error('Error fetching permissions:', error);
           setPermissions([]);
         } else {
+          console.log('User permissions:', data);
           setPermissions(data || []);
         }
       } catch (error) {
@@ -44,7 +46,10 @@ export const usePermissions = (user: User | null) => {
   }, [user]);
 
   const hasPermission = (permissionCode: string) => {
-    return permissions.some(p => p.permission_code === permissionCode);
+    const hasPermissionResult = permissions.some(p => p.permission_code === permissionCode);
+    console.log(`Checking permission '${permissionCode}':`, hasPermissionResult);
+    console.log('Available permissions:', permissions.map(p => p.permission_code));
+    return hasPermissionResult;
   };
 
   const hasAnyPermission = (permissionCodes: string[]) => {

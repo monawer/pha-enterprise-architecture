@@ -20,13 +20,6 @@ interface Role {
   updated_at: string;
 }
 
-interface Permission {
-  id: string;
-  code: string;
-  name: string;
-  module: string;
-}
-
 const Roles = () => {
   const navigate = useNavigate();
   const { toast } = useToast();

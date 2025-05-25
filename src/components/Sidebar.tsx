@@ -82,7 +82,7 @@ const Sidebar = () => {
     }
     
     // Always show profile edit
-    children.push({ title: "تعديل بيانات المستخدم", path: "/profile" });
+    children.push({ title: "تعديل بيانات المستخدم", path: "/profile", icon: User });
     
     return children;
   };
@@ -92,32 +92,34 @@ const Sidebar = () => {
       title: "لوحة المعلومات",
       icon: LayoutDashboard,
       path: "/",
+      show: hasPermission('dashboard.view') || !user
     },
     {
       title: "البنية المؤسسية",
       icon: Building2,
       path: "/architecture",
+      show: hasPermission('architecture.view') || !user,
       children: [
-        { title: "إدارة الطبقات", path: "/architecture/layers", icon: Layers },
-        { title: "طبقة الأعمال", path: "/architecture/business" },
-        { title: "طبقة التطبيقات", path: "/architecture/applications" },
-        { title: "طبقة التقنية", path: "/architecture/technology" },
-        { title: "طبقة البيانات", path: "/architecture/data" },
-        { title: "طبقة الأمان", path: "/architecture/security" },
-        { title: "طبقة تجربة المستخدم", path: "/architecture/ux" },
+        { title: "إدارة الطبقات", path: "/architecture/layers", icon: Layers, show: hasPermission('architecture.layers.manage') || hasPermission('architecture.view') },
+        { title: "طبقة الأعمال", path: "/architecture/business", show: hasPermission('architecture.view') },
+        { title: "طبقة التطبيقات", path: "/architecture/applications", show: hasPermission('architecture.view') },
+        { title: "طبقة التقنية", path: "/architecture/technology", show: hasPermission('architecture.view') },
+        { title: "طبقة البيانات", path: "/architecture/data", show: hasPermission('architecture.view') },
+        { title: "طبقة الأمان", path: "/architecture/security", show: hasPermission('architecture.view') },
+        { title: "طبقة تجربة المستخدم", path: "/architecture/ux", show: hasPermission('architecture.view') },
       ]
     },
     {
       title: "التقارير",
       icon: FileText,
       path: "/reports",
-      show: hasPermission('reports.view') || !user // Show for non-authenticated or with permission
+      show: hasPermission('reports.view') || !user
     },
     {
       title: "إعدادات النظام",
       icon: Settings,
       children: getAdminChildren(),
-      show: getAdminChildren().length > 1 // Show if has admin permissions or just profile
+      show: getAdminChildren().length > 1
     }
   ];
 
@@ -187,7 +189,7 @@ const Sidebar = () => {
                   </button>
                   {expandedSections.includes(item.title) && (
                     <div className="mr-6 mt-2 space-y-1">
-                      {item.children.map((child) => (
+                      {item.children.filter(child => child.show !== false).map((child) => (
                         <Link
                           key={child.path}
                           to={child.path}
