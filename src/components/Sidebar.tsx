@@ -78,7 +78,7 @@ const Sidebar = () => {
     }
     
     if (hasPermission('references.view')) {
-      children.push({ title: "جداول التعريفات", path: "/admin/references" });
+      children.push({ title: "جداول التعريفات", path: "/admin/references", icon: Database });
     }
     
     // Always show profile edit
