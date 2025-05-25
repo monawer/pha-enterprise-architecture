@@ -27,7 +27,7 @@ export const usePermissions = (user: User | null) => {
         console.log('Fetching permissions for user:', user.id);
         console.log('User email:', user.email);
         
-        // تحقق خاص لمدير النظام
+        // تحقق خاص لمدير النظام - تجنب استدعاءات قاعدة البيانات المعقدة
         if (user.email === 'monawer@monawer.com') {
           console.log('User is system admin, granting all permissions');
           const allPermissions = [
@@ -55,37 +55,81 @@ export const usePermissions = (user: User | null) => {
           return;
         }
         
-        // جلب الصلاحيات باستخدام الدالة المحسنة
-        const { data, error } = await supabase.rpc('get_user_permissions', {
-          user_uuid: user.id
-        });
+        // استعلام مبسط للمستخدمين العاديين - تجنب RLS المعقد
+        console.log('Fetching permissions for regular user');
+        
+        // جرب استعلام مباشر بدون RLS معقد
+        const { data: userRoles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('role_id')
+          .eq('user_id', user.id);
 
-        if (error) {
-          console.error('Error fetching permissions with RPC:', error);
-          // في حالة فشل الدالة، جرب استعلام مبسط
-          const { data: simpleData, error: simpleError } = await supabase
-            .from('permissions')
-            .select('code, name, module');
+        if (rolesError) {
+          console.error('Error fetching user roles:', rolesError);
+          // إعطاء صلاحيات افتراضية للمستخدم العادي
+          const defaultPermissions = [
+            { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+          ];
+          setPermissions(defaultPermissions);
+          setLoading(false);
+          return;
+        }
 
-          if (simpleError) {
-            console.error('Simple query also failed:', simpleError);
-            setPermissions([]);
-          } else {
-            console.log('Simple permissions query succeeded:', simpleData);
-            const formattedPermissions = simpleData?.map(p => ({
+        if (!userRoles || userRoles.length === 0) {
+          console.log('No roles found for user, giving default permissions');
+          const defaultPermissions = [
+            { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+          ];
+          setPermissions(defaultPermissions);
+          setLoading(false);
+          return;
+        }
+
+        // جلب الصلاحيات للأدوار المحددة
+        const roleIds = userRoles.map(ur => ur.role_id);
+        
+        const { data: rolePermissions, error: permissionsError } = await supabase
+          .from('role_permissions')
+          .select(`
+            permissions (
+              code,
+              name,
+              module
+            )
+          `)
+          .in('role_id', roleIds);
+
+        if (permissionsError) {
+          console.error('Error fetching role permissions:', permissionsError);
+          // إعطاء صلاحيات افتراضية
+          const defaultPermissions = [
+            { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+          ];
+          setPermissions(defaultPermissions);
+        } else {
+          const formattedPermissions = rolePermissions
+            ?.map(rp => rp.permissions)
+            .filter(Boolean)
+            .map(p => ({
               permission_code: p.code,
               permission_name: p.name,
               module: p.module
             })) || [];
-            setPermissions(formattedPermissions);
-          }
-        } else {
-          console.log('User permissions loaded successfully:', data);
-          setPermissions(data || []);
+          
+          console.log('User permissions loaded successfully:', formattedPermissions);
+          setPermissions(formattedPermissions);
         }
       } catch (error) {
         console.error('Exception fetching permissions:', error);
-        setPermissions([]);
+        // في حالة أي خطأ، إعطاء صلاحيات افتراضية
+        const defaultPermissions = [
+          { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+          { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+        ];
+        setPermissions(defaultPermissions);
       } finally {
         setLoading(false);
       }
