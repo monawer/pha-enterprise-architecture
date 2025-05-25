@@ -89,14 +89,16 @@ const Sidebar = () => {
     <div className="w-64 bg-gradient-to-b from-green-800 to-green-900 text-white h-screen overflow-y-auto">
       {/* Header */}
       <div className="p-6 border-b border-green-700">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-            <span className="text-green-800 font-bold text-lg">ه</span>
-          </div>
-          <div>
-            <h2 className="font-bold text-lg">البنية المؤسسية</h2>
-            <p className="text-green-300 text-sm">هيئة الصحة العامة</p>
-          </div>
+        <div className="flex items-center justify-center mb-4">
+          <img 
+            src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" 
+            alt="شعار هيئة الصحة العامة" 
+            className="h-16 w-auto"
+          />
+        </div>
+        <div className="text-center">
+          <h2 className="font-bold text-lg">البنية المؤسسية</h2>
+          <p className="text-green-300 text-sm">هيئة الصحة العامة</p>
         </div>
       </div>
 
