@@ -18,7 +18,6 @@ interface UserProfile {
   department: string | null;
   is_active: boolean;
   created_at: string;
-  roles?: string[];
 }
 
 const Users = () => {
@@ -70,10 +69,9 @@ const Users = () => {
       setError(null);
       console.log('Fetching users from database...');
       
-      // جلب ملفات المستخدمين فقط
       const { data: profilesData, error: profilesError } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select('id, full_name, department, is_active, created_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) {
@@ -82,42 +80,7 @@ const Users = () => {
       }
 
       console.log('User profiles fetched successfully:', profilesData?.length, 'users');
-
-      // جلب أدوار المستخدمين بشكل منفصل
-      const { data: userRolesData, error: userRolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role_id');
-
-      if (userRolesError) {
-        console.error('Error fetching user roles:', userRolesError);
-      }
-
-      // جلب أسماء الأدوار
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('roles')
-        .select('id, name');
-
-      if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
-      }
-
-      console.log('User roles and roles data fetched');
-
-      // دمج البيانات يدوياً
-      const usersWithRoles = (profilesData || []).map(profile => {
-        const userRoleIds = userRolesData?.filter(ur => ur.user_id === profile.id) || [];
-        const roleNames = userRoleIds.map(ur => {
-          const role = rolesData?.find(r => r.id === ur.role_id);
-          return role ? role.name : 'دور غير معروف';
-        });
-        
-        return {
-          ...profile,
-          roles: roleNames.length > 0 ? roleNames : undefined
-        };
-      });
-
-      setUsers(usersWithRoles);
+      setUsers(profilesData || []);
     } catch (error: any) {
       console.error('Exception in fetchUsers:', error);
       setError(error.message || 'حدث خطأ في تحميل بيانات المستخدمين');
@@ -129,13 +92,6 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getUserRoles = (user: UserProfile) => {
-    if (!user.roles || user.roles.length === 0) {
-      return 'لا يوجد دور';
-    }
-    return user.roles.join(', ');
   };
 
   const filteredUsers = users.filter(user =>
@@ -223,7 +179,6 @@ const Users = () => {
                 <TableRow>
                   <TableHead className="text-right">الاسم الكامل</TableHead>
                   <TableHead className="text-right">القسم</TableHead>
-                  <TableHead className="text-right">الأدوار</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">تاريخ الإنشاء</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
@@ -234,11 +189,6 @@ const Users = () => {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.full_name}</TableCell>
                     <TableCell>{user.department || 'غير محدد'}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {getUserRoles(user)}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       <Badge 
                         className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
