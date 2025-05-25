@@ -27,52 +27,9 @@ export const usePermissions = (user: User | null) => {
         console.log('Fetching permissions for user:', user.id);
         console.log('User email:', user.email);
         
-        // جلب الصلاحيات باستخدام الدالة المخصصة
-        const { data, error } = await supabase.rpc('get_user_permissions', {
-          user_uuid: user.id
-        });
-
-        if (error) {
-          console.error('Error fetching permissions:', error);
-          
-          // في حالة الخطأ، تحقق من أن المستخدم مدير النظام
-          if (user.email === 'monawer@monawer.com') {
-            console.log('User is system admin, granting all permissions');
-            // إعطاء جميع الصلاحيات لمدير النظام
-            const allPermissions = [
-              { permission_code: 'users.view', permission_name: 'عرض المستخدمين', module: 'admin' },
-              { permission_code: 'users.create', permission_name: 'إنشاء المستخدمين', module: 'admin' },
-              { permission_code: 'users.edit', permission_name: 'تعديل المستخدمين', module: 'admin' },
-              { permission_code: 'users.delete', permission_name: 'حذف المستخدمين', module: 'admin' },
-              { permission_code: 'roles.view', permission_name: 'عرض الأدوار', module: 'admin' },
-              { permission_code: 'roles.create', permission_name: 'إنشاء الأدوار', module: 'admin' },
-              { permission_code: 'roles.edit', permission_name: 'تعديل الأدوار', module: 'admin' },
-              { permission_code: 'roles.delete', permission_name: 'حذف الأدوار', module: 'admin' },
-              { permission_code: 'reports.view', permission_name: 'عرض التقارير', module: 'reports' },
-              { permission_code: 'reports.create', permission_name: 'إنشاء التقارير', module: 'reports' },
-              { permission_code: 'reports.export', permission_name: 'تصدير التقارير', module: 'reports' },
-              { permission_code: 'architecture.view', permission_name: 'عرض البنية المؤسسية', module: 'architecture' },
-              { permission_code: 'architecture.edit', permission_name: 'تعديل البنية المؤسسية', module: 'architecture' },
-              { permission_code: 'architecture.layers.manage', permission_name: 'إدارة طبقات البنية', module: 'architecture' },
-              { permission_code: 'references.view', permission_name: 'عرض جداول التعريفات', module: 'admin' },
-              { permission_code: 'references.edit', permission_name: 'تعديل جداول التعريفات', module: 'admin' },
-              { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
-              { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
-            ];
-            setPermissions(allPermissions);
-          } else {
-            setPermissions([]);
-          }
-        } else {
-          console.log('User permissions loaded successfully:', data);
-          setPermissions(data || []);
-        }
-      } catch (error) {
-        console.error('Exception fetching permissions:', error);
-        
-        // في حالة الخطأ، تحقق من أن المستخدم مدير النظام
+        // تحقق خاص لمدير النظام
         if (user.email === 'monawer@monawer.com') {
-          console.log('Exception occurred, but user is system admin, granting all permissions');
+          console.log('User is system admin, granting all permissions');
           const allPermissions = [
             { permission_code: 'users.view', permission_name: 'عرض المستخدمين', module: 'admin' },
             { permission_code: 'users.create', permission_name: 'إنشاء المستخدمين', module: 'admin' },
@@ -94,9 +51,53 @@ export const usePermissions = (user: User | null) => {
             { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
           ];
           setPermissions(allPermissions);
-        } else {
-          setPermissions([]);
+          setLoading(false);
+          return;
         }
+        
+        // جلب الصلاحيات باستخدام الدالة المخصصة
+        const { data, error } = await supabase.rpc('get_user_permissions', {
+          user_uuid: user.id
+        });
+
+        if (error) {
+          console.error('Error fetching permissions:', error);
+          // في حالة الخطأ، جرب الاستعلام المباشر
+          const { data: directData, error: directError } = await supabase
+            .from('permissions')
+            .select(`
+              code,
+              name,
+              module,
+              role_permissions!inner(
+                roles!inner(
+                  user_roles!inner(
+                    user_id
+                  )
+                )
+              )
+            `)
+            .eq('role_permissions.roles.user_roles.user_id', user.id);
+
+          if (directError) {
+            console.error('Direct query also failed:', directError);
+            setPermissions([]);
+          } else {
+            console.log('Direct query succeeded:', directData);
+            const formattedPermissions = directData?.map(p => ({
+              permission_code: p.code,
+              permission_name: p.name,
+              module: p.module
+            })) || [];
+            setPermissions(formattedPermissions);
+          }
+        } else {
+          console.log('User permissions loaded successfully:', data);
+          setPermissions(data || []);
+        }
+      } catch (error) {
+        console.error('Exception fetching permissions:', error);
+        setPermissions([]);
       } finally {
         setLoading(false);
       }

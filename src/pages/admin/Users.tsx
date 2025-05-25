@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, Users as UsersIcon } from 'lucide-react';
+import { Trash2, Edit, Plus, Users as UsersIcon, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
 
@@ -18,7 +18,11 @@ interface UserProfile {
   department: string | null;
   is_active: boolean;
   created_at: string;
-  email?: string;
+  user_roles?: {
+    roles: {
+      name: string;
+    };
+  }[];
 }
 
 const Users = () => {
@@ -28,13 +32,19 @@ const Users = () => {
   const { hasPermission, loading: permissionsLoading } = usePermissions(user);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Users page: Current user:', user?.email);
-      setUser(user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('Users page: Current user:', user?.email);
+        setUser(user);
+      } catch (error) {
+        console.error('Error getting user:', error);
+        setError('خطأ في تحميل بيانات المستخدم الحالي');
+      }
     };
     getUser();
   }, []);
@@ -52,7 +62,7 @@ const Users = () => {
         navigate('/');
         return;
       }
-      
+
       console.log('User has users.view permission, fetching users...');
       fetchUsers();
     }
@@ -61,10 +71,19 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log('Fetching users from database...');
+      
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select(`
+          *,
+          user_roles (
+            roles (
+              name
+            )
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -74,8 +93,9 @@ const Users = () => {
 
       console.log('Users fetched successfully:', data?.length, 'users');
       setUsers(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Exception in fetchUsers:', error);
+      setError(error.message || 'حدث خطأ في تحميل بيانات المستخدمين');
       toast({
         title: "خطأ",
         description: "حدث خطأ في تحميل المستخدمين",
@@ -86,37 +106,11 @@ const Users = () => {
     }
   };
 
-  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
-    if (!hasPermission('users.edit')) {
-      toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لتعديل المستخدمين",
-        variant: "destructive",
-      });
-      return;
+  const getUserRoles = (user: UserProfile) => {
+    if (!user.user_roles || user.user_roles.length === 0) {
+      return 'لا يوجد دور';
     }
-
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ is_active: !currentStatus })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم التحديث",
-        description: `تم ${!currentStatus ? 'تفعيل' : 'إلغاء تفعيل'} المستخدم بنجاح`,
-      });
-
-      fetchUsers();
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحديث حالة المستخدم",
-        variant: "destructive",
-      });
-    }
+    return user.user_roles.map(ur => ur.roles.name).join(', ');
   };
 
   const filteredUsers = users.filter(user =>
@@ -124,12 +118,40 @@ const Users = () => {
     (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (permissionsLoading || loading) {
+  if (permissionsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-green-700 text-lg">جاري التحميل...</p>
+          <Loader2 className="w-16 h-16 text-green-500 animate-spin mx-auto mb-4" />
+          <p className="text-green-700 text-lg">جاري تحميل الصلاحيات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 text-green-500 animate-spin mx-auto mb-4" />
+          <p className="text-green-700 text-lg">جاري تحميل المستخدمين...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">خطأ في تحميل البيانات</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={fetchUsers} className="bg-green-600 hover:bg-green-700">
+              إعادة المحاولة
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -168,7 +190,7 @@ const Users = () => {
         <CardContent>
           {filteredUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm ? 'لا توجد نتائج للبحث' : 'لا توجد مستخدمين في النظام'}
+              {searchTerm ? 'لا توجد نتائج للبحث' : 'لا يوجد مستخدمون في النظام'}
             </div>
           ) : (
             <Table>
@@ -176,6 +198,7 @@ const Users = () => {
                 <TableRow>
                   <TableHead className="text-right">الاسم الكامل</TableHead>
                   <TableHead className="text-right">القسم</TableHead>
+                  <TableHead className="text-right">الأدوار</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">تاريخ الإنشاء</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
@@ -187,9 +210,13 @@ const Users = () => {
                     <TableCell className="font-medium">{user.full_name}</TableCell>
                     <TableCell>{user.department || 'غير محدد'}</TableCell>
                     <TableCell>
+                      <Badge variant="outline">
+                        {getUserRoles(user)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <Badge 
-                        variant={user.is_active ? "default" : "secondary"}
-                        className={user.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                        className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
                       >
                         {user.is_active ? 'نشط' : 'غير نشط'}
                       </Badge>
@@ -200,22 +227,22 @@ const Users = () => {
                     <TableCell>
                       <div className="flex items-center space-x-2 space-x-reverse">
                         {hasPermission('users.edit') && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/admin/users/${user.id}`)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => toggleUserStatus(user.id, user.is_active)}
-                            >
-                              {user.is_active ? 'إلغاء التفعيل' : 'تفعيل'}
-                            </Button>
-                          </>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/admin/users/${user.id}`)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {hasPermission('users.delete') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => console.log('Delete user:', user.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
