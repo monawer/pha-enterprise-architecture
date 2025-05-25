@@ -11,7 +11,14 @@ import ArchitectureLayers from "./pages/ArchitectureLayers";
 import BusinessLayer from "./pages/architecture/BusinessLayer";
 import ApplicationsLayer from "./pages/architecture/ApplicationsLayer";
 import TechnologyLayer from "./pages/architecture/TechnologyLayer";
+import DataLayer from "./pages/architecture/DataLayer";
 import Services from "./pages/architecture/business/Services";
+import Procedures from "./pages/architecture/business/Procedures";
+import Policies from "./pages/architecture/business/Policies";
+import Forms from "./pages/architecture/business/Forms";
+import Capabilities from "./pages/architecture/business/Capabilities";
+import Branches from "./pages/architecture/business/Branches";
+import DataEntities from "./pages/architecture/data/DataEntities";
 import Users from "./pages/admin/Users";
 import Roles from "./pages/admin/Roles";
 import Permissions from "./pages/admin/Permissions";
@@ -56,6 +63,31 @@ const App: React.FC = () => (
               <Services />
             </MainLayout>
           } />
+          <Route path="/architecture/business/procedures" element={
+            <MainLayout>
+              <Procedures />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business/policies" element={
+            <MainLayout>
+              <Policies />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business/forms" element={
+            <MainLayout>
+              <Forms />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business/capabilities" element={
+            <MainLayout>
+              <Capabilities />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business/branches" element={
+            <MainLayout>
+              <Branches />
+            </MainLayout>
+          } />
           <Route path="/architecture/applications" element={
             <MainLayout>
               <ApplicationsLayer />
@@ -64,6 +96,16 @@ const App: React.FC = () => (
           <Route path="/architecture/technology" element={
             <MainLayout>
               <TechnologyLayer />
+            </MainLayout>
+          } />
+          <Route path="/architecture/data" element={
+            <MainLayout>
+              <DataLayer />
+            </MainLayout>
+          } />
+          <Route path="/architecture/data/entities" element={
+            <MainLayout>
+              <DataEntities />
             </MainLayout>
           } />
           <Route path="/admin/users" element={

@@ -9,7 +9,15 @@ import {
   User,
   Layers,
   Shield,
-  Key
+  Key,
+  Building,
+  Workflow,
+  ClipboardList,
+  Monitor,
+  Server,
+  HardDrive,
+  Archive,
+  Eye
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -65,12 +73,34 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       show: hasPermission('architecture.view') || !user,
       children: [
         { title: "إدارة الطبقات", path: "/architecture/layers", icon: Layers, show: hasPermission('architecture.layers.manage') || hasPermission('architecture.view') },
-        { title: "طبقة الأعمال", path: "/architecture/business", show: hasPermission('architecture.view') },
-        { title: "طبقة التطبيقات", path: "/architecture/applications", show: hasPermission('architecture.view') },
-        { title: "طبقة التقنية", path: "/architecture/technology", show: hasPermission('architecture.view') },
-        { title: "طبقة البيانات", path: "/architecture/data", show: hasPermission('architecture.view') },
-        { title: "طبقة الأمان", path: "/architecture/security", show: hasPermission('architecture.view') },
-        { title: "طبقة تجربة المستخدم", path: "/architecture/ux", show: hasPermission('architecture.view') },
+        { 
+          title: "طبقة الأعمال", 
+          path: "/architecture/business", 
+          icon: Building,
+          show: hasPermission('architecture.view'),
+          children: [
+            { title: "الخدمات", path: "/architecture/business/services", icon: Building2 },
+            { title: "الإجراءات", path: "/architecture/business/procedures", icon: Workflow },
+            { title: "السياسات", path: "/architecture/business/policies", icon: FileText },
+            { title: "النماذج", path: "/architecture/business/forms", icon: ClipboardList },
+            { title: "القدرات", path: "/architecture/business/capabilities", icon: Settings },
+            { title: "الفروع", path: "/architecture/business/branches", icon: Users }
+          ]
+        },
+        { title: "طبقة التطبيقات", path: "/architecture/applications", icon: Monitor, show: hasPermission('architecture.view') },
+        { title: "طبقة التقنية", path: "/architecture/technology", icon: Server, show: hasPermission('architecture.view') },
+        { 
+          title: "طبقة البيانات", 
+          path: "/architecture/data", 
+          icon: Database,
+          show: hasPermission('architecture.view'),
+          children: [
+            { title: "كيانات البيانات", path: "/architecture/data/entities", icon: Database },
+            { title: "تخزين البيانات", path: "/architecture/data/storage", icon: HardDrive }
+          ]
+        },
+        { title: "طبقة الأمان", path: "/architecture/security", icon: Shield, show: hasPermission('architecture.view') },
+        { title: "طبقة تجربة المستخدم", path: "/architecture/ux", icon: Eye, show: hasPermission('architecture.view') },
       ]
     },
     {

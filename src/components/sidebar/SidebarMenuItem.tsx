@@ -8,6 +8,7 @@ interface MenuChild {
   path: string;
   icon?: LucideIcon;
   show?: boolean;
+  children?: MenuChild[];
 }
 
 interface SidebarMenuItemProps {
@@ -16,9 +17,10 @@ interface SidebarMenuItemProps {
   path?: string;
   children?: MenuChild[];
   show?: boolean;
+  level?: number;
 }
 
-const SidebarMenuItem = ({ title, icon: Icon, path, children, show }: SidebarMenuItemProps) => {
+const SidebarMenuItem = ({ title, icon: Icon, path, children, show, level = 0 }: SidebarMenuItemProps) => {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -32,15 +34,17 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show }: SidebarMen
     setIsExpanded(prev => !prev);
   };
 
+  const marginClass = level === 0 ? "" : level === 1 ? "mr-6" : "mr-12";
+
   if (children && children.length > 0) {
     const visibleChildren = children.filter(child => child.show !== false);
     
-    if (visibleChildren.length === 0) {
+    if (visibleChildren.length === 0 && level > 0) {
       return null;
     }
 
     return (
-      <div>
+      <div className={marginClass}>
         <button
           onClick={toggleExpanded}
           className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-green-700 transition-colors"
@@ -56,18 +60,17 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show }: SidebarMen
           )}
         </button>
         {isExpanded && (
-          <div className="mr-6 mt-2 space-y-1">
+          <div className="mt-2 space-y-1">
             {visibleChildren.map((child) => (
-              <Link
+              <SidebarMenuItem
                 key={child.path}
-                to={child.path}
-                className={`flex items-center space-x-2 space-x-reverse p-2 rounded-md text-sm hover:bg-green-700 transition-colors ${
-                  isActive(child.path) ? "bg-green-600" : ""
-                }`}
-              >
-                {child.icon && <child.icon className="w-4 h-4" />}
-                <span>{child.title}</span>
-              </Link>
+                title={child.title}
+                icon={child.icon || Icon}
+                path={child.path}
+                children={child.children}
+                show={child.show}
+                level={level + 1}
+              />
             ))}
           </div>
         )}
@@ -77,15 +80,17 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show }: SidebarMen
 
   if (path) {
     return (
-      <Link
-        to={path}
-        className={`flex items-center space-x-3 space-x-reverse p-3 rounded-lg hover:bg-green-700 transition-colors ${
-          isActive(path) ? "bg-green-600" : ""
-        }`}
-      >
-        <Icon className="w-5 h-5" />
-        <span className="font-medium">{title}</span>
-      </Link>
+      <div className={marginClass}>
+        <Link
+          to={path}
+          className={`flex items-center space-x-3 space-x-reverse p-3 rounded-lg hover:bg-green-700 transition-colors ${
+            isActive(path) ? "bg-green-600" : ""
+          }`}
+        >
+          <Icon className="w-5 h-5" />
+          <span className="font-medium">{title}</span>
+        </Link>
+      </div>
     );
   }
 
