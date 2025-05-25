@@ -17,7 +17,8 @@ import {
   Server,
   HardDrive,
   Archive,
-  Eye
+  Eye,
+  Network
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -88,7 +89,17 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
           ]
         },
         { title: "طبقة التطبيقات", path: "/architecture/applications", icon: Monitor, show: hasPermission('architecture.view') },
-        { title: "طبقة التقنية", path: "/architecture/technology", icon: Server, show: hasPermission('architecture.view') },
+        { 
+          title: "طبقة التقنية", 
+          path: "/architecture/technology", 
+          icon: Server, 
+          show: hasPermission('architecture.view'),
+          children: [
+            { title: "الخوادم المادية", path: "/architecture/technology/physical-servers", icon: Server },
+            { title: "الخوادم الافتراضية", path: "/architecture/technology/virtual-servers", icon: HardDrive },
+            { title: "أجهزة الشبكة", path: "/architecture/technology/network-devices", icon: Network }
+          ]
+        },
         { 
           title: "طبقة البيانات", 
           path: "/architecture/data", 
@@ -99,8 +110,21 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
             { title: "تخزين البيانات", path: "/architecture/data/storage", icon: HardDrive }
           ]
         },
-        { title: "طبقة الأمان", path: "/architecture/security", icon: Shield, show: hasPermission('architecture.view') },
-        { title: "طبقة تجربة المستخدم", path: "/architecture/ux", icon: Eye, show: hasPermission('architecture.view') },
+        { 
+          title: "طبقة الأمان", 
+          path: "/architecture/security", 
+          icon: Shield, 
+          show: hasPermission('architecture.view'),
+          children: [
+            { title: "أجهزة الأمان", path: "/architecture/security/devices", icon: Shield }
+          ]
+        },
+        { 
+          title: "طبقة تجربة المستخدم", 
+          path: "/architecture/ux", 
+          icon: Eye, 
+          show: hasPermission('architecture.view')
+        },
       ]
     },
     {

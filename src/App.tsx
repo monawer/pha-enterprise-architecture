@@ -12,6 +12,8 @@ import BusinessLayer from "./pages/architecture/BusinessLayer";
 import ApplicationsLayer from "./pages/architecture/ApplicationsLayer";
 import TechnologyLayer from "./pages/architecture/TechnologyLayer";
 import DataLayer from "./pages/architecture/DataLayer";
+import SecurityLayer from "./pages/architecture/SecurityLayer";
+import UXLayer from "./pages/architecture/UXLayer";
 import Services from "./pages/architecture/business/Services";
 import Procedures from "./pages/architecture/business/Procedures";
 import Policies from "./pages/architecture/business/Policies";
@@ -19,6 +21,11 @@ import Forms from "./pages/architecture/business/Forms";
 import Capabilities from "./pages/architecture/business/Capabilities";
 import Branches from "./pages/architecture/business/Branches";
 import DataEntities from "./pages/architecture/data/DataEntities";
+import DataStorage from "./pages/architecture/data/DataStorage";
+import PhysicalServers from "./pages/architecture/technology/PhysicalServers";
+import VirtualServers from "./pages/architecture/technology/VirtualServers";
+import NetworkDevices from "./pages/architecture/technology/NetworkDevices";
+import SecurityDevices from "./pages/architecture/security/SecurityDevices";
 import Users from "./pages/admin/Users";
 import Roles from "./pages/admin/Roles";
 import Permissions from "./pages/admin/Permissions";
@@ -98,6 +105,21 @@ const App: React.FC = () => (
               <TechnologyLayer />
             </MainLayout>
           } />
+          <Route path="/architecture/technology/physical-servers" element={
+            <MainLayout>
+              <PhysicalServers />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology/virtual-servers" element={
+            <MainLayout>
+              <VirtualServers />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology/network-devices" element={
+            <MainLayout>
+              <NetworkDevices />
+            </MainLayout>
+          } />
           <Route path="/architecture/data" element={
             <MainLayout>
               <DataLayer />
@@ -106,6 +128,26 @@ const App: React.FC = () => (
           <Route path="/architecture/data/entities" element={
             <MainLayout>
               <DataEntities />
+            </MainLayout>
+          } />
+          <Route path="/architecture/data/storage" element={
+            <MainLayout>
+              <DataStorage />
+            </MainLayout>
+          } />
+          <Route path="/architecture/security" element={
+            <MainLayout>
+              <SecurityLayer />
+            </MainLayout>
+          } />
+          <Route path="/architecture/security/devices" element={
+            <MainLayout>
+              <SecurityDevices />
+            </MainLayout>
+          } />
+          <Route path="/architecture/ux" element={
+            <MainLayout>
+              <UXLayer />
             </MainLayout>
           } />
           <Route path="/admin/users" element={

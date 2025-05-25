@@ -4,59 +4,35 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
+  Shield, 
   Server, 
-  HardDrive, 
-  Network,
-  Database,
-  Shield,
-  Key
+  Settings
 } from 'lucide-react';
 
-const TechnologyLayer = () => {
+const SecurityLayer = () => {
   const navigate = useNavigate();
 
-  const technologyComponents = [
+  const securityComponents = [
     {
-      title: 'الخوادم المادية',
-      description: 'إدارة الخوادم المادية والبنية التحتية',
-      icon: Server,
-      path: '/architecture/technology/physical-servers',
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'الخوادم الافتراضية',
-      description: 'إدارة الخوادم الافتراضية والحاويات',
-      icon: HardDrive,
-      path: '/architecture/technology/virtual-servers',
-      color: 'bg-green-500'
-    },
-    {
-      title: 'أجهزة الشبكة',
-      description: 'إدارة أجهزة الشبكة والاتصالات',
-      icon: Network,
-      path: '/architecture/technology/network-devices',
-      color: 'bg-purple-500'
-    },
-    {
-      title: 'الشبكات',
-      description: 'إدارة الشبكات والاتصالات',
-      icon: Network,
-      path: '/architecture/technology/networks',
-      color: 'bg-orange-500'
-    },
-    {
-      title: 'مراكز البيانات',
-      description: 'إدارة مراكز البيانات والمواقع',
-      icon: Database,
-      path: '/architecture/technology/data-centers',
+      title: 'أجهزة الأمان',
+      description: 'إدارة أجهزة الأمان والحماية',
+      icon: Shield,
+      path: '/architecture/security/devices',
       color: 'bg-red-500'
     },
     {
-      title: 'التراخيص',
-      description: 'إدارة التراخيص والاشتراكات',
-      icon: Key,
-      path: '/architecture/technology/licenses',
-      color: 'bg-indigo-500'
+      title: 'خدمات الأمان',
+      description: 'إدارة خدمات الأمان السيبراني',
+      icon: Server,
+      path: '/architecture/security/services',
+      color: 'bg-orange-500'
+    },
+    {
+      title: 'برامج الأمان',
+      description: 'إدارة برامج الحماية والأمان',
+      icon: Settings,
+      path: '/architecture/security/software',
+      color: 'bg-purple-500'
     }
   ];
 
@@ -64,15 +40,15 @@ const TechnologyLayer = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">طبقة التقنية</h1>
+          <h1 className="text-3xl font-bold text-gray-900">طبقة الأمان</h1>
           <p className="text-gray-600 mt-2">
-            إدارة مكونات طبقة التقنية في البنية المؤسسية
+            إدارة مكونات طبقة الأمان في البنية المؤسسية
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {technologyComponents.map((component) => {
+        {securityComponents.map((component) => {
           const Icon = component.icon;
           return (
             <Card 
@@ -109,4 +85,4 @@ const TechnologyLayer = () => {
   );
 };
 
-export default TechnologyLayer;
+export default SecurityLayer;
