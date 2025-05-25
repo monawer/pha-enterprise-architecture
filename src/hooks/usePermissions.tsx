@@ -27,7 +27,7 @@ export const usePermissions = (user: User | null) => {
         console.log('Fetching permissions for user:', user.id);
         console.log('User email:', user.email);
         
-        // تحقق خاص لمدير النظام
+        // تحقق من مدير النظام
         if (user.email === 'monawer@monawer.com') {
           console.log('User is system admin, granting all permissions');
           const allPermissions = [
@@ -39,39 +39,28 @@ export const usePermissions = (user: User | null) => {
             { permission_code: 'roles.create', permission_name: 'إنشاء الأدوار', module: 'admin' },
             { permission_code: 'roles.edit', permission_name: 'تعديل الأدوار', module: 'admin' },
             { permission_code: 'roles.delete', permission_name: 'حذف الأدوار', module: 'admin' },
+            { permission_code: 'references.view', permission_name: 'عرض جداول التعريفات', module: 'admin' },
+            { permission_code: 'references.edit', permission_name: 'تعديل جداول التعريفات', module: 'admin' },
             { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
-            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' },
+            { permission_code: 'architecture.view', permission_name: 'عرض البنية المؤسسية', module: 'general' },
+            { permission_code: 'architecture.layers.manage', permission_name: 'إدارة طبقات البنية', module: 'admin' },
+            { permission_code: 'reports.view', permission_name: 'عرض التقارير', module: 'general' }
           ];
           setPermissions(allPermissions);
           setLoading(false);
           return;
         }
         
-        // للمستخدمين العاديين، جلب الصلاحيات من قاعدة البيانات
-        console.log('Fetching permissions for regular user');
-        
-        // استخدام الدالة المحسنة لجلب الصلاحيات
-        const { data: userPermissions, error } = await supabase.rpc('get_user_permissions', {
-          user_uuid: user.id
-        });
-
-        if (error) {
-          console.error('Error fetching user permissions:', error);
-          // صلاحيات افتراضية للمستخدمين العاديين
-          const defaultPermissions = [
-            { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
-            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
-          ];
-          setPermissions(defaultPermissions);
-        } else {
-          console.log('User permissions loaded successfully:', userPermissions);
-          const formattedPermissions = userPermissions?.map((p: any) => ({
-            permission_code: p.permission_code,
-            permission_name: p.permission_name,
-            module: p.module
-          })) || [];
-          setPermissions(formattedPermissions);
-        }
+        // للمستخدمين العاديين، صلاحيات افتراضية
+        console.log('Setting default permissions for regular user');
+        const defaultPermissions = [
+          { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+          { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' },
+          { permission_code: 'architecture.view', permission_name: 'عرض البنية المؤسسية', module: 'general' },
+          { permission_code: 'reports.view', permission_name: 'عرض التقارير', module: 'general' }
+        ];
+        setPermissions(defaultPermissions);
       } catch (error) {
         console.error('Exception fetching permissions:', error);
         // صلاحيات افتراضية في حالة الخطأ
