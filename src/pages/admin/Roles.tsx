@@ -32,23 +32,27 @@ const Roles = () => {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Roles page: Current user:', user?.email);
       setUser(user);
     };
     getUser();
   }, []);
 
   useEffect(() => {
-    if (!permissionsLoading && user && !hasPermission('roles.view')) {
-      toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لعرض هذه الصفحة",
-        variant: "destructive",
-      });
-      navigate('/');
-      return;
-    }
+    if (!permissionsLoading && user) {
+      console.log('Checking permissions for Roles page...');
+      if (!hasPermission('roles.view')) {
+        console.log('User does not have roles.view permission');
+        toast({
+          title: "غير مسموح",
+          description: "ليس لديك صلاحية لعرض هذه الصفحة",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
 
-    if (user && hasPermission('roles.view')) {
+      console.log('User has roles.view permission, fetching roles...');
       fetchRoles();
     }
   }, [user, hasPermission, permissionsLoading, navigate, toast]);
@@ -56,17 +60,21 @@ const Roles = () => {
   const fetchRoles = async () => {
     try {
       setLoading(true);
+      console.log('Fetching roles from database...');
       const { data, error } = await supabase
         .from('roles')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching roles:', error);
         throw error;
       }
 
+      console.log('Roles fetched successfully:', data?.length, 'roles');
       setRoles(data || []);
     } catch (error) {
+      console.error('Exception in fetchRoles:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في تحميل الأدوار",
@@ -161,7 +169,7 @@ const Roles = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة الأدوار</CardTitle>
+          <CardTitle>قائمة الأدوار ({filteredRoles.length})</CardTitle>
           <div className="flex items-center space-x-2 space-x-reverse">
             <Input
               placeholder="البحث في الأدوار..."
@@ -172,49 +180,55 @@ const Roles = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">اسم الدور</TableHead>
-                <TableHead className="text-right">الوصف</TableHead>
-                <TableHead className="text-right">تاريخ الإنشاء</TableHead>
-                <TableHead className="text-right">الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRoles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell className="font-medium">{role.name}</TableCell>
-                  <TableCell>{role.description || 'لا يوجد وصف'}</TableCell>
-                  <TableCell>
-                    {new Date(role.created_at).toLocaleDateString('ar-SA')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      {hasPermission('roles.edit') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/admin/roles/${role.id}`)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      )}
-                      {hasPermission('roles.delete') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteRole(role.id, role.name)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+          {filteredRoles.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              {searchTerm ? 'لا توجد نتائج للبحث' : 'لا توجد أدوار في النظام'}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">اسم الدور</TableHead>
+                  <TableHead className="text-right">الوصف</TableHead>
+                  <TableHead className="text-right">تاريخ الإنشاء</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredRoles.map((role) => (
+                  <TableRow key={role.id}>
+                    <TableCell className="font-medium">{role.name}</TableCell>
+                    <TableCell>{role.description || 'لا يوجد وصف'}</TableCell>
+                    <TableCell>
+                      {new Date(role.created_at).toLocaleDateString('ar-SA')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        {hasPermission('roles.edit') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/admin/roles/${role.id}`)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {hasPermission('roles.delete') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteRole(role.id, role.name)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

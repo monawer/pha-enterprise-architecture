@@ -35,23 +35,27 @@ const Permissions = () => {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Permissions page: Current user:', user?.email);
       setUser(user);
     };
     getUser();
   }, []);
 
   useEffect(() => {
-    if (!permissionsLoading && user && !hasPermission('roles.view')) {
-      toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لعرض هذه الصفحة",
-        variant: "destructive",
-      });
-      navigate('/');
-      return;
-    }
+    if (!permissionsLoading && user) {
+      console.log('Checking permissions for Permissions page...');
+      if (!hasPermission('roles.view')) {
+        console.log('User does not have roles.view permission');
+        toast({
+          title: "غير مسموح",
+          description: "ليس لديك صلاحية لعرض هذه الصفحة",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
 
-    if (user && hasPermission('roles.view')) {
+      console.log('User has roles.view permission, fetching permissions...');
       fetchPermissions();
     }
   }, [user, hasPermission, permissionsLoading, navigate, toast]);
@@ -59,6 +63,7 @@ const Permissions = () => {
   const fetchPermissions = async () => {
     try {
       setLoading(true);
+      console.log('Fetching permissions from database...');
       const { data, error } = await supabase
         .from('permissions')
         .select('*')
@@ -66,11 +71,14 @@ const Permissions = () => {
         .order('name', { ascending: true });
 
       if (error) {
+        console.error('Error fetching permissions:', error);
         throw error;
       }
 
+      console.log('Permissions fetched successfully:', data?.length, 'permissions');
       setPermissions(data || []);
     } catch (error) {
+      console.error('Exception in fetchPermissions:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في تحميل الصلاحيات",
@@ -125,7 +133,7 @@ const Permissions = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة الصلاحيات</CardTitle>
+          <CardTitle>قائمة الصلاحيات ({filteredPermissions.length})</CardTitle>
           <div className="flex items-center space-x-4 space-x-reverse">
             <Input
               placeholder="البحث في الصلاحيات..."
@@ -149,34 +157,40 @@ const Permissions = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">اسم الصلاحية</TableHead>
-                <TableHead className="text-right">الكود</TableHead>
-                <TableHead className="text-right">الوصف</TableHead>
-                <TableHead className="text-right">الوحدة</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPermissions.map((permission) => (
-                <TableRow key={permission.id}>
-                  <TableCell className="font-medium">{permission.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {permission.code}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{permission.description || 'لا يوجد وصف'}</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-100 text-green-800">
-                      {getModuleLabel(permission.module)}
-                    </Badge>
-                  </TableCell>
+          {filteredPermissions.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              {searchTerm || selectedModule !== 'all' ? 'لا توجد نتائج للبحث' : 'لا توجد صلاحيات في النظام'}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">اسم الصلاحية</TableHead>
+                  <TableHead className="text-right">الكود</TableHead>
+                  <TableHead className="text-right">الوصف</TableHead>
+                  <TableHead className="text-right">الوحدة</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredPermissions.map((permission) => (
+                  <TableRow key={permission.id}>
+                    <TableCell className="font-medium">{permission.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {permission.code}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{permission.description || 'لا يوجد وصف'}</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-100 text-green-800">
+                        {getModuleLabel(permission.module)}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

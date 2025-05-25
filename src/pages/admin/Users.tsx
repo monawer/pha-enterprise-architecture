@@ -33,23 +33,27 @@ const Users = () => {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Users page: Current user:', user?.email);
       setUser(user);
     };
     getUser();
   }, []);
 
   useEffect(() => {
-    if (!permissionsLoading && user && !hasPermission('users.view')) {
-      toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لعرض هذه الصفحة",
-        variant: "destructive",
-      });
-      navigate('/');
-      return;
-    }
-
-    if (user && hasPermission('users.view')) {
+    if (!permissionsLoading && user) {
+      console.log('Checking permissions for Users page...');
+      if (!hasPermission('users.view')) {
+        console.log('User does not have users.view permission');
+        toast({
+          title: "غير مسموح",
+          description: "ليس لديك صلاحية لعرض هذه الصفحة",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+      
+      console.log('User has users.view permission, fetching users...');
       fetchUsers();
     }
   }, [user, hasPermission, permissionsLoading, navigate, toast]);
@@ -57,17 +61,21 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('Fetching users from database...');
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching users:', error);
         throw error;
       }
 
+      console.log('Users fetched successfully:', data?.length, 'users');
       setUsers(data || []);
     } catch (error) {
+      console.error('Exception in fetchUsers:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في تحميل المستخدمين",
@@ -147,7 +155,7 @@ const Users = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة المستخدمين</CardTitle>
+          <CardTitle>قائمة المستخدمين ({filteredUsers.length})</CardTitle>
           <div className="flex items-center space-x-2 space-x-reverse">
             <Input
               placeholder="البحث في المستخدمين..."
@@ -158,58 +166,64 @@ const Users = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">الاسم الكامل</TableHead>
-                <TableHead className="text-right">القسم</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-                <TableHead className="text-right">تاريخ الإنشاء</TableHead>
-                <TableHead className="text-right">الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.full_name}</TableCell>
-                  <TableCell>{user.department || 'غير محدد'}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={user.is_active ? "default" : "secondary"}
-                      className={user.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-                    >
-                      {user.is_active ? 'نشط' : 'غير نشط'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.created_at).toLocaleDateString('ar-SA')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      {hasPermission('users.edit') && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/admin/users/${user.id}`)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleUserStatus(user.id, user.is_active)}
-                          >
-                            {user.is_active ? 'إلغاء التفعيل' : 'تفعيل'}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
+          {filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              {searchTerm ? 'لا توجد نتائج للبحث' : 'لا توجد مستخدمين في النظام'}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">الاسم الكامل</TableHead>
+                  <TableHead className="text-right">القسم</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                  <TableHead className="text-right">تاريخ الإنشاء</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableCell>{user.department || 'غير محدد'}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={user.is_active ? "default" : "secondary"}
+                        className={user.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                      >
+                        {user.is_active ? 'نشط' : 'غير نشط'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        {hasPermission('users.edit') && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/admin/users/${user.id}`)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleUserStatus(user.id, user.is_active)}
+                            >
+                              {user.is_active ? 'إلغاء التفعيل' : 'تفعيل'}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
