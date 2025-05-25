@@ -8,6 +8,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ArchitectureLayers from "./pages/ArchitectureLayers";
+import BusinessLayer from "./pages/architecture/BusinessLayer";
+import ApplicationsLayer from "./pages/architecture/ApplicationsLayer";
+import TechnologyLayer from "./pages/architecture/TechnologyLayer";
+import Services from "./pages/architecture/business/Services";
 import Users from "./pages/admin/Users";
 import Roles from "./pages/admin/Roles";
 import Permissions from "./pages/admin/Permissions";
@@ -40,6 +44,26 @@ const App: React.FC = () => (
           <Route path="/architecture/layers" element={
             <MainLayout>
               <ArchitectureLayers />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business" element={
+            <MainLayout>
+              <BusinessLayer />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business/services" element={
+            <MainLayout>
+              <Services />
+            </MainLayout>
+          } />
+          <Route path="/architecture/applications" element={
+            <MainLayout>
+              <ApplicationsLayer />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology" element={
+            <MainLayout>
+              <TechnologyLayer />
             </MainLayout>
           } />
           <Route path="/admin/users" element={
