@@ -1,34 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Settings, 
-  FileText, 
-  LogOut,
-  ChevronDown,
-  ChevronRight,
-  Users,
-  Database,
-  User,
-  Layers,
-  Shield,
-  Key
-} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/usePermissions";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import SidebarHeader from "./sidebar/SidebarHeader";
+import SidebarNavigation from "./sidebar/SidebarNavigation";
+import SidebarLogout from "./sidebar/SidebarLogout";
 
 const Sidebar = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const { hasPermission, loading: permissionsLoading } = usePermissions(user);
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const { loading: permissionsLoading } = usePermissions(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -39,114 +20,10 @@ const Sidebar = () => {
     getUser();
   }, []);
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => 
-      prev.includes(section) 
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
-    );
-  };
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "تم تسجيل الخروج بنجاح",
-        description: "نراك قريباً",
-      });
-      navigate("/auth");
-    } catch (error) {
-      toast({
-        title: "خطأ في تسجيل الخروج",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const isActive = (path: string) => location.pathname === path;
-
-  // Build admin children based on permissions
-  const getAdminChildren = () => {
-    const children = [];
-    
-    console.log('Building admin menu. User:', user?.email);
-    console.log('Permissions loading:', permissionsLoading);
-    
-    if (hasPermission('users.view')) {
-      console.log('Adding users menu item');
-      children.push({ title: "إدارة المستخدمين", path: "/admin/users", icon: Users });
-    }
-    
-    if (hasPermission('roles.view')) {
-      console.log('Adding roles and permissions menu items');
-      children.push({ title: "الصلاحيات والأدوار", path: "/admin/roles", icon: Shield });
-      children.push({ title: "عرض الأذونات", path: "/admin/permissions", icon: Key });
-    }
-    
-    if (hasPermission('references.view')) {
-      console.log('Adding references menu item');
-      children.push({ title: "جداول التعريفات", path: "/admin/references", icon: Database });
-    }
-    
-    // Always show profile edit
-    children.push({ title: "تعديل بيانات المستخدم", path: "/profile", icon: User });
-    
-    console.log('Admin menu children:', children.length);
-    return children;
-  };
-
-  const menuItems = [
-    {
-      title: "لوحة المعلومات",
-      icon: LayoutDashboard,
-      path: "/",
-      show: hasPermission('dashboard.view') || !user
-    },
-    {
-      title: "البنية المؤسسية",
-      icon: Building2,
-      path: "/architecture",
-      show: hasPermission('architecture.view') || !user,
-      children: [
-        { title: "إدارة الطبقات", path: "/architecture/layers", icon: Layers, show: hasPermission('architecture.layers.manage') || hasPermission('architecture.view') },
-        { title: "طبقة الأعمال", path: "/architecture/business", show: hasPermission('architecture.view') },
-        { title: "طبقة التطبيقات", path: "/architecture/applications", show: hasPermission('architecture.view') },
-        { title: "طبقة التقنية", path: "/architecture/technology", show: hasPermission('architecture.view') },
-        { title: "طبقة البيانات", path: "/architecture/data", show: hasPermission('architecture.view') },
-        { title: "طبقة الأمان", path: "/architecture/security", show: hasPermission('architecture.view') },
-        { title: "طبقة تجربة المستخدم", path: "/architecture/ux", show: hasPermission('architecture.view') },
-      ]
-    },
-    {
-      title: "التقارير",
-      icon: FileText,
-      path: "/reports",
-      show: hasPermission('reports.view') || !user
-    },
-    {
-      title: "إعدادات النظام",
-      icon: Settings,
-      children: getAdminChildren(),
-      show: getAdminChildren().length > 1
-    }
-  ];
-
   if (permissionsLoading) {
     return (
       <div className="w-64 bg-gradient-to-b from-green-800 to-green-900 text-white h-screen overflow-y-auto">
-        <div className="p-6 border-b border-green-700">
-          <div className="flex items-center justify-center mb-4">
-            <img 
-              src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" 
-              alt="شعار هيئة الصحة العامة" 
-              className="h-16 w-auto"
-            />
-          </div>
-          <div className="text-center">
-            <h2 className="font-bold text-lg">البنية المؤسسية</h2>
-            <p className="text-green-300 text-sm">هيئة الصحة العامة</p>
-          </div>
-        </div>
+        <SidebarHeader user={user} />
         <div className="p-4">
           <div className="w-8 h-8 border-2 border-green-300 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-center mt-2 text-sm">جاري تحميل الصلاحيات...</p>
@@ -157,94 +34,9 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-gradient-to-b from-green-800 to-green-900 text-white h-screen overflow-y-auto">
-      {/* Header */}
-      <div className="p-6 border-b border-green-700">
-        <div className="flex items-center justify-center mb-4">
-          <img 
-            src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" 
-            alt="شعار هيئة الصحة العامة" 
-            className="h-16 w-auto"
-          />
-        </div>
-        <div className="text-center">
-          <h2 className="font-bold text-lg">البنية المؤسسية</h2>
-          <p className="text-green-300 text-sm">هيئة الصحة العامة</p>
-          {user && (
-            <p className="text-green-200 text-xs mt-1">{user.email}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="p-4 space-y-2">
-        {menuItems.map((item) => {
-          // Hide items that don't have permission
-          if (item.show === false) {
-            console.log(`Hiding menu item: ${item.title}`);
-            return null;
-          }
-          
-          return (
-            <div key={item.title}>
-              {item.children ? (
-                <div>
-                  <button
-                    onClick={() => toggleSection(item.title)}
-                    className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3 space-x-reverse">
-                      <item.icon className="w-5 h-5" />
-                      <span className="font-medium">{item.title}</span>
-                    </div>
-                    {expandedSections.includes(item.title) ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-                  {expandedSections.includes(item.title) && (
-                    <div className="mr-6 mt-2 space-y-1">
-                      {item.children.filter(child => child.show !== false).map((child) => (
-                        <Link
-                          key={child.path}
-                          to={child.path}
-                          className={`flex items-center space-x-2 space-x-reverse p-2 rounded-md text-sm hover:bg-green-700 transition-colors ${
-                            isActive(child.path) ? "bg-green-600" : ""
-                          }`}
-                        >
-                          {child.icon && <child.icon className="w-4 h-4" />}
-                          <span>{child.title}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  to={item.path}
-                  className={`flex items-center space-x-3 space-x-reverse p-3 rounded-lg hover:bg-green-700 transition-colors ${
-                    isActive(item.path) ? "bg-green-600" : ""
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.title}</span>
-                </Link>
-              )}
-            </div>
-          );
-        })}
-      </nav>
-
-      {/* Logout Button */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center space-x-3 space-x-reverse p-3 rounded-lg hover:bg-red-600 transition-colors bg-red-500"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">تسجيل الخروج</span>
-        </button>
-      </div>
+      <SidebarHeader user={user} />
+      <SidebarNavigation user={user} />
+      <SidebarLogout />
     </div>
   );
 };
