@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Users,
   Database,
-  User
+  User,
+  Layers
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +61,7 @@ const Sidebar = () => {
       icon: Building2,
       path: "/architecture",
       children: [
+        { title: "إدارة الطبقات", path: "/architecture/layers", icon: Layers },
         { title: "طبقة الأعمال", path: "/architecture/business" },
         { title: "طبقة التطبيقات", path: "/architecture/applications" },
         { title: "طبقة التقنية", path: "/architecture/technology" },
@@ -128,11 +130,12 @@ const Sidebar = () => {
                       <Link
                         key={child.path}
                         to={child.path}
-                        className={`block p-2 rounded-md text-sm hover:bg-green-700 transition-colors ${
+                        className={`flex items-center space-x-2 space-x-reverse p-2 rounded-md text-sm hover:bg-green-700 transition-colors ${
                           isActive(child.path) ? "bg-green-600" : ""
                         }`}
                       >
-                        {child.title}
+                        {child.icon && <child.icon className="w-4 h-4" />}
+                        <span>{child.title}</span>
                       </Link>
                     ))}
                   </div>

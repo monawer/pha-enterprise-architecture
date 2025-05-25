@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import ArchitectureLayers from "./pages/ArchitectureLayers";
 import MainLayout from "./components/layout/MainLayout";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,11 @@ const App: React.FC = () => (
           <Route path="/" element={
             <MainLayout>
               <Dashboard />
+            </MainLayout>
+          } />
+          <Route path="/architecture/layers" element={
+            <MainLayout>
+              <ArchitectureLayers />
             </MainLayout>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
