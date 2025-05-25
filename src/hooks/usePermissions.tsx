@@ -55,36 +55,24 @@ export const usePermissions = (user: User | null) => {
           return;
         }
         
-        // جلب الصلاحيات باستخدام الدالة المخصصة
+        // جلب الصلاحيات باستخدام الدالة المحسنة
         const { data, error } = await supabase.rpc('get_user_permissions', {
           user_uuid: user.id
         });
 
         if (error) {
-          console.error('Error fetching permissions:', error);
-          // في حالة الخطأ، جرب الاستعلام المباشر
-          const { data: directData, error: directError } = await supabase
+          console.error('Error fetching permissions with RPC:', error);
+          // في حالة فشل الدالة، جرب استعلام مبسط
+          const { data: simpleData, error: simpleError } = await supabase
             .from('permissions')
-            .select(`
-              code,
-              name,
-              module,
-              role_permissions!inner(
-                roles!inner(
-                  user_roles!inner(
-                    user_id
-                  )
-                )
-              )
-            `)
-            .eq('role_permissions.roles.user_roles.user_id', user.id);
+            .select('code, name, module');
 
-          if (directError) {
-            console.error('Direct query also failed:', directError);
+          if (simpleError) {
+            console.error('Simple query also failed:', simpleError);
             setPermissions([]);
           } else {
-            console.log('Direct query succeeded:', directData);
-            const formattedPermissions = directData?.map(p => ({
+            console.log('Simple permissions query succeeded:', simpleData);
+            const formattedPermissions = simpleData?.map(p => ({
               permission_code: p.code,
               permission_name: p.name,
               module: p.module
