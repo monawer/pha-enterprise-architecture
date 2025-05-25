@@ -22,7 +22,7 @@ interface UserProfile {
     roles: {
       name: string;
     };
-  }[];
+  }[] | null;
 }
 
 const Users = () => {
@@ -74,25 +74,55 @@ const Users = () => {
       setError(null);
       console.log('Fetching users from database...');
       
-      const { data, error } = await supabase
+      // First fetch user profiles without roles to avoid relation errors
+      const { data: profilesData, error: profilesError } = await supabase
         .from('user_profiles')
-        .select(`
-          *,
-          user_roles (
-            roles (
-              name
-            )
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching users:', error);
-        throw error;
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+        throw profilesError;
       }
 
-      console.log('Users fetched successfully:', data?.length, 'users');
-      setUsers(data || []);
+      console.log('User profiles fetched successfully:', profilesData?.length, 'users');
+
+      // Then fetch roles separately for each user
+      const usersWithRoles = await Promise.all(
+        (profilesData || []).map(async (profile) => {
+          try {
+            const { data: rolesData, error: rolesError } = await supabase
+              .from('user_roles')
+              .select(`
+                roles (
+                  name
+                )
+              `)
+              .eq('user_id', profile.id);
+
+            if (rolesError) {
+              console.error('Error fetching roles for user:', profile.id, rolesError);
+              return {
+                ...profile,
+                user_roles: null
+              };
+            }
+
+            return {
+              ...profile,
+              user_roles: rolesData || null
+            };
+          } catch (error) {
+            console.error('Exception fetching roles for user:', profile.id, error);
+            return {
+              ...profile,
+              user_roles: null
+            };
+          }
+        })
+      );
+
+      setUsers(usersWithRoles);
     } catch (error: any) {
       console.error('Exception in fetchUsers:', error);
       setError(error.message || 'حدث خطأ في تحميل بيانات المستخدمين');
