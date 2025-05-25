@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Key, Filter, AlertCircle, Loader2 } from 'lucide-react';
+import { Key, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -75,44 +75,11 @@ const Permissions = () => {
 
       if (error) {
         console.error('Error fetching permissions:', error);
-        
-        // في حالة فشل الاستعلام، أنشئ بيانات افتراضية للمدير
-        if (user?.email === 'monawer@monawer.com') {
-          console.log('Admin fallback: creating mock permissions data');
-          const mockPermissions = [
-            {
-              id: '1',
-              code: 'users.view',
-              name: 'عرض المستخدمين',
-              description: 'إمكانية عرض قائمة المستخدمين',
-              module: 'admin',
-              created_at: new Date().toISOString()
-            },
-            {
-              id: '2',
-              code: 'roles.view',
-              name: 'عرض الأدوار',
-              description: 'إمكانية عرض قائمة الأدوار',
-              module: 'admin',
-              created_at: new Date().toISOString()
-            },
-            {
-              id: '3',
-              code: 'dashboard.view',
-              name: 'عرض لوحة المعلومات',
-              description: 'إمكانية الوصول للوحة المعلومات',
-              module: 'general',
-              created_at: new Date().toISOString()
-            }
-          ];
-          setPermissions(mockPermissions);
-        } else {
-          throw error;
-        }
-      } else {
-        console.log('Permissions fetched successfully:', data?.length, 'permissions');
-        setPermissions(data || []);
+        throw error;
       }
+
+      console.log('Permissions fetched successfully:', data?.length, 'permissions');
+      setPermissions(data || []);
     } catch (error: any) {
       console.error('Exception in fetchPermissions:', error);
       setError(error.message || 'حدث خطأ في تحميل الصلاحيات');
@@ -128,9 +95,7 @@ const Permissions = () => {
 
   const getModuleLabel = (module: string) => {
     const moduleLabels: { [key: string]: string } = {
-      'architecture': 'البنية المؤسسية',
       'admin': 'الإدارة',
-      'reports': 'التقارير',
       'general': 'عام'
     };
     return moduleLabels[module] || module;

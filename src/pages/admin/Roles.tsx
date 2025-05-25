@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Plus, Shield, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
@@ -71,34 +70,11 @@ const Roles = () => {
 
       if (error) {
         console.error('Error fetching roles:', error);
-        
-        // في حالة فشل الاستعلام، أنشئ بيانات افتراضية للمدير
-        if (user?.email === 'monawer@monawer.com') {
-          console.log('Admin fallback: creating mock roles data');
-          const mockRoles = [
-            {
-              id: '1',
-              name: 'مدير النظام',
-              description: 'صلاحيات كاملة للنظام',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: '2',
-              name: 'مستخدم عام',
-              description: 'صلاحيات محدودة للمستخدم العادي',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ];
-          setRoles(mockRoles);
-        } else {
-          throw error;
-        }
-      } else {
-        console.log('Roles fetched successfully:', data?.length, 'roles');
-        setRoles(data || []);
+        throw error;
       }
+
+      console.log('Roles fetched successfully:', data?.length, 'roles');
+      setRoles(data || []);
     } catch (error: any) {
       console.error('Exception in fetchRoles:', error);
       setError(error.message || 'حدث خطأ في تحميل الأدوار');
@@ -109,54 +85,6 @@ const Roles = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const deleteRole = async (roleId: string, roleName: string) => {
-    if (!hasPermission('roles.delete')) {
-      toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لحذف الأدوار",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // منع حذف الأدوار الأساسية
-    const protectedRoles = ['مدير النظام', 'مدير البنية المؤسسية', 'مستخدم عام'];
-    if (protectedRoles.includes(roleName)) {
-      toast({
-        title: "غير مسموح",
-        description: "لا يمكن حذف هذا الدور لأنه دور أساسي في النظام",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!confirm(`هل أنت متأكد من حذف الدور "${roleName}"؟`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('roles')
-        .delete()
-        .eq('id', roleId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم الحذف",
-        description: "تم حذف الدور بنجاح",
-      });
-
-      fetchRoles();
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في حذف الدور",
-        variant: "destructive",
-      });
     }
   };
 
@@ -272,7 +200,7 @@ const Roles = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => deleteRole(role.id, role.name)}
+                            onClick={() => console.log('Delete role:', role.id)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
