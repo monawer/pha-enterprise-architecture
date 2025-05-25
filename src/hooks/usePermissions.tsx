@@ -16,27 +16,87 @@ export const usePermissions = (user: User | null) => {
   useEffect(() => {
     const fetchPermissions = async () => {
       if (!user) {
+        console.log('No user found, clearing permissions');
         setPermissions([]);
         setLoading(false);
         return;
       }
 
       try {
+        setLoading(true);
         console.log('Fetching permissions for user:', user.id);
+        console.log('User email:', user.email);
+        
+        // جلب الصلاحيات باستخدام الدالة المخصصة
         const { data, error } = await supabase.rpc('get_user_permissions', {
           user_uuid: user.id
         });
 
         if (error) {
           console.error('Error fetching permissions:', error);
-          setPermissions([]);
+          
+          // في حالة الخطأ، تحقق من أن المستخدم مدير النظام
+          if (user.email === 'monawer@monawer.com') {
+            console.log('User is system admin, granting all permissions');
+            // إعطاء جميع الصلاحيات لمدير النظام
+            const allPermissions = [
+              { permission_code: 'users.view', permission_name: 'عرض المستخدمين', module: 'admin' },
+              { permission_code: 'users.create', permission_name: 'إنشاء المستخدمين', module: 'admin' },
+              { permission_code: 'users.edit', permission_name: 'تعديل المستخدمين', module: 'admin' },
+              { permission_code: 'users.delete', permission_name: 'حذف المستخدمين', module: 'admin' },
+              { permission_code: 'roles.view', permission_name: 'عرض الأدوار', module: 'admin' },
+              { permission_code: 'roles.create', permission_name: 'إنشاء الأدوار', module: 'admin' },
+              { permission_code: 'roles.edit', permission_name: 'تعديل الأدوار', module: 'admin' },
+              { permission_code: 'roles.delete', permission_name: 'حذف الأدوار', module: 'admin' },
+              { permission_code: 'reports.view', permission_name: 'عرض التقارير', module: 'reports' },
+              { permission_code: 'reports.create', permission_name: 'إنشاء التقارير', module: 'reports' },
+              { permission_code: 'reports.export', permission_name: 'تصدير التقارير', module: 'reports' },
+              { permission_code: 'architecture.view', permission_name: 'عرض البنية المؤسسية', module: 'architecture' },
+              { permission_code: 'architecture.edit', permission_name: 'تعديل البنية المؤسسية', module: 'architecture' },
+              { permission_code: 'architecture.layers.manage', permission_name: 'إدارة طبقات البنية', module: 'architecture' },
+              { permission_code: 'references.view', permission_name: 'عرض جداول التعريفات', module: 'admin' },
+              { permission_code: 'references.edit', permission_name: 'تعديل جداول التعريفات', module: 'admin' },
+              { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+              { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+            ];
+            setPermissions(allPermissions);
+          } else {
+            setPermissions([]);
+          }
         } else {
-          console.log('User permissions:', data);
+          console.log('User permissions loaded successfully:', data);
           setPermissions(data || []);
         }
       } catch (error) {
-        console.error('Error fetching permissions:', error);
-        setPermissions([]);
+        console.error('Exception fetching permissions:', error);
+        
+        // في حالة الخطأ، تحقق من أن المستخدم مدير النظام
+        if (user.email === 'monawer@monawer.com') {
+          console.log('Exception occurred, but user is system admin, granting all permissions');
+          const allPermissions = [
+            { permission_code: 'users.view', permission_name: 'عرض المستخدمين', module: 'admin' },
+            { permission_code: 'users.create', permission_name: 'إنشاء المستخدمين', module: 'admin' },
+            { permission_code: 'users.edit', permission_name: 'تعديل المستخدمين', module: 'admin' },
+            { permission_code: 'users.delete', permission_name: 'حذف المستخدمين', module: 'admin' },
+            { permission_code: 'roles.view', permission_name: 'عرض الأدوار', module: 'admin' },
+            { permission_code: 'roles.create', permission_name: 'إنشاء الأدوار', module: 'admin' },
+            { permission_code: 'roles.edit', permission_name: 'تعديل الأدوار', module: 'admin' },
+            { permission_code: 'roles.delete', permission_name: 'حذف الأدوار', module: 'admin' },
+            { permission_code: 'reports.view', permission_name: 'عرض التقارير', module: 'reports' },
+            { permission_code: 'reports.create', permission_name: 'إنشاء التقارير', module: 'reports' },
+            { permission_code: 'reports.export', permission_name: 'تصدير التقارير', module: 'reports' },
+            { permission_code: 'architecture.view', permission_name: 'عرض البنية المؤسسية', module: 'architecture' },
+            { permission_code: 'architecture.edit', permission_name: 'تعديل البنية المؤسسية', module: 'architecture' },
+            { permission_code: 'architecture.layers.manage', permission_name: 'إدارة طبقات البنية', module: 'architecture' },
+            { permission_code: 'references.view', permission_name: 'عرض جداول التعريفات', module: 'admin' },
+            { permission_code: 'references.edit', permission_name: 'تعديل جداول التعريفات', module: 'admin' },
+            { permission_code: 'dashboard.view', permission_name: 'عرض لوحة المعلومات', module: 'general' },
+            { permission_code: 'profile.edit', permission_name: 'تعديل الملف الشخصي', module: 'general' }
+          ];
+          setPermissions(allPermissions);
+        } else {
+          setPermissions([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -46,6 +106,12 @@ export const usePermissions = (user: User | null) => {
   }, [user]);
 
   const hasPermission = (permissionCode: string) => {
+    // تحقق خاص لمدير النظام
+    if (user?.email === 'monawer@monawer.com') {
+      console.log(`Admin user checking permission '${permissionCode}': true`);
+      return true;
+    }
+
     const hasPermissionResult = permissions.some(p => p.permission_code === permissionCode);
     console.log(`Checking permission '${permissionCode}':`, hasPermissionResult);
     console.log('Available permissions:', permissions.map(p => p.permission_code));
@@ -53,6 +119,10 @@ export const usePermissions = (user: User | null) => {
   };
 
   const hasAnyPermission = (permissionCodes: string[]) => {
+    // تحقق خاص لمدير النظام
+    if (user?.email === 'monawer@monawer.com') {
+      return true;
+    }
     return permissionCodes.some(code => hasPermission(code));
   };
 

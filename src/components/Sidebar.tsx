@@ -33,6 +33,7 @@ const Sidebar = () => {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Sidebar: Current user:', user?.email);
       setUser(user);
     };
     getUser();
@@ -68,22 +69,29 @@ const Sidebar = () => {
   const getAdminChildren = () => {
     const children = [];
     
+    console.log('Building admin menu. User:', user?.email);
+    console.log('Permissions loading:', permissionsLoading);
+    
     if (hasPermission('users.view')) {
+      console.log('Adding users menu item');
       children.push({ title: "إدارة المستخدمين", path: "/admin/users", icon: Users });
     }
     
     if (hasPermission('roles.view')) {
+      console.log('Adding roles and permissions menu items');
       children.push({ title: "الصلاحيات والأدوار", path: "/admin/roles", icon: Shield });
       children.push({ title: "عرض الأذونات", path: "/admin/permissions", icon: Key });
     }
     
     if (hasPermission('references.view')) {
+      console.log('Adding references menu item');
       children.push({ title: "جداول التعريفات", path: "/admin/references", icon: Database });
     }
     
     // Always show profile edit
     children.push({ title: "تعديل بيانات المستخدم", path: "/profile", icon: User });
     
+    console.log('Admin menu children:', children.length);
     return children;
   };
 
@@ -141,6 +149,7 @@ const Sidebar = () => {
         </div>
         <div className="p-4">
           <div className="w-8 h-8 border-2 border-green-300 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-center mt-2 text-sm">جاري تحميل الصلاحيات...</p>
         </div>
       </div>
     );
@@ -160,6 +169,9 @@ const Sidebar = () => {
         <div className="text-center">
           <h2 className="font-bold text-lg">البنية المؤسسية</h2>
           <p className="text-green-300 text-sm">هيئة الصحة العامة</p>
+          {user && (
+            <p className="text-green-200 text-xs mt-1">{user.email}</p>
+          )}
         </div>
       </div>
 
@@ -167,7 +179,10 @@ const Sidebar = () => {
       <nav className="p-4 space-y-2">
         {menuItems.map((item) => {
           // Hide items that don't have permission
-          if (item.show === false) return null;
+          if (item.show === false) {
+            console.log(`Hiding menu item: ${item.title}`);
+            return null;
+          }
           
           return (
             <div key={item.title}>
