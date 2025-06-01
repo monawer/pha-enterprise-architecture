@@ -4,11 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
+  Eye, 
   Users, 
-  Map, 
-  User,
-  Target,
-  ArrowRight
+  Smartphone
 } from 'lucide-react';
 
 const UXLayer = () => {
@@ -16,39 +14,25 @@ const UXLayer = () => {
 
   const uxComponents = [
     {
-      title: 'المستفيدين',
-      description: 'إدارة المستفيدين وتصنيفاتهم',
-      icon: Users,
-      path: '/architecture/ux/beneficiaries',
+      title: 'واجهات المستخدم',
+      description: 'إدارة واجهات المستخدم والتفاعل',
+      icon: Eye,
+      path: '/architecture/ux/interfaces',
       color: 'bg-blue-500'
     },
     {
-      title: 'رحلات المستخدم',
-      description: 'إدارة رحلات المستخدم والتفاعلات',
-      icon: Map,
-      path: '/architecture/ux/journeys',
+      title: 'تجربة المستخدم',
+      description: 'إدارة عناصر تجربة المستخدم',
+      icon: Users,
+      path: '/architecture/ux/experience',
       color: 'bg-green-500'
     },
     {
-      title: 'الشخصيات',
-      description: 'إدارة شخصيات المستخدمين',
-      icon: User,
-      path: '/architecture/ux/personas',
+      title: 'التطبيقات المحمولة',
+      description: 'إدارة التطبيقات المحمولة والذكية',
+      icon: Smartphone,
+      path: '/architecture/ux/mobile-apps',
       color: 'bg-purple-500'
-    },
-    {
-      title: 'المراحل',
-      description: 'إدارة مراحل رحلة المستخدم',
-      icon: Target,
-      path: '/architecture/ux/stages',
-      color: 'bg-orange-500'
-    },
-    {
-      title: 'الخطوات',
-      description: 'إدارة خطوات العمليات',
-      icon: ArrowRight,
-      path: '/architecture/ux/steps',
-      color: 'bg-red-500'
     }
   ];
 
