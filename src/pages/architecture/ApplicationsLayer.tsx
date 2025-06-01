@@ -14,21 +14,21 @@ const ApplicationsLayer = () => {
 
   const applicationComponents = [
     {
-      title: 'التطبيقات',
+      title: 'قائمة التطبيقات',
       description: 'إدارة التطبيقات والأنظمة',
       icon: Monitor,
       path: '/architecture/applications/apps',
       color: 'bg-blue-500'
     },
     {
-      title: 'قواعد البيانات',
+      title: 'قواعد بيانات التطبيقات',
       description: 'إدارة قواعد البيانات ومحركاتها',
       icon: Database,
       path: '/architecture/applications/databases',
       color: 'bg-green-500'
     },
     {
-      title: 'الروابط التقنية',
+      title: 'نقاط الربط التقني',
       description: 'إدارة الروابط والاتصالات التقنية',
       icon: Link,
       path: '/architecture/applications/technical-links',
