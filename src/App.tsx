@@ -20,6 +20,9 @@ import Policies from "./pages/architecture/business/Policies";
 import Forms from "./pages/architecture/business/Forms";
 import Capabilities from "./pages/architecture/business/Capabilities";
 import Branches from "./pages/architecture/business/Branches";
+import Apps from "./pages/architecture/applications/Apps";
+import Databases from "./pages/architecture/applications/Databases";
+import TechnicalLinks from "./pages/architecture/applications/TechnicalLinks";
 import DataEntities from "./pages/architecture/data/DataEntities";
 import DataStorage from "./pages/architecture/data/DataStorage";
 import PhysicalServers from "./pages/architecture/technology/PhysicalServers";
@@ -98,6 +101,21 @@ const App: React.FC = () => (
           <Route path="/architecture/applications" element={
             <MainLayout>
               <ApplicationsLayer />
+            </MainLayout>
+          } />
+          <Route path="/architecture/applications/apps" element={
+            <MainLayout>
+              <Apps />
+            </MainLayout>
+          } />
+          <Route path="/architecture/applications/databases" element={
+            <MainLayout>
+              <Databases />
+            </MainLayout>
+          } />
+          <Route path="/architecture/applications/technical-links" element={
+            <MainLayout>
+              <TechnicalLinks />
             </MainLayout>
           } />
           <Route path="/architecture/technology" element={
