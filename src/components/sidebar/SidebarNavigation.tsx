@@ -18,7 +18,8 @@ import {
   HardDrive,
   Archive,
   Eye,
-  Network
+  Network,
+  UserCheck
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -85,7 +86,8 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
             { title: "السياسات", path: "/architecture/business/policies", icon: FileText },
             { title: "النماذج", path: "/architecture/business/forms", icon: ClipboardList },
             { title: "القدرات", path: "/architecture/business/capabilities", icon: Settings },
-            { title: "الفروع", path: "/architecture/business/branches", icon: Users }
+            { title: "الفروع", path: "/architecture/business/branches", icon: Users },
+            { title: "ملاك الأعمال", path: "/architecture/business/business-owners", icon: UserCheck }
           ]
         },
         { title: "طبقة التطبيقات", path: "/architecture/applications", icon: Monitor, show: hasPermission('architecture.view') },

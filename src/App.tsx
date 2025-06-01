@@ -20,6 +20,7 @@ import Policies from "./pages/architecture/business/Policies";
 import Forms from "./pages/architecture/business/Forms";
 import Capabilities from "./pages/architecture/business/Capabilities";
 import Branches from "./pages/architecture/business/Branches";
+import BusinessOwners from "./pages/architecture/business/BusinessOwners";
 import Apps from "./pages/architecture/applications/Apps";
 import Databases from "./pages/architecture/applications/Databases";
 import TechnicalLinks from "./pages/architecture/applications/TechnicalLinks";
@@ -96,6 +97,11 @@ const App: React.FC = () => (
           <Route path="/architecture/business/branches" element={
             <MainLayout>
               <Branches />
+            </MainLayout>
+          } />
+          <Route path="/architecture/business/business-owners" element={
+            <MainLayout>
+              <BusinessOwners />
             </MainLayout>
           } />
           <Route path="/architecture/applications" element={

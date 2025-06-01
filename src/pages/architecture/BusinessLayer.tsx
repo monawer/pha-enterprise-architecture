@@ -9,7 +9,8 @@ import {
   Settings, 
   Users, 
   Workflow,
-  ClipboardList
+  ClipboardList,
+  UserCheck
 } from 'lucide-react';
 
 const BusinessLayer = () => {
@@ -57,6 +58,13 @@ const BusinessLayer = () => {
       icon: Users,
       path: '/architecture/business/branches',
       color: 'bg-indigo-500'
+    },
+    {
+      title: 'ملاك الأعمال',
+      description: 'إدارة ملاك الأعمال والمسؤوليات',
+      icon: UserCheck,
+      path: '/architecture/business/business-owners',
+      color: 'bg-teal-500'
     }
   ];
 
