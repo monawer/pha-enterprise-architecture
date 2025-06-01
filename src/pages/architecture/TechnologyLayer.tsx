@@ -8,7 +8,6 @@ import {
   HardDrive, 
   Network,
   Database,
-  Shield,
   Key
 } from 'lucide-react';
 
