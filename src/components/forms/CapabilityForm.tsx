@@ -15,6 +15,7 @@ interface Capability {
   capability_classification?: string;
   capability_owner?: string;
   task_code?: string;
+  component_id?: string;
 }
 
 interface CapabilityFormProps {
@@ -33,7 +34,8 @@ const CapabilityForm: React.FC<CapabilityFormProps> = ({
     capability_description: '',
     capability_classification: '',
     capability_owner: '',
-    task_code: ''
+    task_code: '',
+    component_id: ''
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -138,6 +140,16 @@ const CapabilityForm: React.FC<CapabilityFormProps> = ({
             value={formData.task_code || ''}
             onChange={(e) => setFormData({ ...formData, task_code: e.target.value })}
             placeholder="أدخل رمز المهمة"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="component_id">معرف المكون</Label>
+          <Input
+            id="component_id"
+            value={formData.component_id || ''}
+            onChange={(e) => setFormData({ ...formData, component_id: e.target.value })}
+            placeholder="أدخل معرف المكون"
           />
         </div>
 

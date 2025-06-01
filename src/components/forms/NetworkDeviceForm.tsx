@@ -12,6 +12,7 @@ interface NetworkDevice {
   id?: string;
   host_name: string;
   manufacturer?: string;
+  manufacturer_ref?: string;
   model?: string;
   type?: string;
   function?: string;
@@ -19,8 +20,21 @@ interface NetworkDevice {
   device_status?: string;
   firmware_version?: string;
   vendor_support_status?: string;
+  operation_type?: string;
+  operation_type_ref?: string;
   initial_cost?: number;
   operational_cost?: number;
+  support_end_date?: string;
+  total_cpu_cores?: number;
+  cabinet?: string;
+  location?: string;
+  storage_capacity?: string;
+  physical_ram?: string;
+  cpu?: string;
+  cluster_id?: string;
+  technology?: string;
+  vm_monitor_type?: string;
+  vm_monitor_version?: string;
 }
 
 interface NetworkDeviceFormProps {
@@ -37,6 +51,7 @@ const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
   const [formData, setFormData] = useState<NetworkDevice>({
     host_name: '',
     manufacturer: '',
+    manufacturer_ref: '',
     model: '',
     type: '',
     function: '',
@@ -44,8 +59,21 @@ const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
     device_status: '',
     firmware_version: '',
     vendor_support_status: '',
+    operation_type: '',
+    operation_type_ref: '',
     initial_cost: 0,
-    operational_cost: 0
+    operational_cost: 0,
+    support_end_date: '',
+    total_cpu_cores: 0,
+    cabinet: '',
+    location: '',
+    storage_capacity: '',
+    physical_ram: '',
+    cpu: '',
+    cluster_id: '',
+    technology: '',
+    vm_monitor_type: '',
+    vm_monitor_version: ''
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -184,22 +212,32 @@ const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
         </div>
 
         <div>
-          <Label htmlFor="firmware_version">إصدار البرنامج الثابت</Label>
+          <Label htmlFor="firmware_version">إصدار البرمجية</Label>
           <Input
             id="firmware_version"
             value={formData.firmware_version || ''}
             onChange={(e) => setFormData({ ...formData, firmware_version: e.target.value })}
-            placeholder="أدخل إصدار البرنامج الثابت"
+            placeholder="أدخل إصدار البرمجية"
           />
         </div>
 
         <div>
-          <Label htmlFor="vendor_support_status">حالة دعم المورد</Label>
+          <Label htmlFor="vendor_support_status">حالة الدعم</Label>
           <Input
             id="vendor_support_status"
             value={formData.vendor_support_status || ''}
             onChange={(e) => setFormData({ ...formData, vendor_support_status: e.target.value })}
-            placeholder="أدخل حالة دعم المورد"
+            placeholder="أدخل حالة الدعم"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="operation_type">نوع التشغيل</Label>
+          <Input
+            id="operation_type"
+            value={formData.operation_type || ''}
+            onChange={(e) => setFormData({ ...formData, operation_type: e.target.value })}
+            placeholder="أدخل نوع التشغيل"
           />
         </div>
 
@@ -208,8 +246,9 @@ const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
           <Input
             id="initial_cost"
             type="number"
+            step="0.01"
             value={formData.initial_cost || ''}
-            onChange={(e) => setFormData({ ...formData, initial_cost: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, initial_cost: parseFloat(e.target.value) })}
             placeholder="أدخل التكلفة الأولية"
           />
         </div>
@@ -219,9 +258,51 @@ const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
           <Input
             id="operational_cost"
             type="number"
+            step="0.01"
             value={formData.operational_cost || ''}
-            onChange={(e) => setFormData({ ...formData, operational_cost: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, operational_cost: parseFloat(e.target.value) })}
             placeholder="أدخل التكلفة التشغيلية"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="support_end_date">تاريخ انتهاء الدعم</Label>
+          <Input
+            id="support_end_date"
+            type="date"
+            value={formData.support_end_date || ''}
+            onChange={(e) => setFormData({ ...formData, support_end_date: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="total_cpu_cores">عدد أنوية المعالج</Label>
+          <Input
+            id="total_cpu_cores"
+            type="number"
+            value={formData.total_cpu_cores || ''}
+            onChange={(e) => setFormData({ ...formData, total_cpu_cores: parseInt(e.target.value) })}
+            placeholder="أدخل عدد أنوية المعالج"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="cabinet">الخزانة</Label>
+          <Input
+            id="cabinet"
+            value={formData.cabinet || ''}
+            onChange={(e) => setFormData({ ...formData, cabinet: e.target.value })}
+            placeholder="أدخل رقم الخزانة"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="location">الموقع</Label>
+          <Input
+            id="location"
+            value={formData.location || ''}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            placeholder="أدخل الموقع"
           />
         </div>
       </div>

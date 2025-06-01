@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
@@ -18,6 +19,11 @@ interface VirtualServer {
   environment?: string;
   status?: string;
   operation_type?: string;
+  operation_type_ref?: string;
+  network_segment?: string;
+  cluster_id?: string;
+  backup?: string;
+  disaster_recovery?: string;
   initial_cost?: number;
   operational_cost?: number;
 }
@@ -43,6 +49,11 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
     environment: '',
     status: '',
     operation_type: '',
+    operation_type_ref: '',
+    network_segment: '',
+    cluster_id: '',
+    backup: '',
+    disaster_recovery: '',
     initial_cost: 0,
     operational_cost: 0
   });
@@ -123,12 +134,12 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
         </div>
 
         <div>
-          <Label htmlFor="os_type">نظام التشغيل</Label>
+          <Label htmlFor="os_type">نوع نظام التشغيل</Label>
           <Input
             id="os_type"
             value={formData.os_type || ''}
             onChange={(e) => setFormData({ ...formData, os_type: e.target.value })}
-            placeholder="أدخل نظام التشغيل"
+            placeholder="أدخل نوع نظام التشغيل"
           />
         </div>
 
@@ -148,7 +159,7 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
             id="virtual_cpu"
             type="number"
             value={formData.virtual_cpu || ''}
-            onChange={(e) => setFormData({ ...formData, virtual_cpu: parseInt(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, virtual_cpu: parseInt(e.target.value) })}
             placeholder="أدخل عدد المعالجات الافتراضية"
           />
         </div>
@@ -159,7 +170,7 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
             id="virtual_ram"
             value={formData.virtual_ram || ''}
             onChange={(e) => setFormData({ ...formData, virtual_ram: e.target.value })}
-            placeholder="أدخل حجم الذاكرة الافتراضية"
+            placeholder="أدخل حجم الذاكرة (مثل: 8GB)"
           />
         </div>
 
@@ -169,7 +180,7 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
             id="virtual_disk"
             value={formData.virtual_disk || ''}
             onChange={(e) => setFormData({ ...formData, virtual_disk: e.target.value })}
-            placeholder="أدخل حجم القرص الافتراضي"
+            placeholder="أدخل حجم القرص (مثل: 100GB)"
           />
         </div>
 
@@ -179,7 +190,7 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
             id="environment"
             value={formData.environment || ''}
             onChange={(e) => setFormData({ ...formData, environment: e.target.value })}
-            placeholder="أدخل البيئة"
+            placeholder="أدخل البيئة (إنتاج، تطوير، اختبار)"
           />
         </div>
 
@@ -204,12 +215,53 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
         </div>
 
         <div>
+          <Label htmlFor="network_segment">قطاع الشبكة</Label>
+          <Input
+            id="network_segment"
+            value={formData.network_segment || ''}
+            onChange={(e) => setFormData({ ...formData, network_segment: e.target.value })}
+            placeholder="أدخل قطاع الشبكة"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="cluster_id">معرف المجموعة</Label>
+          <Input
+            id="cluster_id"
+            value={formData.cluster_id || ''}
+            onChange={(e) => setFormData({ ...formData, cluster_id: e.target.value })}
+            placeholder="أدخل معرف المجموعة"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="backup">النسخ الاحتياطي</Label>
+          <Input
+            id="backup"
+            value={formData.backup || ''}
+            onChange={(e) => setFormData({ ...formData, backup: e.target.value })}
+            placeholder="أدخل معلومات النسخ الاحتياطي"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="disaster_recovery">استعادة الكوارث</Label>
+          <Input
+            id="disaster_recovery"
+            value={formData.disaster_recovery || ''}
+            onChange={(e) => setFormData({ ...formData, disaster_recovery: e.target.value })}
+            placeholder="أدخل معلومات استعادة الكوارث"
+          />
+        </div>
+
+        <div>
           <Label htmlFor="initial_cost">التكلفة الأولية</Label>
           <Input
             id="initial_cost"
             type="number"
+            step="0.01"
             value={formData.initial_cost || ''}
-            onChange={(e) => setFormData({ ...formData, initial_cost: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, initial_cost: parseFloat(e.target.value) })}
             placeholder="أدخل التكلفة الأولية"
           />
         </div>
@@ -219,8 +271,9 @@ const VirtualServerForm: React.FC<VirtualServerFormProps> = ({
           <Input
             id="operational_cost"
             type="number"
+            step="0.01"
             value={formData.operational_cost || ''}
-            onChange={(e) => setFormData({ ...formData, operational_cost: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => setFormData({ ...formData, operational_cost: parseFloat(e.target.value) })}
             placeholder="أدخل التكلفة التشغيلية"
           />
         </div>

@@ -13,10 +13,16 @@ interface DataEntity {
   entity_name_ar: string;
   entity_name_en?: string;
   description_ar?: string;
+  description_en?: string;
+  entity_id?: string;
   data_classification?: string;
+  data_classification_ref?: string;
   data_owner?: string;
   data_storage?: string;
   data_status?: string;
+  component_id?: string;
+  related_application?: string;
+  related_services?: string;
 }
 
 interface DataEntityFormProps {
@@ -34,10 +40,16 @@ const DataEntityForm: React.FC<DataEntityFormProps> = ({
     entity_name_ar: '',
     entity_name_en: '',
     description_ar: '',
+    description_en: '',
+    entity_id: '',
     data_classification: '',
+    data_classification_ref: '',
     data_owner: '',
     data_storage: '',
-    data_status: ''
+    data_status: '',
+    component_id: '',
+    related_application: '',
+    related_services: ''
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -103,7 +115,7 @@ const DataEntityForm: React.FC<DataEntityFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="entity_name_ar">اسم الكيان (العربية) *</Label>
           <Input
@@ -126,12 +138,32 @@ const DataEntityForm: React.FC<DataEntityFormProps> = ({
         </div>
 
         <div>
+          <Label htmlFor="entity_id">معرف الكيان</Label>
+          <Input
+            id="entity_id"
+            value={formData.entity_id || ''}
+            onChange={(e) => setFormData({ ...formData, entity_id: e.target.value })}
+            placeholder="أدخل معرف الكيان"
+          />
+        </div>
+
+        <div>
           <Label htmlFor="data_classification">تصنيف البيانات</Label>
           <Input
             id="data_classification"
             value={formData.data_classification || ''}
             onChange={(e) => setFormData({ ...formData, data_classification: e.target.value })}
             placeholder="أدخل تصنيف البيانات"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="data_classification_ref">مرجع تصنيف البيانات</Label>
+          <Input
+            id="data_classification_ref"
+            value={formData.data_classification_ref || ''}
+            onChange={(e) => setFormData({ ...formData, data_classification_ref: e.target.value })}
+            placeholder="أدخل مرجع تصنيف البيانات"
           />
         </div>
 
@@ -166,13 +198,57 @@ const DataEntityForm: React.FC<DataEntityFormProps> = ({
         </div>
 
         <div>
-          <Label htmlFor="description_ar">الوصف</Label>
+          <Label htmlFor="component_id">معرف المكون</Label>
+          <Input
+            id="component_id"
+            value={formData.component_id || ''}
+            onChange={(e) => setFormData({ ...formData, component_id: e.target.value })}
+            placeholder="أدخل معرف المكون"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="related_application">التطبيق المرتبط</Label>
+          <Input
+            id="related_application"
+            value={formData.related_application || ''}
+            onChange={(e) => setFormData({ ...formData, related_application: e.target.value })}
+            placeholder="أدخل التطبيق المرتبط"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="description_ar">الوصف (العربية)</Label>
           <Textarea
             id="description_ar"
             value={formData.description_ar || ''}
             onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-            placeholder="أدخل وصف كيان البيانات"
+            placeholder="أدخل وصف كيان البيانات باللغة العربية"
             rows={4}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="description_en">الوصف (الإنجليزية)</Label>
+          <Textarea
+            id="description_en"
+            value={formData.description_en || ''}
+            onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
+            placeholder="أدخل وصف كيان البيانات باللغة الإنجليزية"
+            rows={4}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="related_services">الخدمات المرتبطة</Label>
+          <Textarea
+            id="related_services"
+            value={formData.related_services || ''}
+            onChange={(e) => setFormData({ ...formData, related_services: e.target.value })}
+            placeholder="أدخل الخدمات المرتبطة"
+            rows={3}
           />
         </div>
       </div>
