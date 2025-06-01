@@ -13,8 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal';
 import { Settings, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import CapabilityForm from '@/components/forms/CapabilityForm';
 
 interface Capability {
   id: string;
@@ -30,6 +37,9 @@ const Capabilities = () => {
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCapability, setSelectedCapability] = useState<Capability | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,6 +68,56 @@ const Capabilities = () => {
     }
   };
 
+  const handleEdit = (capability: Capability) => {
+    setSelectedCapability(capability);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedCapability(null);
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (capability: Capability) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه القدرة؟')) {
+      try {
+        const { error } = await supabase
+          .from('biz_capabilities')
+          .delete()
+          .eq('id', capability.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم حذف القدرة بنجاح",
+        });
+
+        fetchCapabilities();
+      } catch (error: any) {
+        console.error('Error deleting capability:', error);
+        toast({
+          title: "خطأ",
+          description: error.message || "حدث خطأ أثناء حذف القدرة",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedCapability(null);
+    setIsEditing(false);
+  };
+
+  const handleFormSuccess = () => {
+    fetchCapabilities();
+    handleModalClose();
+  };
+
   const filteredCapabilities = capabilities.filter(capability =>
     capability.capability_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (capability.capability_description && capability.capability_description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -81,7 +141,7 @@ const Capabilities = () => {
             <p className="text-gray-600">عرض وإدارة القدرات المؤسسية</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleAdd}>
           <Plus className="w-4 h-4 ml-2" />
           إضافة قدرة جديدة
         </Button>
@@ -136,10 +196,18 @@ const Capabilities = () => {
                     <TableCell>{capability.task_code || '-'}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(capability)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDelete(capability)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -156,6 +224,21 @@ const Capabilities = () => {
           )}
         </CardContent>
       </Card>
+
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ModalContent className="max-w-2xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل القدرة' : 'إضافة قدرة جديدة'}
+            </ModalTitle>
+          </ModalHeader>
+          <CapabilityForm
+            capability={selectedCapability || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={handleModalClose}
+          />
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

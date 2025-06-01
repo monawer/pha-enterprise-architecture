@@ -13,8 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal';
 import { Database, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import DataEntityForm from '@/components/forms/DataEntityForm';
 
 interface DataEntity {
   id: string;
@@ -32,6 +39,9 @@ const DataEntities = () => {
   const [entities, setEntities] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState<DataEntity | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,6 +70,56 @@ const DataEntities = () => {
     }
   };
 
+  const handleEdit = (entity: DataEntity) => {
+    setSelectedEntity(entity);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedEntity(null);
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (entity: DataEntity) => {
+    if (window.confirm('هل أنت متأكد من حذف كيان البيانات هذا؟')) {
+      try {
+        const { error } = await supabase
+          .from('data_entities')
+          .delete()
+          .eq('id', entity.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم حذف كيان البيانات بنجاح",
+        });
+
+        fetchEntities();
+      } catch (error: any) {
+        console.error('Error deleting data entity:', error);
+        toast({
+          title: "خطأ",
+          description: error.message || "حدث خطأ أثناء حذف كيان البيانات",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedEntity(null);
+    setIsEditing(false);
+  };
+
+  const handleFormSuccess = () => {
+    fetchEntities();
+    handleModalClose();
+  };
+
   const filteredEntities = entities.filter(entity =>
     entity.entity_name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (entity.entity_name_en && entity.entity_name_en.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -83,7 +143,7 @@ const DataEntities = () => {
             <p className="text-gray-600">عرض وإدارة كيانات البيانات وتصنيفاتها</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleAdd}>
           <Plus className="w-4 h-4 ml-2" />
           إضافة كيان جديد
         </Button>
@@ -147,10 +207,18 @@ const DataEntities = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(entity)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDelete(entity)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -167,6 +235,21 @@ const DataEntities = () => {
           )}
         </CardContent>
       </Card>
+
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ModalContent className="max-w-2xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل كيان البيانات' : 'إضافة كيان بيانات جديد'}
+            </ModalTitle>
+          </ModalHeader>
+          <DataEntityForm
+            entity={selectedEntity || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={handleModalClose}
+          />
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

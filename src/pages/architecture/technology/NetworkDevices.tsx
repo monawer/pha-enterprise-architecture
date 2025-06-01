@@ -13,8 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal';
 import { Network, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import NetworkDeviceForm from '@/components/forms/NetworkDeviceForm';
 
 interface NetworkDevice {
   id: string;
@@ -36,6 +43,9 @@ const NetworkDevices = () => {
   const [devices, setDevices] = useState<NetworkDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDevice, setSelectedDevice] = useState<NetworkDevice | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,6 +74,56 @@ const NetworkDevices = () => {
     }
   };
 
+  const handleEdit = (device: NetworkDevice) => {
+    setSelectedDevice(device);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedDevice(null);
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (device: NetworkDevice) => {
+    if (window.confirm('هل أنت متأكد من حذف جهاز الشبكة هذا؟')) {
+      try {
+        const { error } = await supabase
+          .from('tech_network_devices')
+          .delete()
+          .eq('id', device.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم حذف جهاز الشبكة بنجاح",
+        });
+
+        fetchDevices();
+      } catch (error: any) {
+        console.error('Error deleting network device:', error);
+        toast({
+          title: "خطأ",
+          description: error.message || "حدث خطأ أثناء حذف جهاز الشبكة",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedDevice(null);
+    setIsEditing(false);
+  };
+
+  const handleFormSuccess = () => {
+    fetchDevices();
+    handleModalClose();
+  };
+
   const filteredDevices = devices.filter(device =>
     device.host_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (device.manufacturer && device.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -87,7 +147,7 @@ const NetworkDevices = () => {
             <p className="text-gray-600">عرض وإدارة أجهزة الشبكة</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleAdd}>
           <Plus className="w-4 h-4 ml-2" />
           إضافة جهاز شبكة جديد
         </Button>
@@ -139,10 +199,18 @@ const NetworkDevices = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(device)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDelete(device)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -159,6 +227,21 @@ const NetworkDevices = () => {
           )}
         </CardContent>
       </Card>
+
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ModalContent className="max-w-4xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل جهاز الشبكة' : 'إضافة جهاز شبكة جديد'}
+            </ModalTitle>
+          </ModalHeader>
+          <NetworkDeviceForm
+            device={selectedDevice || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={handleModalClose}
+          />
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

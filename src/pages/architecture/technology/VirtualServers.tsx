@@ -13,8 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal';
 import { HardDrive, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import VirtualServerForm from '@/components/forms/VirtualServerForm';
 
 interface VirtualServer {
   id: string;
@@ -36,6 +43,9 @@ const VirtualServers = () => {
   const [servers, setServers] = useState<VirtualServer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedServer, setSelectedServer] = useState<VirtualServer | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,6 +74,56 @@ const VirtualServers = () => {
     }
   };
 
+  const handleEdit = (server: VirtualServer) => {
+    setSelectedServer(server);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedServer(null);
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (server: VirtualServer) => {
+    if (window.confirm('هل أنت متأكد من حذف الخادم الافتراضي هذا؟')) {
+      try {
+        const { error } = await supabase
+          .from('tech_virtual_servers')
+          .delete()
+          .eq('id', server.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم حذف الخادم الافتراضي بنجاح",
+        });
+
+        fetchServers();
+      } catch (error: any) {
+        console.error('Error deleting virtual server:', error);
+        toast({
+          title: "خطأ",
+          description: error.message || "حدث خطأ أثناء حذف الخادم الافتراضي",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedServer(null);
+    setIsEditing(false);
+  };
+
+  const handleFormSuccess = () => {
+    fetchServers();
+    handleModalClose();
+  };
+
   const filteredServers = servers.filter(server =>
     server.host_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (server.os_type && server.os_type.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -87,7 +147,7 @@ const VirtualServers = () => {
             <p className="text-gray-600">عرض وإدارة الخوادم الافتراضية</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleAdd}>
           <Plus className="w-4 h-4 ml-2" />
           إضافة خادم افتراضي جديد
         </Button>
@@ -144,10 +204,18 @@ const VirtualServers = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(server)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDelete(server)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -164,6 +232,21 @@ const VirtualServers = () => {
           )}
         </CardContent>
       </Card>
+
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ModalContent className="max-w-4xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل الخادم الافتراضي' : 'إضافة خادم افتراضي جديد'}
+            </ModalTitle>
+          </ModalHeader>
+          <VirtualServerForm
+            server={selectedServer || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={handleModalClose}
+          />
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

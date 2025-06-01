@@ -13,8 +13,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal';
 import { FileText, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import PolicyForm from '@/components/forms/PolicyForm';
 
 interface Policy {
   id: string;
@@ -31,6 +38,9 @@ const Policies = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +69,56 @@ const Policies = () => {
     }
   };
 
+  const handleEdit = (policy: Policy) => {
+    setSelectedPolicy(policy);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedPolicy(null);
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (policy: Policy) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه السياسة؟')) {
+      try {
+        const { error } = await supabase
+          .from('biz_policies')
+          .delete()
+          .eq('id', policy.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم حذف السياسة بنجاح",
+        });
+
+        fetchPolicies();
+      } catch (error: any) {
+        console.error('Error deleting policy:', error);
+        toast({
+          title: "خطأ",
+          description: error.message || "حدث خطأ أثناء حذف السياسة",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedPolicy(null);
+    setIsEditing(false);
+  };
+
+  const handleFormSuccess = () => {
+    fetchPolicies();
+    handleModalClose();
+  };
+
   const filteredPolicies = policies.filter(policy =>
     policy.policy_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (policy.policy_description && policy.policy_description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -82,7 +142,7 @@ const Policies = () => {
             <p className="text-gray-600">عرض وإدارة السياسات والقوانين التنظيمية</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleAdd}>
           <Plus className="w-4 h-4 ml-2" />
           إضافة سياسة جديدة
         </Button>
@@ -148,10 +208,18 @@ const Policies = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(policy)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDelete(policy)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -168,6 +236,21 @@ const Policies = () => {
           )}
         </CardContent>
       </Card>
+
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ModalContent className="max-w-2xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل السياسة' : 'إضافة سياسة جديدة'}
+            </ModalTitle>
+          </ModalHeader>
+          <PolicyForm
+            policy={selectedPolicy || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={handleModalClose}
+          />
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
