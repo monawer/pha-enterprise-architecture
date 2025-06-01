@@ -12,9 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Plus, Search } from 'lucide-react';
+import { Building2, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import ServiceForm from '@/components/forms/ServiceForm';
 
 interface Service {
   id: string;
@@ -33,6 +41,10 @@ const Services = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,6 +73,51 @@ const Services = () => {
     }
   };
 
+  const handleEdit = (service: Service) => {
+    setSelectedService(service);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedService(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!serviceToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('biz_services')
+        .delete()
+        .eq('id', serviceToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الخدمة بنجاح",
+      });
+      
+      fetchServices();
+      setIsDeleteModalOpen(false);
+      setServiceToDelete(null);
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف الخدمة",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedService(null);
+    fetchServices();
+  };
+
   const filteredServices = services.filter(service =>
     service.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (service.service_description && service.service_description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -84,10 +141,27 @@ const Services = () => {
             <p className="text-gray-600">عرض وإدارة الخدمات المقدمة للمستفيدين</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة خدمة جديدة
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة خدمة جديدة
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-2xl">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedService ? 'تعديل الخدمة' : 'إضافة خدمة جديدة'}
+              </ModalTitle>
+            </ModalHeader>
+            <ServiceForm
+              service={selectedService}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -116,7 +190,7 @@ const Services = () => {
                   <TableHead>مستوى النضج</TableHead>
                   <TableHead>الرسوم</TableHead>
                   <TableHead>العمليات السنوية</TableHead>
-                  <TableHead>المستفيدين السنويين</TableHead>
+                  <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -147,7 +221,27 @@ const Services = () => {
                       {service.service_fees ? `${service.service_fees} ريال` : 'مجاني'}
                     </TableCell>
                     <TableCell>{service.annual_operations?.toLocaleString() || '-'}</TableCell>
-                    <TableCell>{service.annual_beneficiaries?.toLocaleString() || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2 space-x-reverse">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(service)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setServiceToDelete(service);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -160,6 +254,35 @@ const Services = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف الخدمة "{serviceToDelete?.service_name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

@@ -12,8 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Users, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import BranchForm from '@/components/forms/BranchForm';
 
 interface Branch {
   id: string;
@@ -27,6 +35,10 @@ const Branches = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -55,6 +67,51 @@ const Branches = () => {
     }
   };
 
+  const handleEdit = (branch: Branch) => {
+    setSelectedBranch(branch);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedBranch(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!branchToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('biz_branches')
+        .delete()
+        .eq('id', branchToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الفرع بنجاح",
+      });
+      
+      fetchBranches();
+      setIsDeleteModalOpen(false);
+      setBranchToDelete(null);
+    } catch (error) {
+      console.error('Error deleting branch:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف الفرع",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedBranch(null);
+    fetchBranches();
+  };
+
   const filteredBranches = branches.filter(branch =>
     branch.branch_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (branch.branch_location && branch.branch_location.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -78,10 +135,27 @@ const Branches = () => {
             <p className="text-gray-600">عرض وإدارة الفروع والمواقع</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة فرع جديد
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة فرع جديد
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-md">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedBranch ? 'تعديل الفرع' : 'إضافة فرع جديد'}
+              </ModalTitle>
+            </ModalHeader>
+            <BranchForm
+              branch={selectedBranch}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -118,10 +192,21 @@ const Branches = () => {
                     <TableCell>{branch.branch_location || '-'}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(branch)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setBranchToDelete(branch);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -138,6 +223,35 @@ const Branches = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف الفرع "{branchToDelete?.branch_name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

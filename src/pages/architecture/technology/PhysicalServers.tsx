@@ -12,9 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
 import { Server, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import PhysicalServerForm from '@/components/forms/PhysicalServerForm';
 
 interface PhysicalServer {
   id: string;
@@ -37,6 +45,10 @@ const PhysicalServers = () => {
   const [servers, setServers] = useState<PhysicalServer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedServer, setSelectedServer] = useState<PhysicalServer | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [serverToDelete, setServerToDelete] = useState<PhysicalServer | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,6 +77,51 @@ const PhysicalServers = () => {
     }
   };
 
+  const handleEdit = (server: PhysicalServer) => {
+    setSelectedServer(server);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedServer(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!serverToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('tech_physical_servers')
+        .delete()
+        .eq('id', serverToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الخادم بنجاح",
+      });
+      
+      fetchServers();
+      setIsDeleteModalOpen(false);
+      setServerToDelete(null);
+    } catch (error) {
+      console.error('Error deleting server:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف الخادم",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedServer(null);
+    fetchServers();
+  };
+
   const filteredServers = servers.filter(server =>
     server.host_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (server.manufacturer && server.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -88,10 +145,27 @@ const PhysicalServers = () => {
             <p className="text-gray-600">عرض وإدارة الخوادم المادية</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة خادم جديد
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة خادم جديد
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-2xl">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedServer ? 'تعديل الخادم' : 'إضافة خادم جديد'}
+              </ModalTitle>
+            </ModalHeader>
+            <PhysicalServerForm
+              server={selectedServer}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -140,10 +214,21 @@ const PhysicalServers = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(server)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setServerToDelete(server);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -160,6 +245,35 @@ const PhysicalServers = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف الخادم "{serverToDelete?.host_name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
