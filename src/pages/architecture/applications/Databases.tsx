@@ -6,11 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Search, Database } from 'lucide-react';
+import { Plus, Search, Database, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import DatabaseForm from '@/components/forms/DatabaseForm';
 
 const Databases = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDb, setEditingDb] = useState<any>(null);
   const { toast } = useToast();
 
   const { data: databases, isLoading, refetch } = useQuery({
@@ -34,6 +37,49 @@ const Databases = () => {
     db.application_name?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  const handleDelete = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف قاعدة البيانات هذه؟')) {
+      try {
+        const { error } = await supabase
+          .from('app_databases')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم حذف قاعدة البيانات بنجاح",
+          description: "تم حذف قاعدة البيانات من النظام",
+        });
+        
+        refetch();
+      } catch (error) {
+        console.error('Error deleting database:', error);
+        toast({
+          title: "خطأ في الحذف",
+          description: "حدث خطأ أثناء حذف قاعدة البيانات",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleEdit = (db: any) => {
+    setEditingDb(db);
+    setIsModalOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setEditingDb(null);
+    refetch();
+  };
+
+  const handleFormCancel = () => {
+    setIsModalOpen(false);
+    setEditingDb(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -51,19 +97,27 @@ const Databases = () => {
             إدارة قواعد البيانات ومحركاتها
           </p>
         </div>
-        <Modal>
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
           <ModalTrigger asChild>
-            <Button>
+            <Button onClick={() => setEditingDb(null)}>
               <Plus className="w-4 h-4 ml-2" />
               إضافة قاعدة بيانات
             </Button>
           </ModalTrigger>
-          <ModalContent>
+          <ModalContent className="max-w-2xl">
             <ModalHeader>
-              <ModalTitle>إضافة قاعدة بيانات جديدة</ModalTitle>
+              <ModalTitle>
+                {editingDb ? 'تعديل قاعدة البيانات' : 'إضافة قاعدة بيانات جديدة'}
+              </ModalTitle>
             </ModalHeader>
             <div className="p-4">
-              <p className="text-gray-600">سيتم إضافة نموذج إضافة قاعدة البيانات هنا</p>
+              <DatabaseForm
+                onSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+                initialData={editingDb}
+                isEdit={!!editingDb}
+                databaseId={editingDb?.id}
+              />
             </div>
           </ModalContent>
         </Modal>
@@ -98,12 +152,30 @@ const Databases = () => {
           filteredDatabases.map((db) => (
             <Card key={db.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="p-2 rounded-lg bg-green-500 text-white">
-                    <Database className="w-6 h-6" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 space-x-reverse">
+                    <div className="p-2 rounded-lg bg-green-500 text-white">
+                      <Database className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{db.database_name}</CardTitle>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{db.database_name}</CardTitle>
+                  <div className="flex space-x-2 space-x-reverse">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(db)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(db.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>

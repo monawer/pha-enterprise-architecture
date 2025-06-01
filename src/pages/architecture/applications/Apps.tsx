@@ -6,11 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Search, Monitor } from 'lucide-react';
+import { Plus, Search, Monitor, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ApplicationForm from '@/components/forms/ApplicationForm';
 
 const Apps = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingApp, setEditingApp] = useState<any>(null);
   const { toast } = useToast();
 
   const { data: applications, isLoading, refetch } = useQuery({
@@ -34,6 +37,49 @@ const Apps = () => {
     app.description?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  const handleDelete = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا التطبيق؟')) {
+      try {
+        const { error } = await supabase
+          .from('app_applications')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم حذف التطبيق بنجاح",
+          description: "تم حذف التطبيق من النظام",
+        });
+        
+        refetch();
+      } catch (error) {
+        console.error('Error deleting application:', error);
+        toast({
+          title: "خطأ في الحذف",
+          description: "حدث خطأ أثناء حذف التطبيق",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleEdit = (app: any) => {
+    setEditingApp(app);
+    setIsModalOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setEditingApp(null);
+    refetch();
+  };
+
+  const handleFormCancel = () => {
+    setIsModalOpen(false);
+    setEditingApp(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -51,19 +97,27 @@ const Apps = () => {
             إدارة التطبيقات والأنظمة في المؤسسة
           </p>
         </div>
-        <Modal>
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
           <ModalTrigger asChild>
-            <Button>
+            <Button onClick={() => setEditingApp(null)}>
               <Plus className="w-4 h-4 ml-2" />
               إضافة تطبيق
             </Button>
           </ModalTrigger>
-          <ModalContent>
+          <ModalContent className="max-w-2xl">
             <ModalHeader>
-              <ModalTitle>إضافة تطبيق جديد</ModalTitle>
+              <ModalTitle>
+                {editingApp ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}
+              </ModalTitle>
             </ModalHeader>
             <div className="p-4">
-              <p className="text-gray-600">سيتم إضافة نموذج إضافة التطبيق هنا</p>
+              <ApplicationForm
+                onSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+                initialData={editingApp}
+                isEdit={!!editingApp}
+                applicationId={editingApp?.id}
+              />
             </div>
           </ModalContent>
         </Modal>
@@ -98,15 +152,33 @@ const Apps = () => {
           filteredApplications.map((app) => (
             <Card key={app.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="p-2 rounded-lg bg-blue-500 text-white">
-                    <Monitor className="w-6 h-6" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 space-x-reverse">
+                    <div className="p-2 rounded-lg bg-blue-500 text-white">
+                      <Monitor className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{app.name}</CardTitle>
+                      {app.version && (
+                        <p className="text-sm text-gray-600">الإصدار: {app.version}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{app.name}</CardTitle>
-                    {app.version && (
-                      <p className="text-sm text-gray-600">الإصدار: {app.version}</p>
-                    )}
+                  <div className="flex space-x-2 space-x-reverse">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(app)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(app.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>

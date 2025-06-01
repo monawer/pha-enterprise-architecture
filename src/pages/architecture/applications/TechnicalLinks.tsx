@@ -6,11 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Search, Link } from 'lucide-react';
+import { Plus, Search, Link, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import TechnicalLinkForm from '@/components/forms/TechnicalLinkForm';
 
 const TechnicalLinks = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<any>(null);
   const { toast } = useToast();
 
   const { data: technicalLinks, isLoading, refetch } = useQuery({
@@ -34,6 +37,49 @@ const TechnicalLinks = () => {
     link.description?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  const handleDelete = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا الرابط التقني؟')) {
+      try {
+        const { error } = await supabase
+          .from('app_technical_links')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم حذف الرابط التقني بنجاح",
+          description: "تم حذف الرابط التقني من النظام",
+        });
+        
+        refetch();
+      } catch (error) {
+        console.error('Error deleting technical link:', error);
+        toast({
+          title: "خطأ في الحذف",
+          description: "حدث خطأ أثناء حذف الرابط التقني",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleEdit = (link: any) => {
+    setEditingLink(link);
+    setIsModalOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setEditingLink(null);
+    refetch();
+  };
+
+  const handleFormCancel = () => {
+    setIsModalOpen(false);
+    setEditingLink(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -51,19 +97,27 @@ const TechnicalLinks = () => {
             إدارة الروابط والاتصالات التقنية
           </p>
         </div>
-        <Modal>
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
           <ModalTrigger asChild>
-            <Button>
+            <Button onClick={() => setEditingLink(null)}>
               <Plus className="w-4 h-4 ml-2" />
               إضافة رابط تقني
             </Button>
           </ModalTrigger>
-          <ModalContent>
+          <ModalContent className="max-w-2xl">
             <ModalHeader>
-              <ModalTitle>إضافة رابط تقني جديد</ModalTitle>
+              <ModalTitle>
+                {editingLink ? 'تعديل الرابط التقني' : 'إضافة رابط تقني جديد'}
+              </ModalTitle>
             </ModalHeader>
             <div className="p-4">
-              <p className="text-gray-600">سيتم إضافة نموذج إضافة الرابط التقني هنا</p>
+              <TechnicalLinkForm
+                onSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+                initialData={editingLink}
+                isEdit={!!editingLink}
+                linkId={editingLink?.id}
+              />
             </div>
           </ModalContent>
         </Modal>
@@ -98,15 +152,33 @@ const TechnicalLinks = () => {
           filteredLinks.map((link) => (
             <Card key={link.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="p-2 rounded-lg bg-purple-500 text-white">
-                    <Link className="w-6 h-6" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 space-x-reverse">
+                    <div className="p-2 rounded-lg bg-purple-500 text-white">
+                      <Link className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{link.name}</CardTitle>
+                      {link.number && (
+                        <p className="text-sm text-gray-600">الرقم: {link.number}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{link.name}</CardTitle>
-                    {link.number && (
-                      <p className="text-sm text-gray-600">الرقم: {link.number}</p>
-                    )}
+                  <div className="flex space-x-2 space-x-reverse">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(link)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(link.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
