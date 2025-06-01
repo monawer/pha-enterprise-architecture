@@ -12,19 +12,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Workflow, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { FileText, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import ProcedureForm from '@/components/forms/ProcedureForm';
 
 interface Procedure {
   id: string;
   procedure_name: string;
+  procedure_code?: string;
   procedure_description?: string;
   procedure_type?: string;
   automation_level?: string;
   importance?: string;
   execution_duration?: string;
-  beneficiary_type?: string;
   created_at: string;
 }
 
@@ -32,6 +40,10 @@ const Procedures = () => {
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [procedureToDelete, setProcedureToDelete] = useState<Procedure | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,6 +72,51 @@ const Procedures = () => {
     }
   };
 
+  const handleEdit = (procedure: Procedure) => {
+    setSelectedProcedure(procedure);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedProcedure(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!procedureToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('biz_procedures')
+        .delete()
+        .eq('id', procedureToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الإجراء بنجاح",
+      });
+      
+      fetchProcedures();
+      setIsDeleteModalOpen(false);
+      setProcedureToDelete(null);
+    } catch (error) {
+      console.error('Error deleting procedure:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف الإجراء",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedProcedure(null);
+    fetchProcedures();
+  };
+
   const filteredProcedures = procedures.filter(procedure =>
     procedure.procedure_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (procedure.procedure_description && procedure.procedure_description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -77,16 +134,33 @@ const Procedures = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 space-x-reverse">
-          <Workflow className="w-8 h-8 text-green-500" />
+          <FileText className="w-8 h-8 text-blue-500" />
           <div>
             <h1 className="text-3xl font-bold text-gray-900">إدارة الإجراءات</h1>
-            <p className="text-gray-600">عرض وإدارة الإجراءات والعمليات التشغيلية</p>
+            <p className="text-gray-600">عرض وإدارة الإجراءات التشغيلية والإدارية</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة إجراء جديد
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة إجراء جديد
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-4xl">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedProcedure ? 'تعديل الإجراء' : 'إضافة إجراء جديد'}
+              </ModalTitle>
+            </ModalHeader>
+            <ProcedureForm
+              procedure={selectedProcedure}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -110,11 +184,11 @@ const Procedures = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>اسم الإجراء</TableHead>
+                  <TableHead>الرمز</TableHead>
                   <TableHead>النوع</TableHead>
                   <TableHead>مستوى الأتمتة</TableHead>
                   <TableHead>الأهمية</TableHead>
                   <TableHead>مدة التنفيذ</TableHead>
-                  <TableHead>نوع المستفيد</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -131,6 +205,7 @@ const Procedures = () => {
                         )}
                       </div>
                     </TableCell>
+                    <TableCell>{procedure.procedure_code || '-'}</TableCell>
                     <TableCell>
                       {procedure.procedure_type && (
                         <Badge variant="outline">{procedure.procedure_type}</Badge>
@@ -141,15 +216,36 @@ const Procedures = () => {
                         <Badge variant="secondary">{procedure.automation_level}</Badge>
                       )}
                     </TableCell>
-                    <TableCell>{procedure.importance || '-'}</TableCell>
+                    <TableCell>
+                      {procedure.importance && (
+                        <Badge 
+                          variant={
+                            procedure.importance === 'عالية' ? 'destructive' :
+                            procedure.importance === 'متوسطة' ? 'default' : 'outline'
+                          }
+                        >
+                          {procedure.importance}
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell>{procedure.execution_duration || '-'}</TableCell>
-                    <TableCell>{procedure.beneficiary_type || '-'}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(procedure)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setProcedureToDelete(procedure);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -166,6 +262,35 @@ const Procedures = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف الإجراء "{procedureToDelete?.procedure_name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
