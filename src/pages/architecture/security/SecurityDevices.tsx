@@ -12,9 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import SecurityDeviceForm from '@/components/forms/SecurityDeviceForm';
 
 interface SecurityDevice {
   id: string;
@@ -34,6 +42,10 @@ const SecurityDevices = () => {
   const [devices, setDevices] = useState<SecurityDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDevice, setSelectedDevice] = useState<SecurityDevice | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState<SecurityDevice | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,6 +74,51 @@ const SecurityDevices = () => {
     }
   };
 
+  const handleEdit = (device: SecurityDevice) => {
+    setSelectedDevice(device);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedDevice(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deviceToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('sec_devices')
+        .delete()
+        .eq('id', deviceToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف جهاز الأمان بنجاح",
+      });
+      
+      fetchDevices();
+      setIsDeleteModalOpen(false);
+      setDeviceToDelete(null);
+    } catch (error) {
+      console.error('Error deleting device:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف جهاز الأمان",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedDevice(null);
+    fetchDevices();
+  };
+
   const filteredDevices = devices.filter(device =>
     device.host_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (device.manufacturer && device.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -85,10 +142,27 @@ const SecurityDevices = () => {
             <p className="text-gray-600">عرض وإدارة أجهزة الأمان والحماية</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة جهاز أمان جديد
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة جهاز أمان جديد
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-4xl">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedDevice ? 'تعديل جهاز الأمان' : 'إضافة جهاز أمان جديد'}
+              </ModalTitle>
+            </ModalHeader>
+            <SecurityDeviceForm
+              device={selectedDevice}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -135,10 +209,21 @@ const SecurityDevices = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(device)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setDeviceToDelete(device);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -155,6 +240,35 @@ const SecurityDevices = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف جهاز الأمان "{deviceToDelete?.host_name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

@@ -12,9 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
 import { HardDrive, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import DataStorageForm from '@/components/forms/DataStorageForm';
 
 interface DataStorage {
   id: string;
@@ -30,6 +38,10 @@ const DataStorage = () => {
   const [storages, setStorages] = useState<DataStorage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStorage, setSelectedStorage] = useState<DataStorage | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [storageToDelete, setStorageToDelete] = useState<DataStorage | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,6 +70,51 @@ const DataStorage = () => {
     }
   };
 
+  const handleEdit = (storage: DataStorage) => {
+    setSelectedStorage(storage);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedStorage(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!storageToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('data_storage')
+        .delete()
+        .eq('id', storageToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف مخزن البيانات بنجاح",
+      });
+      
+      fetchStorages();
+      setIsDeleteModalOpen(false);
+      setStorageToDelete(null);
+    } catch (error) {
+      console.error('Error deleting storage:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف مخزن البيانات",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedStorage(null);
+    fetchStorages();
+  };
+
   const filteredStorages = storages.filter(storage =>
     storage.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (storage.description && storage.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -81,10 +138,27 @@ const DataStorage = () => {
             <p className="text-gray-600">عرض وإدارة أنواع ومواقع تخزين البيانات</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة مخزن بيانات جديد
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة مخزن بيانات جديد
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-2xl">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedStorage ? 'تعديل مخزن البيانات' : 'إضافة مخزن بيانات جديد'}
+              </ModalTitle>
+            </ModalHeader>
+            <DataStorageForm
+              storage={selectedStorage}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -135,10 +209,21 @@ const DataStorage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(storage)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setStorageToDelete(storage);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -155,6 +240,35 @@ const DataStorage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف مخزن البيانات "{storageToDelete?.name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

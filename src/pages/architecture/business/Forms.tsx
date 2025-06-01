@@ -12,9 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
 import { ClipboardList, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import FormManagementForm from '@/components/forms/FormManagementForm';
 
 interface Form {
   id: string;
@@ -30,6 +38,10 @@ const Forms = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [formToDelete, setFormToDelete] = useState<Form | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,6 +70,51 @@ const Forms = () => {
     }
   };
 
+  const handleEdit = (form: Form) => {
+    setSelectedForm(form);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedForm(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!formToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('biz_forms')
+        .delete()
+        .eq('id', formToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف النموذج بنجاح",
+      });
+      
+      fetchForms();
+      setIsDeleteModalOpen(false);
+      setFormToDelete(null);
+    } catch (error) {
+      console.error('Error deleting form:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف النموذج",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedForm(null);
+    fetchForms();
+  };
+
   const filteredForms = forms.filter(form =>
     form.form_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (form.form_description && form.form_description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -81,10 +138,27 @@ const Forms = () => {
             <p className="text-gray-600">عرض وإدارة النماذج المستخدمة في العمليات</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة نموذج جديد
-        </Button>
+        
+        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ModalTrigger asChild>
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة نموذج جديد
+            </Button>
+          </ModalTrigger>
+          <ModalContent className="max-w-2xl">
+            <ModalHeader>
+              <ModalTitle>
+                {selectedForm ? 'تعديل النموذج' : 'إضافة نموذج جديد'}
+              </ModalTitle>
+            </ModalHeader>
+            <FormManagementForm
+              form={selectedForm}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </ModalContent>
+        </Modal>
       </div>
 
       <Card>
@@ -140,10 +214,21 @@ const Forms = () => {
                     <TableCell>{form.storage_location || '-'}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(form)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setFormToDelete(form);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -160,6 +245,35 @@ const Forms = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>تأكيد الحذف</ModalTitle>
+          </ModalHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              هل أنت متأكد من حذف النموذج "{formToDelete?.form_name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              حذف
+            </Button>
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
