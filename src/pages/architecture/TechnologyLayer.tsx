@@ -6,9 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Server, 
   HardDrive, 
-  Network,
-  Database,
-  Key
+  Wifi
 } from 'lucide-react';
 
 const TechnologyLayer = () => {
@@ -16,82 +14,87 @@ const TechnologyLayer = () => {
 
   const technologyComponents = [
     {
-      title: 'الخوادم المادية',
-      description: 'إدارة الخوادم المادية والبنية التحتية',
+      title: 'الخوادم الفيزيائية',
+      description: 'إدارة الخوادم الفيزيائية والأجهزة',
       icon: Server,
       path: '/architecture/technology/physical-servers',
-      color: 'bg-blue-500'
+      color: 'bg-blue-500',
+      stats: 'خادم نشط'
     },
     {
       title: 'الخوادم الافتراضية',
       description: 'إدارة الخوادم الافتراضية والحاويات',
       icon: HardDrive,
       path: '/architecture/technology/virtual-servers',
-      color: 'bg-green-500'
+      color: 'bg-green-500',
+      stats: 'خادم افتراضي'
     },
     {
       title: 'أجهزة الشبكة',
       description: 'إدارة أجهزة الشبكة والاتصالات',
-      icon: Network,
+      icon: Wifi,
       path: '/architecture/technology/network-devices',
-      color: 'bg-purple-500'
-    },
-    {
-      title: 'الشبكات',
-      description: 'إدارة الشبكات والاتصالات',
-      icon: Network,
-      path: '/architecture/technology/networks',
-      color: 'bg-orange-500'
-    },
-    {
-      title: 'مراكز البيانات',
-      description: 'إدارة مراكز البيانات والمواقع',
-      icon: Database,
-      path: '/architecture/technology/data-centers',
-      color: 'bg-red-500'
-    },
-    {
-      title: 'التراخيص',
-      description: 'إدارة التراخيص والاشتراكات',
-      icon: Key,
-      path: '/architecture/technology/licenses',
-      color: 'bg-indigo-500'
+      color: 'bg-purple-500',
+      stats: 'جهاز شبكة'
     }
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">طبقة التقنية</h1>
-          <p className="text-gray-600 mt-2">
-            إدارة مكونات طبقة التقنية في البنية المؤسسية
-          </p>
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="flex items-center justify-between bg-white rounded-lg p-6 shadow-saudi-sm border border-gray-100">
+        <div className="flex items-center space-x-4 space-x-reverse">
+          <div className="w-16 h-16 bg-gradient-to-br from-saudi-green-600 to-saudi-green-700 rounded-xl flex items-center justify-center shadow-saudi">
+            <Server className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 font-saudi">طبقة التقنية</h1>
+            <p className="text-gray-600 mt-1 font-saudi">
+              إدارة مكونات طبقة التقنية في البنية المؤسسية
+            </p>
+            <div className="flex items-center mt-2 space-x-4 space-x-reverse text-sm text-saudi-green-700">
+              <span className="flex items-center">
+                <div className="w-2 h-2 bg-saudi-green-500 rounded-full mr-2"></div>
+                {technologyComponents.length} مكون متاح
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {technologyComponents.map((component) => {
+        {technologyComponents.map((component, index) => {
           const Icon = component.icon;
           return (
             <Card 
               key={component.path} 
-              className="hover:shadow-lg transition-shadow cursor-pointer"
+              className="group hover:shadow-saudi-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-saudi-green-200 hover:-translate-y-1 bg-white"
               onClick={() => navigate(component.path)}
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <CardHeader className="pb-3">
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className={`p-2 rounded-lg ${component.color} text-white`}>
-                    <Icon className="w-6 h-6" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 space-x-reverse">
+                    <div className={`p-3 rounded-xl ${component.color} text-white shadow-saudi group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl font-saudi group-hover:text-saudi-green-700 transition-colors">
+                        {component.title}
+                      </CardTitle>
+                      <p className="text-xs text-saudi-green-600 mt-1 bg-saudi-green-50 px-2 py-1 rounded-full inline-block">
+                        {component.stats}
+                      </p>
+                    </div>
                   </div>
-                  <CardTitle className="text-xl">{component.title}</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">{component.description}</p>
+              <CardContent className="space-y-4">
+                <p className="text-gray-600 text-sm leading-relaxed font-saudi">
+                  {component.description}
+                </p>
                 <Button 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full group-hover:bg-saudi-green-50 group-hover:border-saudi-green-300 group-hover:text-saudi-green-700 transition-all duration-300 font-saudi"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(component.path);
@@ -103,6 +106,21 @@ const TechnologyLayer = () => {
             </Card>
           );
         })}
+      </div>
+
+      <div className="bg-gradient-to-r from-saudi-green-50 to-green-50 rounded-lg p-6 border border-saudi-green-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-saudi-green-800 font-saudi">نظرة عامة على طبقة التقنية</h3>
+            <p className="text-saudi-green-600 mt-1 font-saudi">
+              تشمل هذه الطبقة جميع المكونات التقنية والأجهزة المستخدمة
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-saudi-green-700">{technologyComponents.length}</div>
+            <div className="text-xs text-saudi-green-600">مكون نشط</div>
+          </div>
+        </div>
       </div>
     </div>
   );

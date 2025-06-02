@@ -20,8 +20,11 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Plus, Search, Edit, Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { ClipboardList, Plus, Edit, Trash2 } from 'lucide-react';
+import SearchAndFilter from '@/components/common/SearchAndFilter';
+import PaginationControls from '@/components/common/PaginationControls';
+import { useSearchAndFilter } from '@/hooks/useSearchAndFilter';
+import { usePagination } from '@/hooks/usePagination';
 import FormManagementForm from '@/components/forms/FormManagementForm';
 
 interface Form {
@@ -37,7 +40,6 @@ interface Form {
 const Forms = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -69,6 +71,23 @@ const Forms = () => {
       setLoading(false);
     }
   };
+
+  // تطبيق البحث والتصفية
+  const searchAndFilter = useSearchAndFilter({
+    data: forms,
+    searchFields: ['form_name', 'form_description', 'form_type'],
+    filterFields: {
+      hasType: (item: Form) => !!item.form_type,
+      hasAutomation: (item: Form) => !!item.automation_status,
+      hasStorage: (item: Form) => !!item.storage_location,
+    }
+  });
+
+  // تطبيق Pagination
+  const pagination = usePagination({
+    data: searchAndFilter.filteredData,
+    itemsPerPage: 10
+  });
 
   const handleEdit = (form: Form) => {
     setSelectedForm(form);
@@ -115,40 +134,61 @@ const Forms = () => {
     fetchForms();
   };
 
-  const filteredForms = forms.filter(form =>
-    form.form_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (form.form_description && form.form_description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filterOptions = [
+    {
+      key: 'hasType',
+      label: 'له نوع',
+      count: forms.filter(item => !!item.form_type).length
+    },
+    {
+      key: 'hasAutomation',
+      label: 'له حالة أتمتة',
+      count: forms.filter(item => !!item.automation_status).length
+    },
+    {
+      key: 'hasStorage',
+      label: 'له موقع تخزين',
+      count: forms.filter(item => !!item.storage_location).length
+    }
+  ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-saudi-green-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <ClipboardList className="w-8 h-8 text-orange-500" />
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="flex items-center justify-between bg-white rounded-lg p-6 shadow-saudi-sm border border-gray-100">
+        <div className="flex items-center space-x-4 space-x-reverse">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-saudi">
+            <ClipboardList className="w-8 h-8 text-white" />
+          </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">إدارة النماذج</h1>
-            <p className="text-gray-600">عرض وإدارة النماذج المستخدمة في العمليات</p>
+            <h1 className="text-3xl font-bold text-gray-900 font-saudi">إدارة النماذج</h1>
+            <p className="text-gray-600 mt-1 font-saudi">عرض وإدارة النماذج المستخدمة في العمليات</p>
+            <div className="flex items-center mt-2 space-x-4 space-x-reverse text-sm text-saudi-green-700">
+              <span className="flex items-center">
+                <div className="w-2 h-2 bg-saudi-green-500 rounded-full mr-2"></div>
+                {forms.length} نموذج مسجل
+              </span>
+            </div>
           </div>
         </div>
         
         <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
           <ModalTrigger asChild>
-            <Button onClick={handleAdd}>
+            <Button onClick={handleAdd} className="bg-saudi-green-700 hover:bg-saudi-green-800 font-saudi">
               <Plus className="w-4 h-4 ml-2" />
               إضافة نموذج جديد
             </Button>
           </ModalTrigger>
           <ModalContent className="max-w-2xl">
             <ModalHeader>
-              <ModalTitle>
+              <ModalTitle className="font-saudi">
                 {selectedForm ? 'تعديل النموذج' : 'إضافة نموذج جديد'}
               </ModalTitle>
             </ModalHeader>
@@ -161,87 +201,116 @@ const Forms = () => {
         </Modal>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>قائمة النماذج ({filteredForms.length})</CardTitle>
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <Search className="w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="البحث في النماذج..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64"
-              />
-            </div>
-          </div>
+      <Card className="shadow-saudi border-gray-100">
+        <CardHeader className="bg-gradient-to-r from-saudi-green-50 to-green-50 border-b border-saudi-green-100">
+          <CardTitle className="font-saudi text-saudi-green-800">
+            قائمة النماذج ({searchAndFilter.totalResults})
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم النموذج</TableHead>
-                  <TableHead>النوع</TableHead>
-                  <TableHead>حالة الأتمتة</TableHead>
-                  <TableHead>موقع التخزين</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredForms.map((form) => (
-                  <TableRow key={form.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <p className="font-semibold">{form.form_name}</p>
-                        {form.form_description && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {form.form_description.substring(0, 100)}...
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {form.form_type && (
-                        <Badge variant="outline">{form.form_type}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {form.automation_status && (
-                        <Badge variant="secondary">{form.automation_status}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{form.storage_location || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(form)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setFormToDelete(form);
-                            setIsDeleteModalOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <CardContent className="p-0">
+          <div className="p-4">
+            <SearchAndFilter
+              searchTerm={searchAndFilter.searchTerm}
+              onSearchChange={searchAndFilter.setSearchTerm}
+              activeFilters={searchAndFilter.activeFilters}
+              onToggleFilter={searchAndFilter.toggleFilter}
+              onClearFilters={searchAndFilter.clearAllFilters}
+              filterOptions={filterOptions}
+              placeholder="البحث في النماذج..."
+              isFiltered={searchAndFilter.isFiltered}
+              totalResults={searchAndFilter.totalResults}
+            />
           </div>
-          {filteredForms.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              لا توجد نماذج متاحة
+
+          {pagination.paginatedData.length === 0 ? (
+            <div className="text-center py-12">
+              <ClipboardList className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg font-saudi">
+                {searchAndFilter.isFiltered ? 'لا توجد نتائج مطابقة للبحث' : 'لا توجد نماذج مسجلة'}
+              </p>
+              <p className="text-gray-400 font-saudi">
+                {searchAndFilter.isFiltered ? 'جرب تغيير معايير البحث' : 'قم بإضافة أول نموذج لبدء الإدارة'}
+              </p>
             </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-saudi">اسم النموذج</TableHead>
+                      <TableHead className="font-saudi">النوع</TableHead>
+                      <TableHead className="font-saudi">حالة الأتمتة</TableHead>
+                      <TableHead className="font-saudi">موقع التخزين</TableHead>
+                      <TableHead className="font-saudi">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pagination.paginatedData.map((form) => (
+                      <TableRow key={form.id} className="hover:bg-saudi-green-50/50">
+                        <TableCell className="font-medium">
+                          <div>
+                            <p className="font-semibold font-saudi">{form.form_name}</p>
+                            {form.form_description && (
+                              <p className="text-sm text-gray-500 mt-1 font-saudi">
+                                {form.form_description.substring(0, 100)}...
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {form.form_type && (
+                            <Badge variant="outline" className="font-saudi">{form.form_type}</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {form.automation_status && (
+                            <Badge variant="secondary" className="font-saudi">{form.automation_status}</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-saudi">{form.storage_location || '-'}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2 space-x-reverse">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEdit(form)}
+                              className="hover:bg-saudi-green-50 hover:border-saudi-green-300"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setFormToDelete(form);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              className="hover:bg-red-50 hover:border-red-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="p-4 border-t border-gray-100">
+                <PaginationControls
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={pagination.goToPage}
+                  hasNextPage={pagination.hasNextPage}
+                  hasPrevPage={pagination.hasPrevPage}
+                  startIndex={pagination.startIndex}
+                  endIndex={pagination.endIndex}
+                  totalItems={pagination.totalItems}
+                />
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -250,10 +319,10 @@ const Forms = () => {
       <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <ModalContent className="max-w-md">
           <ModalHeader>
-            <ModalTitle>تأكيد الحذف</ModalTitle>
+            <ModalTitle className="font-saudi">تأكيد الحذف</ModalTitle>
           </ModalHeader>
           <div className="py-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 font-saudi">
               هل أنت متأكد من حذف النموذج "{formToDelete?.form_name}"؟
               هذا الإجراء لا يمكن التراجع عنه.
             </p>
@@ -262,12 +331,14 @@ const Forms = () => {
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
+              className="font-saudi"
             >
               إلغاء
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
+              className="font-saudi"
             >
               حذف
             </Button>
