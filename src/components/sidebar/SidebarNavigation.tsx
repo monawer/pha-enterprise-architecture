@@ -11,14 +11,10 @@ import {
   Shield,
   Key,
   Building,
-  Workflow,
-  ClipboardList,
   Monitor,
   Server,
   HardDrive,
-  Archive,
   Eye,
-  Network,
   UserCheck
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -30,138 +26,98 @@ interface SidebarNavigationProps {
 }
 
 const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
-  const { hasPermission } = usePermissions(user);
-
-  // Build admin children based on permissions
-  const getAdminChildren = () => {
-    const children = [];
-    
-    console.log('Building admin menu. User:', user?.email);
-    
-    if (hasPermission('users.view')) {
-      console.log('Adding users menu item');
-      children.push({ title: "إدارة المستخدمين", path: "/admin/users", icon: Users });
-    }
-    
-    if (hasPermission('roles.view')) {
-      console.log('Adding roles and permissions menu items');
-      children.push({ title: "الصلاحيات والأدوار", path: "/admin/roles", icon: Shield });
-      children.push({ title: "عرض الأذونات", path: "/admin/permissions", icon: Key });
-    }
-    
-    if (hasPermission('references.view')) {
-      console.log('Adding references menu item');
-      children.push({ title: "جداول التعريفات", path: "/admin/references", icon: Database });
-    }
-    
-    // Always show profile edit
-    children.push({ title: "تعديل بيانات المستخدم", path: "/profile", icon: User });
-    
-    console.log('Admin menu children:', children.length);
-    return children;
-  };
+  const { permissions } = usePermissions(user);
 
   const menuItems = [
     {
-      title: "لوحة المعلومات",
+      title: "لوحة التحكم",
       icon: LayoutDashboard,
       path: "/",
-      show: hasPermission('dashboard.view') || !user
+      show: true
     },
     {
       title: "البنية المؤسسية",
-      icon: Building2,
-      path: "/architecture",
-      show: hasPermission('architecture.view') || !user,
+      icon: Layers,
+      show: permissions.canViewArchitecture,
       children: [
-        { title: "إدارة الطبقات", path: "/architecture/layers", icon: Layers, show: hasPermission('architecture.layers.manage') || hasPermission('architecture.view') },
-        { 
-          title: "طبقة الأعمال", 
-          path: "/architecture/business", 
+        {
+          title: "طبقة الأعمال",
           icon: Building,
-          show: hasPermission('architecture.view'),
-          children: [
-            { title: "الخدمات", path: "/architecture/business/services", icon: Building2 },
-            { title: "الإجراءات", path: "/architecture/business/procedures", icon: Workflow },
-            { title: "السياسات", path: "/architecture/business/policies", icon: FileText },
-            { title: "النماذج", path: "/architecture/business/forms", icon: ClipboardList },
-            { title: "القدرات", path: "/architecture/business/capabilities", icon: Settings },
-            { title: "الفروع", path: "/architecture/business/branches", icon: Users },
-            { title: "ملاك الأعمال", path: "/architecture/business/business-owners", icon: UserCheck }
-          ]
+          path: "/architecture/business",
+          show: permissions.canViewBusinessLayer
         },
-        { title: "طبقة التطبيقات", path: "/architecture/applications", icon: Monitor, show: hasPermission('architecture.view') },
-        { 
-          title: "طبقة التقنية", 
-          path: "/architecture/technology", 
-          icon: Server, 
-          show: hasPermission('architecture.view'),
-          children: [
-            { title: "الخوادم المادية", path: "/architecture/technology/physical-servers", icon: Server },
-            { title: "الخوادم الافتراضية", path: "/architecture/technology/virtual-servers", icon: HardDrive },
-            { title: "أجهزة الشبكة", path: "/architecture/technology/network-devices", icon: Network }
-          ]
+        {
+          title: "طبقة التطبيقات", 
+          icon: Monitor,
+          path: "/architecture/applications",
+          show: permissions.canViewApplicationsLayer
         },
-        { 
-          title: "طبقة البيانات", 
-          path: "/architecture/data", 
+        {
+          title: "طبقة البيانات",
           icon: Database,
-          show: hasPermission('architecture.view'),
-          children: [
-            { title: "كيانات البيانات", path: "/architecture/data/entities", icon: Database },
-            { title: "تخزين البيانات", path: "/architecture/data/storage", icon: HardDrive }
-          ]
+          path: "/architecture/data",
+          show: permissions.canViewDataLayer
         },
-        { 
-          title: "طبقة الأمان", 
-          path: "/architecture/security", 
-          icon: Shield, 
-          show: hasPermission('architecture.view'),
-          children: [
-            { title: "أجهزة الأمان", path: "/architecture/security/devices", icon: Shield }
-          ]
+        {
+          title: "طبقة التقنية",
+          icon: Server,
+          path: "/architecture/technology",
+          show: permissions.canViewTechnologyLayer
         },
-        { 
-          title: "طبقة تجربة المستخدم", 
-          path: "/architecture/ux", 
-          icon: Eye, 
-          show: hasPermission('architecture.view')
+        {
+          title: "طبقة الأمان",
+          icon: Shield,
+          path: "/architecture/security",
+          show: permissions.canViewSecurityLayer
         },
+        {
+          title: "طبقة تجربة المستخدم",
+          icon: Eye,
+          path: "/architecture/ux",
+          show: permissions.canViewUXLayer
+        }
       ]
     },
     {
-      title: "التقارير",
-      icon: FileText,
-      path: "/reports",
-      show: hasPermission('reports.view') || !user
+      title: "إدارة المستخدمين",
+      icon: Users,
+      path: "/users",
+      show: permissions.canViewUsers
     },
     {
-      title: "إعدادات النظام",
+      title: "إدارة الأدوار",
+      icon: Key,
+      path: "/roles",
+      show: permissions.canViewRoles
+    },
+    {
+      title: "الملف الشخصي",
+      icon: User,
+      path: "/profile",
+      show: true
+    },
+    {
+      title: "الإعدادات",
       icon: Settings,
-      children: getAdminChildren(),
-      show: getAdminChildren().length > 1
+      path: "/settings",
+      show: permissions.canViewSettings
     }
   ];
 
   return (
-    <nav className="p-4 space-y-2">
-      {menuItems.map((item) => {
-        if (item.show === false) {
-          console.log(`Hiding menu item: ${item.title}`);
-          return null;
-        }
-        
-        return (
+    <nav className="mt-8 px-4">
+      <div className="space-y-2">
+        {menuItems.map((item) => (
           <SidebarMenuItem
-            key={item.title}
+            key={item.path || item.title}
             title={item.title}
             icon={item.icon}
             path={item.path}
             children={item.children}
             show={item.show}
           />
-        );
-      })}
+        ))}
+      </div>
     </nav>
   );
 };
