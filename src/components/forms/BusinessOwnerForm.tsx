@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 interface BusinessOwnerFormData {
   code?: string;
@@ -23,7 +23,7 @@ interface BusinessOwnerFormProps {
 }
 
 const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, ownerId }: BusinessOwnerFormProps) => {
-  const { toast } = useToast();
+  const { executeWithErrorHandling, isLoading } = useErrorHandler();
   const form = useForm<BusinessOwnerFormData>({
     defaultValues: initialData || {
       code: '',
@@ -34,40 +34,38 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
   });
 
   const onSubmit = async (data: BusinessOwnerFormData) => {
-    try {
-      if (isEdit && ownerId) {
-        const { error } = await supabase
-          .from('biz_business_owners')
-          .update(data)
-          .eq('id', ownerId);
+    const result = await executeWithErrorHandling(
+      async () => {
+        // تنظيف البيانات قبل الإرسال
+        const cleanData = {
+          ...data,
+          code: data.code?.trim() || null,
+          title: data.title.trim(),
+          job_description: data.job_description?.trim() || null,
+          parent_code: data.parent_code?.trim() || null,
+        };
 
-        if (error) throw error;
-        
-        toast({
-          title: "تم تحديث مالك الأعمال بنجاح",
-          description: "تم حفظ التغييرات",
-        });
-      } else {
-        const { error } = await supabase
-          .from('biz_business_owners')
-          .insert([data]);
+        if (isEdit && ownerId) {
+          const { error } = await supabase
+            .from('biz_business_owners')
+            .update(cleanData)
+            .eq('id', ownerId);
 
-        if (error) throw error;
-        
-        toast({
-          title: "تم إضافة مالك الأعمال بنجاح",
-          description: "تم حفظ مالك الأعمال الجديد",
-        });
-      }
-      
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from('biz_business_owners')
+            .insert([cleanData]);
+
+          if (error) throw error;
+        }
+      },
+      'form-submit',
+      isEdit ? 'تم تحديث مالك الأعمال بنجاح' : 'تم إضافة مالك الأعمال بنجاح'
+    );
+
+    if (result !== null) {
       onSuccess();
-    } catch (error) {
-      console.error('Error saving business owner:', error);
-      toast({
-        title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ البيانات",
-        variant: "destructive",
-      });
     }
   };
 
@@ -81,7 +79,11 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
             <FormItem>
               <FormLabel>الكود</FormLabel>
               <FormControl>
-                <Input placeholder="أدخل كود مالك الأعمال" {...field} />
+                <Input 
+                  placeholder="أدخل كود مالك الأعمال (اختياري)" 
+                  {...field} 
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -91,11 +93,19 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
         <FormField
           control={form.control}
           name="title"
+          rules={{ 
+            required: 'المسمى الوظيفي مطلوب',
+            minLength: { value: 2, message: 'المسمى الوظيفي يجب أن يكون أكثر من حرفين' }
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>المسمى الوظيفي *</FormLabel>
               <FormControl>
-                <Input placeholder="أدخل المسمى الوظيفي" {...field} />
+                <Input 
+                  placeholder="أدخل المسمى الوظيفي" 
+                  {...field} 
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,7 +119,11 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
             <FormItem>
               <FormLabel>الوصف الوظيفي</FormLabel>
               <FormControl>
-                <Input placeholder="أدخل الوصف الوظيفي" {...field} />
+                <Input 
+                  placeholder="أدخل الوصف الوظيفي (اختياري)" 
+                  {...field} 
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,7 +137,11 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
             <FormItem>
               <FormLabel>الكود الأب</FormLabel>
               <FormControl>
-                <Input placeholder="أدخل الكود الأب" {...field} />
+                <Input 
+                  placeholder="أدخل الكود الأب (اختياري)" 
+                  {...field} 
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,10 +149,20 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
         />
 
         <div className="flex gap-4 pt-4">
-          <Button type="submit" className="flex-1">
-            {isEdit ? 'تحديث' : 'حفظ'}
+          <Button 
+            type="submit" 
+            className="flex-1"
+            disabled={isLoading}
+          >
+            {isLoading ? 'جاري الحفظ...' : (isEdit ? 'تحديث' : 'حفظ')}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel} 
+            className="flex-1"
+            disabled={isLoading}
+          >
             إلغاء
           </Button>
         </div>
