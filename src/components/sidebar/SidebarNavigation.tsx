@@ -26,7 +26,7 @@ interface SidebarNavigationProps {
 }
 
 const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
-  const { permissions } = usePermissions(user);
+  const { hasPermission } = usePermissions(user);
 
   const menuItems = [
     {
@@ -36,59 +36,52 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       show: true
     },
     {
-      title: "البنية المؤسسية",
-      icon: Layers,
-      show: permissions.canViewArchitecture,
-      children: [
-        {
-          title: "طبقة الأعمال",
-          icon: Building,
-          path: "/architecture/business",
-          show: permissions.canViewBusinessLayer
-        },
-        {
-          title: "طبقة التطبيقات", 
-          icon: Monitor,
-          path: "/architecture/applications",
-          show: permissions.canViewApplicationsLayer
-        },
-        {
-          title: "طبقة البيانات",
-          icon: Database,
-          path: "/architecture/data",
-          show: permissions.canViewDataLayer
-        },
-        {
-          title: "طبقة التقنية",
-          icon: Server,
-          path: "/architecture/technology",
-          show: permissions.canViewTechnologyLayer
-        },
-        {
-          title: "طبقة الأمان",
-          icon: Shield,
-          path: "/architecture/security",
-          show: permissions.canViewSecurityLayer
-        },
-        {
-          title: "طبقة تجربة المستخدم",
-          icon: Eye,
-          path: "/architecture/ux",
-          show: permissions.canViewUXLayer
-        }
-      ]
+      title: "طبقة الأعمال",
+      icon: Building,
+      path: "/architecture/business",
+      show: hasPermission('architecture.view')
+    },
+    {
+      title: "طبقة التطبيقات", 
+      icon: Monitor,
+      path: "/architecture/applications",
+      show: hasPermission('architecture.view')
+    },
+    {
+      title: "طبقة البيانات",
+      icon: Database,
+      path: "/architecture/data",
+      show: hasPermission('architecture.view')
+    },
+    {
+      title: "طبقة التقنية",
+      icon: Server,
+      path: "/architecture/technology",
+      show: hasPermission('architecture.view')
+    },
+    {
+      title: "طبقة الأمان",
+      icon: Shield,
+      path: "/architecture/security",
+      show: hasPermission('architecture.view')
+    },
+    {
+      title: "طبقة تجربة المستخدم",
+      icon: Eye,
+      path: "/architecture/ux",
+      show: hasPermission('architecture.view')
     },
     {
       title: "إدارة المستخدمين",
       icon: Users,
       path: "/users",
-      show: permissions.canViewUsers
+      show: hasPermission('users.view')
     },
     {
       title: "إدارة الأدوار",
       icon: Key,
       path: "/roles",
-      show: permissions.canViewRoles
+      show: hasPermission('roles.view')
     },
     {
       title: "الملف الشخصي",
@@ -100,7 +93,7 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       title: "الإعدادات",
       icon: Settings,
       path: "/settings",
-      show: permissions.canViewSettings
+      show: hasPermission('references.view')
     }
   ];
 
@@ -113,7 +106,6 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
             title={item.title}
             icon={item.icon}
             path={item.path}
-            children={item.children}
             show={item.show}
           />
         ))}
