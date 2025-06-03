@@ -11,9 +11,12 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Plus, LayoutGrid, List } from 'lucide-react';
+import { Building2, Plus } from 'lucide-react';
 import ServiceForm from '@/components/forms/ServiceForm';
 import ServiceCard from '@/components/cards/ServiceCard';
+import ServiceListView from '@/components/services/ServiceListView';
+import ServiceTableView from '@/components/services/ServiceTableView';
+import ViewModeToggle from '@/components/services/ViewModeToggle';
 import ServiceDetailsModal from '@/components/services/ServiceDetailsModal';
 import SearchAndFilter from '@/components/common/SearchAndFilter';
 import PaginationControls from '@/components/common/PaginationControls';
@@ -59,6 +62,8 @@ interface Service {
   created_at: string;
 }
 
+type ViewMode = 'cards' | 'list' | 'table';
+
 const Services = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,12 +74,11 @@ const Services = () => {
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [serviceDetails, setServiceDetails] = useState<Service | null>(null);
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<ViewMode>('list'); // Changed default to list
   const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>({});
   
   // Pagination state - increased items per page for better density
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 36; // Increased from 12 to 36 for better density
   
   const { toast } = useToast();
 
@@ -164,14 +168,26 @@ const Services = () => {
     return matchesSearch;
   });
 
+  // Updated pagination logic for different view modes
+  const getItemsPerPage = (mode: ViewMode) => {
+    switch (mode) {
+      case 'cards': return 36;
+      case 'list': return 50;
+      case 'table': return 100;
+      default: return 36;
+    }
+  };
+
+  const currentItemsPerPage = getItemsPerPage(viewMode);
+
   // Pagination logic
   const totalItems = filteredServices.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
+  const totalPages = Math.ceil(totalItems / currentItemsPerPage);
+  const startIndex = (currentPage - 1) * currentItemsPerPage + 1;
+  const endIndex = Math.min(currentPage * currentItemsPerPage, totalItems);
   const paginatedServices = filteredServices.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (currentPage - 1) * currentItemsPerPage,
+    currentPage * currentItemsPerPage
   );
 
   const handlePageChange = (page: number) => {
@@ -203,6 +219,11 @@ const Services = () => {
     { key: 'free', label: 'مجاني', count: services.filter(s => s.service_fees === 0).length },
   ];
 
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    setCurrentPage(1);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -232,25 +253,12 @@ const Services = () => {
         </div>
         
         <div className="flex items-center gap-3">
-          {/* View Toggle with enhanced design */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1 shadow-sm">
-            <Button
-              variant={viewMode === 'cards' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('cards')}
-              className="px-3 py-1 transition-all duration-200"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className="px-3 py-1 transition-all duration-200"
-            >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
+          {/* View Mode Toggle */}
+          <ViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            itemCount={totalItems}
+          />
 
           <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
             <ModalTrigger asChild>
@@ -302,8 +310,8 @@ const Services = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          {/* Compact Cards Grid - Increased density */}
-          {viewMode === 'cards' ? (
+          {/* Dynamic View Based on Mode */}
+          {viewMode === 'cards' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
               {paginatedServices.map((service) => (
                 <ServiceCard
@@ -318,14 +326,30 @@ const Services = () => {
                 />
               ))}
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-8">
-                <List className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">عرض الجدول</h3>
-                <p className="text-gray-500">عرض الجدول سيتم تنفيذه في المرحلة التالية</p>
-              </div>
-            </div>
+          )}
+
+          {viewMode === 'list' && (
+            <ServiceListView
+              services={paginatedServices}
+              onEdit={handleEdit}
+              onDelete={(service) => {
+                setServiceToDelete(service);
+                setIsDeleteModalOpen(true);
+              }}
+              onViewDetails={handleViewDetails}
+            />
+          )}
+
+          {viewMode === 'table' && (
+            <ServiceTableView
+              services={paginatedServices}
+              onEdit={handleEdit}
+              onDelete={(service) => {
+                setServiceToDelete(service);
+                setIsDeleteModalOpen(true);
+              }}
+              onViewDetails={handleViewDetails}
+            />
           )}
 
           {paginatedServices.length === 0 && (
