@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,6 +49,18 @@ interface Service {
   service_link?: string;
   service_priority?: string;
   execution_time?: string;
+  user_guide?: string;
+  faq_link?: string;
+  sla_link?: string;
+  application_steps?: string;
+  beneficiary_type?: string;
+  external_entities_connection?: string;
+  integration_method?: string;
+  delivery_method?: string;
+  service_conditions?: string;
+  required_documents?: string;
+  keywords?: string;
+  satisfaction_measurement_channels?: string;
   created_at: string;
 }
 
@@ -454,7 +465,33 @@ const Services = () => {
                         </a>
                       </div>
                     )}
-                    {/* Add other links similarly */}
+                    {serviceDetails.user_guide && (
+                      <div>
+                        <strong>دليل المستخدم:</strong>
+                        <a href={serviceDetails.user_guide} target="_blank" rel="noopener noreferrer" 
+                           className="text-blue-600 hover:text-blue-800 ml-2">
+                          {serviceDetails.user_guide}
+                        </a>
+                      </div>
+                    )}
+                    {serviceDetails.faq_link && (
+                      <div>
+                        <strong>الأسئلة الشائعة:</strong>
+                        <a href={serviceDetails.faq_link} target="_blank" rel="noopener noreferrer" 
+                           className="text-blue-600 hover:text-blue-800 ml-2">
+                          {serviceDetails.faq_link}
+                        </a>
+                      </div>
+                    )}
+                    {serviceDetails.sla_link && (
+                      <div>
+                        <strong>اتفاقية مستوى الخدمة:</strong>
+                        <a href={serviceDetails.sla_link} target="_blank" rel="noopener noreferrer" 
+                           className="text-blue-600 hover:text-blue-800 ml-2">
+                          {serviceDetails.sla_link}
+                        </a>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
