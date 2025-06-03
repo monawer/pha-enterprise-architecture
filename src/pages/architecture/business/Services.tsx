@@ -4,14 +4,6 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Modal,
   ModalContent,
   ModalHeader,
@@ -19,9 +11,12 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Plus, Search, Edit, Trash2, ExternalLink, Eye, Calendar, Users, DollarSign, Star } from 'lucide-react';
+import { Building2, Plus, Search, LayoutGrid, List, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ServiceForm from '@/components/forms/ServiceForm';
+import ServiceCard from '@/components/cards/ServiceCard';
+import SearchAndFilter from '@/components/common/SearchAndFilter';
+import PaginationControls from '@/components/common/PaginationControls';
 
 interface Service {
   id: string;
@@ -74,6 +69,13 @@ const Services = () => {
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [serviceDetails, setServiceDetails] = useState<Service | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>({});
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -152,42 +154,52 @@ const Services = () => {
     fetchServices();
   };
 
-  const filteredServices = services.filter(service =>
-    service.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (service.service_description && service.service_description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (service.service_code && service.service_code.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Filter and search logic
+  const filteredServices = services.filter(service => {
+    const matchesSearch = service.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (service.service_description && service.service_description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (service.service_code && service.service_code.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Add filter logic here based on activeFilters
+    return matchesSearch;
+  });
+
+  // Pagination logic
+  const totalItems = filteredServices.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
+  const paginatedServices = filteredServices.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
-  const getMaturityColor = (maturity?: string) => {
-    switch (maturity?.toLowerCase()) {
-      case 'مبدئي': return 'bg-red-100 text-red-800';
-      case 'متطور': return 'bg-yellow-100 text-yellow-800';
-      case 'متقدم': return 'bg-blue-100 text-blue-800';
-      case 'محسن': return 'bg-green-100 text-green-800';
-      case 'ممتاز': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  const getPriorityColor = (priority?: string) => {
-    switch (priority?.toLowerCase()) {
-      case 'حرجة': return 'bg-red-100 text-red-800';
-      case 'عالية': return 'bg-orange-100 text-orange-800';
-      case 'متوسطة': return 'bg-yellow-100 text-yellow-800';
-      case 'منخفضة': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handleToggleFilter = (filterKey: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [filterKey]: !prev[filterKey]
+    }));
+    setCurrentPage(1);
   };
 
-  const getStabilityColor = (stability?: string) => {
-    switch (stability?.toLowerCase()) {
-      case 'مستقر': return 'bg-green-100 text-green-800';
-      case 'متوسط الاستقرار': return 'bg-yellow-100 text-yellow-800';
-      case 'غير مستقر': return 'bg-red-100 text-red-800';
-      case 'تحت التطوير': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handleClearFilters = () => {
+    setActiveFilters({});
+    setSearchTerm('');
+    setCurrentPage(1);
   };
+
+  const isFiltered = Object.values(activeFilters).some(Boolean) || searchTerm.length > 0;
+
+  const filterOptions = [
+    { key: 'internal', label: 'داخلية', count: services.filter(s => s.internal_external === 'داخلية').length },
+    { key: 'external', label: 'خارجية', count: services.filter(s => s.internal_external === 'خارجية').length },
+    { key: 'high_priority', label: 'أولوية عالية', count: services.filter(s => s.service_priority === 'عالية').length },
+    { key: 'stable', label: 'مستقر', count: services.filter(s => s.service_stability === 'مستقر').length },
+  ];
 
   if (loading) {
     return (
@@ -199,6 +211,7 @@ const Services = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 space-x-reverse">
           <Building2 className="w-8 h-8 text-blue-500" />
@@ -208,290 +221,126 @@ const Services = () => {
           </div>
         </div>
         
-        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <ModalTrigger asChild>
-            <Button onClick={handleAdd}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة خدمة جديدة
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              className="px-3 py-1"
+            >
+              <LayoutGrid className="w-4 h-4" />
             </Button>
-          </ModalTrigger>
-          <ModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <ModalHeader>
-              <ModalTitle>
-                {selectedService ? 'تعديل الخدمة' : 'إضافة خدمة جديدة'}
-              </ModalTitle>
-            </ModalHeader>
-            <ServiceForm
-              service={selectedService}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsModalOpen(false)}
-            />
-          </ModalContent>
-        </Modal>
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+              className="px-3 py-1"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <ModalTrigger asChild>
+              <Button onClick={handleAdd}>
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة خدمة جديدة
+              </Button>
+            </ModalTrigger>
+            <ModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <ModalHeader>
+                <ModalTitle>
+                  {selectedService ? 'تعديل الخدمة' : 'إضافة خدمة جديدة'}
+                </ModalTitle>
+              </ModalHeader>
+              <ServiceForm
+                service={selectedService}
+                onSuccess={handleFormSuccess}
+                onCancel={() => setIsModalOpen(false)}
+              />
+            </ModalContent>
+          </Modal>
+        </div>
       </div>
 
+      {/* Search and Filter */}
+      <SearchAndFilter
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        activeFilters={activeFilters}
+        onToggleFilter={handleToggleFilter}
+        onClearFilters={handleClearFilters}
+        filterOptions={filterOptions}
+        placeholder="البحث في الخدمات..."
+        isFiltered={isFiltered}
+        totalResults={totalItems}
+      />
+
+      {/* Results Summary */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>قائمة الخدمات ({filteredServices.length})</CardTitle>
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <Search className="w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="البحث في الخدمات..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64"
-              />
-            </div>
-          </div>
+          <CardTitle className="flex items-center justify-between">
+            <span>قائمة الخدمات ({totalItems})</span>
+            <Badge variant="outline" className="text-sm">
+              عرض {startIndex} - {endIndex} من أصل {totalItems}
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[250px]">معلومات الخدمة</TableHead>
-                  <TableHead className="min-w-[200px]">التصنيف والنوع</TableHead>
-                  <TableHead className="min-w-[180px]">الجهة والمسؤولية</TableHead>
-                  <TableHead className="min-w-[200px]">النضج والأولوية</TableHead>
-                  <TableHead className="min-w-[220px]">المقاييس المالية</TableHead>
-                  <TableHead className="min-w-[200px]">المقاييس التشغيلية</TableHead>
-                  <TableHead className="min-w-[180px]">التواريخ والحالة</TableHead>
-                  <TableHead className="min-w-[200px]">القنوات والمنصات</TableHead>
-                  <TableHead className="min-w-[150px]">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredServices.map((service) => (
-                  <TableRow key={service.id}>
-                    <TableCell className="font-medium">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900">{service.service_name}</p>
-                          {service.service_code && (
-                            <Badge variant="outline" className="text-xs">
-                              {service.service_code}
-                            </Badge>
-                          )}
-                        </div>
-                        {service.service_description && (
-                          <p className="text-sm text-gray-500 line-clamp-2">
-                            {service.service_description.substring(0, 100)}...
-                          </p>
-                        )}
-                        {service.service_link && (
-                          <a 
-                            href={service.service_link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center text-xs text-blue-600 hover:text-blue-800"
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            رابط الخدمة
-                          </a>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        {service.service_type && (
-                          <Badge variant="secondary" className="text-xs">
-                            {service.service_type}
-                          </Badge>
-                        )}
-                        {service.internal_external && (
-                          <Badge variant="outline" className="text-xs">
-                            {service.internal_external}
-                          </Badge>
-                        )}
-                        {service.beneficiary_type && (
-                          <div className="text-xs text-gray-600">
-                            <span className="font-medium">المستفيد:</span> {service.beneficiary_type}
-                          </div>
-                        )}
-                        {service.target_user && (
-                          <div className="text-xs text-gray-600">
-                            <span className="font-medium">المستهدف:</span> {service.target_user}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium text-gray-900">
-                          {service.owning_department || '-'}
-                        </div>
-                        {service.ownership_type && (
-                          <Badge variant="outline" className="text-xs">
-                            {service.ownership_type}
-                          </Badge>
-                        )}
-                        {service.authority_importance && (
-                          <div className="text-xs text-gray-600">
-                            <span className="font-medium">الأهمية:</span> {service.authority_importance}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        {service.current_maturity && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">الحالي:</span>
-                            <Badge className={`text-xs ${getMaturityColor(service.current_maturity)}`}>
-                              {service.current_maturity}
-                            </Badge>
-                          </div>
-                        )}
-                        {service.highest_maturity && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">المستهدف:</span>
-                            <Badge className={`text-xs ${getMaturityColor(service.highest_maturity)}`}>
-                              {service.highest_maturity}
-                            </Badge>
-                          </div>
-                        )}
-                        {service.service_priority && (
-                          <Badge className={`text-xs ${getPriorityColor(service.service_priority)}`}>
-                            {service.service_priority}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <DollarSign className="w-3 h-3 text-gray-400" />
-                          <span className="text-gray-500">الرسوم:</span>
-                          <span className="font-medium">
-                            {service.service_fees ? `${service.service_fees.toLocaleString()} ريال` : 'مجاني'}
-                          </span>
-                        </div>
-                        {service.customer_satisfaction && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Star className="w-3 h-3 text-yellow-500" />
-                            <span className="text-gray-500">الرضا:</span>
-                            <span className="font-medium">{service.customer_satisfaction}%</span>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        {service.annual_operations && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-500">العمليات:</span>
-                            <span className="font-medium">{service.annual_operations.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {service.annual_beneficiaries && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Users className="w-3 h-3 text-gray-400" />
-                            <span className="text-gray-500">المستفيدين:</span>
-                            <span className="font-medium">{service.annual_beneficiaries.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {service.execution_time && (
-                          <div className="text-xs text-gray-600">
-                            <span className="font-medium">المدة:</span> {service.execution_time}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        {service.launch_date && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-3 h-3 text-gray-400" />
-                            <span className="text-gray-500">الإطلاق:</span>
-                            <span className="font-medium">
-                              {new Date(service.launch_date).toLocaleDateString('ar-SA')}
-                            </span>
-                          </div>
-                        )}
-                        {service.service_stability && (
-                          <Badge className={`text-xs ${getStabilityColor(service.service_stability)}`}>
-                            {service.service_stability}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="space-y-2">
-                        {service.platform && (
-                          <div className="text-xs text-gray-600">
-                            <span className="font-medium">المنصة:</span> {service.platform}
-                          </div>
-                        )}
-                        {service.service_language && (
-                          <Badge variant="outline" className="text-xs">
-                            {service.service_language}
-                          </Badge>
-                        )}
-                        {service.delivery_channels && (
-                          <div className="text-xs text-gray-600 line-clamp-2">
-                            <span className="font-medium">القنوات:</span> {service.delivery_channels.substring(0, 50)}...
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex flex-col space-y-1">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewDetails(service)}
-                          title="عرض التفاصيل"
-                          className="w-full"
-                        >
-                          <Eye className="w-4 h-4 ml-1" />
-                          تفاصيل
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(service)}
-                          title="تعديل"
-                          className="w-full"
-                        >
-                          <Edit className="w-4 h-4 ml-1" />
-                          تعديل
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setServiceToDelete(service);
-                            setIsDeleteModalOpen(true);
-                          }}
-                          title="حذف"
-                          className="w-full text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="w-4 h-4 ml-1" />
-                          حذف
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredServices.length === 0 && (
+          {/* Cards Grid */}
+          {viewMode === 'cards' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedServices.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  onEdit={handleEdit}
+                  onDelete={(service) => {
+                    setServiceToDelete(service);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+            </div>
+          ) : (
             <div className="text-center py-8 text-gray-500">
-              لا توجد خدمات متاحة
+              عرض الجدول سيتم تنفيذه في المرحلة التالية
+            </div>
+          )}
+
+          {paginatedServices.length === 0 && (
+            <div className="text-center py-12">
+              <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد خدمات</h3>
+              <p className="text-gray-500 mb-4">
+                {isFiltered ? 'لا توجد خدمات تطابق المعايير المحددة' : 'لم يتم إضافة أي خدمات بعد'}
+              </p>
+              {isFiltered && (
+                <Button variant="outline" onClick={handleClearFilters}>
+                  مسح الفلاتر
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          hasNextPage={currentPage < totalPages}
+          hasPrevPage={currentPage > 1}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+        />
+      )}
 
       {/* Service Details Modal */}
       <Modal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
