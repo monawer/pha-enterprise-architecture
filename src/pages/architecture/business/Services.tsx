@@ -72,9 +72,9 @@ const Services = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>({});
   
-  // Pagination state
+  // Pagination state - increased items per page for better density
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 36; // Increased from 12 to 36 for better density
   
   const { toast } = useToast();
 
@@ -198,7 +198,9 @@ const Services = () => {
     { key: 'internal', label: 'داخلية', count: services.filter(s => s.internal_external === 'داخلية').length },
     { key: 'external', label: 'خارجية', count: services.filter(s => s.internal_external === 'خارجية').length },
     { key: 'high_priority', label: 'أولوية عالية', count: services.filter(s => s.service_priority === 'عالية').length },
+    { key: 'critical_priority', label: 'أولوية حرجة', count: services.filter(s => s.service_priority === 'حرجة').length },
     { key: 'stable', label: 'مستقر', count: services.filter(s => s.service_stability === 'مستقر').length },
+    { key: 'free', label: 'مجاني', count: services.filter(s => s.service_fees === 0).length },
   ];
 
   if (loading) {
@@ -291,7 +293,7 @@ const Services = () => {
 
       {/* Results Summary */}
       <Card className="shadow-sm border border-gray-100">
-        <CardHeader className="bg-gradient-to-r from-gray-50/50 to-transparent">
+        <CardHeader className="bg-gradient-to-r from-gray-50/50 to-transparent pb-4">
           <CardTitle className="flex items-center justify-between">
             <span className="text-xl">قائمة الخدمات ({totalItems})</span>
             <Badge variant="outline" className="text-sm bg-white">
@@ -299,10 +301,10 @@ const Services = () => {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          {/* Cards Grid */}
+        <CardContent className="p-4">
+          {/* Compact Cards Grid - Increased density */}
           {viewMode === 'cards' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
               {paginatedServices.map((service) => (
                 <ServiceCard
                   key={service.id}
