@@ -16,17 +16,30 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // وظيفة لملء بيانات المستخدم الوهمي
+  const fillDemoCredentials = () => {
+    setEmail("admin@admin.com");
+    setPassword("pha@1010");
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log("محاولة تسجيل الدخول بالبيانات:", email);
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+        
+        if (error) {
+          console.error("خطأ في تسجيل الدخول:", error);
+          throw error;
+        }
+        
+        console.log("تم تسجيل الدخول بنجاح:", data);
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في نظام البنية المؤسسية",
@@ -50,9 +63,18 @@ const Auth = () => {
         setIsLogin(true);
       }
     } catch (error: any) {
+      console.error("خطأ في المصادقة:", error);
+      let errorMessage = "حدث خطأ في التسجيل";
+      
+      if (error.message === "Invalid login credentials") {
+        errorMessage = "بيانات تسجيل الدخول غير صحيحة";
+      } else if (error.message.includes("User already registered")) {
+        errorMessage = "المستخدم مسجل بالفعل";
+      }
+      
       toast({
         title: "خطأ في التسجيل",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -73,6 +95,22 @@ const Auth = () => {
           <p className="text-green-600">نظام البنية المؤسسية - هيئة الصحة العامة</p>
         </CardHeader>
         <CardContent>
+          {/* زر للمستخدم الوهمي */}
+          {isLogin && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-600 mb-2">للتجربة السريعة:</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={fillDemoCredentials}
+                className="w-full text-blue-600 border-blue-300 hover:bg-blue-100"
+              >
+                استخدام حساب المدير التجريبي
+              </Button>
+            </div>
+          )}
+
           <form onSubmit={handleAuth} className="space-y-4">
             {!isLogin && (
               <div>
