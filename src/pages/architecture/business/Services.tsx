@@ -19,7 +19,7 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Plus, Search, Edit, Trash2, ExternalLink, Eye } from 'lucide-react';
+import { Building2, Plus, Search, Edit, Trash2, ExternalLink, Eye, Calendar, Users, DollarSign, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ServiceForm from '@/components/forms/ServiceForm';
 
@@ -179,6 +179,16 @@ const Services = () => {
     }
   };
 
+  const getStabilityColor = (stability?: string) => {
+    switch (stability?.toLowerCase()) {
+      case 'مستقر': return 'bg-green-100 text-green-800';
+      case 'متوسط الاستقرار': return 'bg-yellow-100 text-yellow-800';
+      case 'غير مستقر': return 'bg-red-100 text-red-800';
+      case 'تحت التطوير': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -240,22 +250,24 @@ const Services = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>معلومات الخدمة</TableHead>
-                  <TableHead>النوع والنطاق</TableHead>
-                  <TableHead>الجهة المسؤولة</TableHead>
-                  <TableHead>النضج والأولوية</TableHead>
-                  <TableHead>المقاييس</TableHead>
-                  <TableHead>التشغيل</TableHead>
-                  <TableHead>الإجراءات</TableHead>
+                  <TableHead className="min-w-[250px]">معلومات الخدمة</TableHead>
+                  <TableHead className="min-w-[200px]">التصنيف والنوع</TableHead>
+                  <TableHead className="min-w-[180px]">الجهة والمسؤولية</TableHead>
+                  <TableHead className="min-w-[200px]">النضج والأولوية</TableHead>
+                  <TableHead className="min-w-[220px]">المقاييس المالية</TableHead>
+                  <TableHead className="min-w-[200px]">المقاييس التشغيلية</TableHead>
+                  <TableHead className="min-w-[180px]">التواريخ والحالة</TableHead>
+                  <TableHead className="min-w-[200px]">القنوات والمنصات</TableHead>
+                  <TableHead className="min-w-[150px]">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredServices.map((service) => (
                   <TableRow key={service.id}>
                     <TableCell className="font-medium">
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold">{service.service_name}</p>
+                          <p className="font-semibold text-gray-900">{service.service_name}</p>
                           {service.service_code && (
                             <Badge variant="outline" className="text-xs">
                               {service.service_code}
@@ -263,8 +275,8 @@ const Services = () => {
                           )}
                         </div>
                         {service.service_description && (
-                          <p className="text-sm text-gray-500">
-                            {service.service_description.substring(0, 80)}...
+                          <p className="text-sm text-gray-500 line-clamp-2">
+                            {service.service_description.substring(0, 100)}...
                           </p>
                         )}
                         {service.service_link && (
@@ -280,31 +292,67 @@ const Services = () => {
                         )}
                       </div>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {service.service_type && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="secondary" className="text-xs">
                             {service.service_type}
                           </Badge>
                         )}
                         {service.internal_external && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="outline" className="text-xs">
                             {service.internal_external}
                           </Badge>
                         )}
+                        {service.beneficiary_type && (
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">المستفيد:</span> {service.beneficiary_type}
+                          </div>
+                        )}
+                        {service.target_user && (
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">المستهدف:</span> {service.target_user}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="text-sm">
-                        {service.owning_department || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {service.current_maturity && (
-                          <Badge className={`text-xs ${getMaturityColor(service.current_maturity)}`}>
-                            {service.current_maturity}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-gray-900">
+                          {service.owning_department || '-'}
+                        </div>
+                        {service.ownership_type && (
+                          <Badge variant="outline" className="text-xs">
+                            {service.ownership_type}
                           </Badge>
+                        )}
+                        {service.authority_importance && (
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">الأهمية:</span> {service.authority_importance}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="space-y-2">
+                        {service.current_maturity && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-500">الحالي:</span>
+                            <Badge className={`text-xs ${getMaturityColor(service.current_maturity)}`}>
+                              {service.current_maturity}
+                            </Badge>
+                          </div>
+                        )}
+                        {service.highest_maturity && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-500">المستهدف:</span>
+                            <Badge className={`text-xs ${getMaturityColor(service.highest_maturity)}`}>
+                              {service.highest_maturity}
+                            </Badge>
+                          </div>
                         )}
                         {service.service_priority && (
                           <Badge className={`text-xs ${getPriorityColor(service.service_priority)}`}>
@@ -313,54 +361,109 @@ const Services = () => {
                         )}
                       </div>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <DollarSign className="w-3 h-3 text-gray-400" />
                           <span className="text-gray-500">الرسوم:</span>
-                          <span>{service.service_fees ? `${service.service_fees} ريال` : 'مجاني'}</span>
+                          <span className="font-medium">
+                            {service.service_fees ? `${service.service_fees.toLocaleString()} ريال` : 'مجاني'}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">العمليات:</span>
-                          <span>{service.annual_operations?.toLocaleString() || '-'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">المستفيدين:</span>
-                          <span>{service.annual_beneficiaries?.toLocaleString() || '-'}</span>
-                        </div>
+                        {service.customer_satisfaction && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Star className="w-3 h-3 text-yellow-500" />
+                            <span className="text-gray-500">الرضا:</span>
+                            <span className="font-medium">{service.customer_satisfaction}%</span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="text-sm space-y-1">
+                      <div className="space-y-2">
+                        {service.annual_operations && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-500">العمليات:</span>
+                            <span className="font-medium">{service.annual_operations.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {service.annual_beneficiaries && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="w-3 h-3 text-gray-400" />
+                            <span className="text-gray-500">المستفيدين:</span>
+                            <span className="font-medium">{service.annual_beneficiaries.toLocaleString()}</span>
+                          </div>
+                        )}
                         {service.execution_time && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-500">المدة:</span>
-                            <span>{service.execution_time}</span>
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">المدة:</span> {service.execution_time}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="space-y-2">
+                        {service.launch_date && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="w-3 h-3 text-gray-400" />
+                            <span className="text-gray-500">الإطلاق:</span>
+                            <span className="font-medium">
+                              {new Date(service.launch_date).toLocaleDateString('ar-SA')}
+                            </span>
                           </div>
                         )}
                         {service.service_stability && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge className={`text-xs ${getStabilityColor(service.service_stability)}`}>
                             {service.service_stability}
                           </Badge>
                         )}
                       </div>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
+                      <div className="space-y-2">
+                        {service.platform && (
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">المنصة:</span> {service.platform}
+                          </div>
+                        )}
+                        {service.service_language && (
+                          <Badge variant="outline" className="text-xs">
+                            {service.service_language}
+                          </Badge>
+                        )}
+                        {service.delivery_channels && (
+                          <div className="text-xs text-gray-600 line-clamp-2">
+                            <span className="font-medium">القنوات:</span> {service.delivery_channels.substring(0, 50)}...
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="flex flex-col space-y-1">
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleViewDetails(service)}
                           title="عرض التفاصيل"
+                          className="w-full"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 h-4 ml-1" />
+                          تفاصيل
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleEdit(service)}
                           title="تعديل"
+                          className="w-full"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4 ml-1" />
+                          تعديل
                         </Button>
                         <Button 
                           variant="outline" 
@@ -370,8 +473,10 @@ const Services = () => {
                             setIsDeleteModalOpen(true);
                           }}
                           title="حذف"
+                          className="w-full text-red-600 hover:text-red-800"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 ml-1" />
+                          حذف
                         </Button>
                       </div>
                     </TableCell>
