@@ -20,7 +20,7 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Building2, Plus, Search, Edit, Trash2, ExternalLink, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ServiceForm from '@/components/forms/ServiceForm';
 
@@ -31,9 +31,25 @@ interface Service {
   service_type?: string;
   owning_department?: string;
   current_maturity?: string;
+  highest_maturity?: string;
   service_fees?: number;
   annual_operations?: number;
   annual_beneficiaries?: number;
+  service_code?: string;
+  ownership_type?: string;
+  authority_importance?: string;
+  platform?: string;
+  internal_external?: string;
+  target_user?: string;
+  service_language?: string;
+  service_stability?: string;
+  launch_date?: string;
+  external_integration?: string;
+  delivery_channels?: string;
+  customer_satisfaction?: number;
+  service_link?: string;
+  service_priority?: string;
+  execution_time?: string;
   created_at: string;
 }
 
@@ -45,6 +61,8 @@ const Services = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [serviceDetails, setServiceDetails] = useState<Service | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -81,6 +99,11 @@ const Services = () => {
   const handleAdd = () => {
     setSelectedService(null);
     setIsModalOpen(true);
+  };
+
+  const handleViewDetails = (service: Service) => {
+    setServiceDetails(service);
+    setIsDetailsModalOpen(true);
   };
 
   const handleDelete = async () => {
@@ -120,8 +143,30 @@ const Services = () => {
 
   const filteredServices = services.filter(service =>
     service.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (service.service_description && service.service_description.toLowerCase().includes(searchTerm.toLowerCase()))
+    (service.service_description && service.service_description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (service.service_code && service.service_code.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const getMaturityColor = (maturity?: string) => {
+    switch (maturity?.toLowerCase()) {
+      case 'مبدئي': return 'bg-red-100 text-red-800';
+      case 'متطور': return 'bg-yellow-100 text-yellow-800';
+      case 'متقدم': return 'bg-blue-100 text-blue-800';
+      case 'محسن': return 'bg-green-100 text-green-800';
+      case 'ممتاز': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPriorityColor = (priority?: string) => {
+    switch (priority?.toLowerCase()) {
+      case 'حرجة': return 'bg-red-100 text-red-800';
+      case 'عالية': return 'bg-orange-100 text-orange-800';
+      case 'متوسطة': return 'bg-yellow-100 text-yellow-800';
+      case 'منخفضة': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   if (loading) {
     return (
@@ -149,7 +194,7 @@ const Services = () => {
               إضافة خدمة جديدة
             </Button>
           </ModalTrigger>
-          <ModalContent className="max-w-2xl">
+          <ModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <ModalHeader>
               <ModalTitle>
                 {selectedService ? 'تعديل الخدمة' : 'إضافة خدمة جديدة'}
@@ -184,12 +229,12 @@ const Services = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>اسم الخدمة</TableHead>
-                  <TableHead>النوع</TableHead>
+                  <TableHead>معلومات الخدمة</TableHead>
+                  <TableHead>النوع والنطاق</TableHead>
                   <TableHead>الجهة المسؤولة</TableHead>
-                  <TableHead>مستوى النضج</TableHead>
-                  <TableHead>الرسوم</TableHead>
-                  <TableHead>العمليات السنوية</TableHead>
+                  <TableHead>النضج والأولوية</TableHead>
+                  <TableHead>المقاييس</TableHead>
+                  <TableHead>التشغيل</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -197,36 +242,112 @@ const Services = () => {
                 {filteredServices.map((service) => (
                   <TableRow key={service.id}>
                     <TableCell className="font-medium">
-                      <div>
-                        <p className="font-semibold">{service.service_name}</p>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold">{service.service_name}</p>
+                          {service.service_code && (
+                            <Badge variant="outline" className="text-xs">
+                              {service.service_code}
+                            </Badge>
+                          )}
+                        </div>
                         {service.service_description && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {service.service_description.substring(0, 100)}...
+                          <p className="text-sm text-gray-500">
+                            {service.service_description.substring(0, 80)}...
                           </p>
+                        )}
+                        {service.service_link && (
+                          <a 
+                            href={service.service_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            رابط الخدمة
+                          </a>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {service.service_type && (
-                        <Badge variant="outline">{service.service_type}</Badge>
-                      )}
+                      <div className="space-y-1">
+                        {service.service_type && (
+                          <Badge variant="outline" className="text-xs">
+                            {service.service_type}
+                          </Badge>
+                        )}
+                        {service.internal_external && (
+                          <Badge variant="secondary" className="text-xs">
+                            {service.internal_external}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell>{service.owning_department || '-'}</TableCell>
                     <TableCell>
-                      {service.current_maturity && (
-                        <Badge variant="secondary">{service.current_maturity}</Badge>
-                      )}
+                      <div className="text-sm">
+                        {service.owning_department || '-'}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {service.service_fees ? `${service.service_fees} ريال` : 'مجاني'}
+                      <div className="space-y-1">
+                        {service.current_maturity && (
+                          <Badge className={`text-xs ${getMaturityColor(service.current_maturity)}`}>
+                            {service.current_maturity}
+                          </Badge>
+                        )}
+                        {service.service_priority && (
+                          <Badge className={`text-xs ${getPriorityColor(service.service_priority)}`}>
+                            {service.service_priority}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell>{service.annual_operations?.toLocaleString() || '-'}</TableCell>
+                    <TableCell>
+                      <div className="text-sm space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">الرسوم:</span>
+                          <span>{service.service_fees ? `${service.service_fees} ريال` : 'مجاني'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">العمليات:</span>
+                          <span>{service.annual_operations?.toLocaleString() || '-'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">المستفيدين:</span>
+                          <span>{service.annual_beneficiaries?.toLocaleString() || '-'}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm space-y-1">
+                        {service.execution_time && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-500">المدة:</span>
+                            <span>{service.execution_time}</span>
+                          </div>
+                        )}
+                        {service.service_stability && (
+                          <Badge variant="outline" className="text-xs">
+                            {service.service_stability}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex space-x-2 space-x-reverse">
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={() => handleViewDetails(service)}
+                          title="عرض التفاصيل"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
                           onClick={() => handleEdit(service)}
+                          title="تعديل"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -237,6 +358,7 @@ const Services = () => {
                             setServiceToDelete(service);
                             setIsDeleteModalOpen(true);
                           }}
+                          title="حذف"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -254,6 +376,92 @@ const Services = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Service Details Modal */}
+      <Modal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <ModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <ModalHeader>
+            <ModalTitle>تفاصيل الخدمة: {serviceDetails?.service_name}</ModalTitle>
+          </ModalHeader>
+          {serviceDetails && (
+            <div className="space-y-6 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">المعلومات الأساسية</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div><strong>اسم الخدمة:</strong> {serviceDetails.service_name}</div>
+                    {serviceDetails.service_code && <div><strong>رمز الخدمة:</strong> {serviceDetails.service_code}</div>}
+                    {serviceDetails.service_description && <div><strong>الوصف:</strong> {serviceDetails.service_description}</div>}
+                    {serviceDetails.service_type && <div><strong>النوع:</strong> {serviceDetails.service_type}</div>}
+                    {serviceDetails.owning_department && <div><strong>الجهة المسؤولة:</strong> {serviceDetails.owning_department}</div>}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">التصنيف والنضج</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {serviceDetails.current_maturity && <div><strong>النضج الحالي:</strong> {serviceDetails.current_maturity}</div>}
+                    {serviceDetails.highest_maturity && <div><strong>أعلى نضج مستهدف:</strong> {serviceDetails.highest_maturity}</div>}
+                    {serviceDetails.service_priority && <div><strong>الأولوية:</strong> {serviceDetails.service_priority}</div>}
+                    {serviceDetails.authority_importance && <div><strong>أهمية السلطة:</strong> {serviceDetails.authority_importance}</div>}
+                    {serviceDetails.internal_external && <div><strong>النطاق:</strong> {serviceDetails.internal_external}</div>}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">المقاييس والتشغيل</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div><strong>الرسوم:</strong> {serviceDetails.service_fees ? `${serviceDetails.service_fees} ريال` : 'مجاني'}</div>
+                    {serviceDetails.annual_operations && <div><strong>العمليات السنوية:</strong> {serviceDetails.annual_operations.toLocaleString()}</div>}
+                    {serviceDetails.annual_beneficiaries && <div><strong>المستفيدين السنويين:</strong> {serviceDetails.annual_beneficiaries.toLocaleString()}</div>}
+                    {serviceDetails.customer_satisfaction && <div><strong>رضا العملاء:</strong> {serviceDetails.customer_satisfaction}%</div>}
+                    {serviceDetails.execution_time && <div><strong>وقت التنفيذ:</strong> {serviceDetails.execution_time}</div>}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">القنوات والمنصات</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {serviceDetails.platform && <div><strong>المنصة:</strong> {serviceDetails.platform}</div>}
+                    {serviceDetails.service_language && <div><strong>اللغة:</strong> {serviceDetails.service_language}</div>}
+                    {serviceDetails.delivery_channels && <div><strong>قنوات التقديم:</strong> {serviceDetails.delivery_channels}</div>}
+                    {serviceDetails.target_user && <div><strong>المستخدم المستهدف:</strong> {serviceDetails.target_user}</div>}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Links Section */}
+              {(serviceDetails.service_link || serviceDetails.user_guide || serviceDetails.faq_link || serviceDetails.sla_link) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">الروابط والموارد</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {serviceDetails.service_link && (
+                      <div>
+                        <strong>رابط الخدمة:</strong>
+                        <a href={serviceDetails.service_link} target="_blank" rel="noopener noreferrer" 
+                           className="text-blue-600 hover:text-blue-800 ml-2">
+                          {serviceDetails.service_link}
+                        </a>
+                      </div>
+                    )}
+                    {/* Add other links similarly */}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </ModalContent>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
