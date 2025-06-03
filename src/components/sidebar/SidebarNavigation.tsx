@@ -15,7 +15,8 @@ import {
   Server,
   HardDrive,
   Eye,
-  UserCheck
+  UserCheck,
+  Home
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -30,8 +31,8 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
 
   const menuItems = [
     {
-      title: "لوحة التحكم",
-      icon: LayoutDashboard,
+      title: "الصفحة الرئيسية",
+      icon: Home,
       path: "/",
       show: true
     },
@@ -70,24 +71,6 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       icon: Eye,
       path: "/architecture/ux",
       show: hasPermission('architecture.view')
-    },
-    {
-      title: "إدارة المستخدمين",
-      icon: Users,
-      path: "/users",
-      show: hasPermission('users.view')
-    },
-    {
-      title: "إدارة الأدوار",
-      icon: Key,
-      path: "/roles",
-      show: hasPermission('roles.view')
-    },
-    {
-      title: "الملف الشخصي",
-      icon: User,
-      path: "/profile",
-      show: true
     },
     {
       title: "الإعدادات",
