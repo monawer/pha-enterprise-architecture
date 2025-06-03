@@ -11,10 +11,10 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Plus, Search, LayoutGrid, List, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Building2, Plus, LayoutGrid, List } from 'lucide-react';
 import ServiceForm from '@/components/forms/ServiceForm';
 import ServiceCard from '@/components/cards/ServiceCard';
+import ServiceDetailsModal from '@/components/services/ServiceDetailsModal';
 import SearchAndFilter from '@/components/common/SearchAndFilter';
 import PaginationControls from '@/components/common/PaginationControls';
 
@@ -211,24 +211,32 @@ const Services = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with enhanced styling */}
+      <div className="flex items-center justify-between bg-gradient-to-r from-white to-gray-50/30 rounded-xl p-6 shadow-sm border border-gray-100">
         <div className="flex items-center space-x-3 space-x-reverse">
-          <Building2 className="w-8 h-8 text-blue-500" />
+          <div className="p-3 rounded-xl bg-gradient-to-br from-saudi-green-500 to-saudi-green-600 shadow-lg">
+            <Building2 className="w-8 h-8 text-white" />
+          </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">إدارة الخدمات</h1>
-            <p className="text-gray-600">عرض وإدارة الخدمات المقدمة للمستفيدين</p>
+            <p className="text-gray-600 mt-1">عرض وإدارة الخدمات المقدمة للمستفيدين</p>
+            <div className="flex items-center mt-2 space-x-4 space-x-reverse text-sm">
+              <span className="flex items-center text-saudi-green-700">
+                <div className="w-2 h-2 bg-saudi-green-500 rounded-full mr-2 animate-pulse"></div>
+                {services.length} خدمة نشطة
+              </span>
+            </div>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+          {/* View Toggle with enhanced design */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1 shadow-sm">
             <Button
               variant={viewMode === 'cards' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('cards')}
-              className="px-3 py-1"
+              className="px-3 py-1 transition-all duration-200"
             >
               <LayoutGrid className="w-4 h-4" />
             </Button>
@@ -236,7 +244,7 @@ const Services = () => {
               variant={viewMode === 'table' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('table')}
-              className="px-3 py-1"
+              className="px-3 py-1 transition-all duration-200"
             >
               <List className="w-4 h-4" />
             </Button>
@@ -244,7 +252,10 @@ const Services = () => {
 
           <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
             <ModalTrigger asChild>
-              <Button onClick={handleAdd}>
+              <Button 
+                onClick={handleAdd}
+                className="bg-gradient-to-r from-saudi-green-600 to-saudi-green-700 hover:from-saudi-green-700 hover:to-saudi-green-800 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 <Plus className="w-4 h-4 ml-2" />
                 إضافة خدمة جديدة
               </Button>
@@ -279,16 +290,16 @@ const Services = () => {
       />
 
       {/* Results Summary */}
-      <Card>
-        <CardHeader>
+      <Card className="shadow-sm border border-gray-100">
+        <CardHeader className="bg-gradient-to-r from-gray-50/50 to-transparent">
           <CardTitle className="flex items-center justify-between">
-            <span>قائمة الخدمات ({totalItems})</span>
-            <Badge variant="outline" className="text-sm">
+            <span className="text-xl">قائمة الخدمات ({totalItems})</span>
+            <Badge variant="outline" className="text-sm bg-white">
               عرض {startIndex} - {endIndex} من أصل {totalItems}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {/* Cards Grid */}
           {viewMode === 'cards' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -307,22 +318,32 @@ const Services = () => {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              عرض الجدول سيتم تنفيذه في المرحلة التالية
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-8">
+                <List className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">عرض الجدول</h3>
+                <p className="text-gray-500">عرض الجدول سيتم تنفيذه في المرحلة التالية</p>
+              </div>
             </div>
           )}
 
           {paginatedServices.length === 0 && (
             <div className="text-center py-12">
-              <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد خدمات</h3>
-              <p className="text-gray-500 mb-4">
-                {isFiltered ? 'لا توجد خدمات تطابق المعايير المحددة' : 'لم يتم إضافة أي خدمات بعد'}
-              </p>
-              {isFiltered && (
-                <Button variant="outline" onClick={handleClearFilters}>
-                  مسح الفلاتر
-                </Button>
-              )}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8">
+                <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد خدمات</h3>
+                <p className="text-gray-500 mb-4">
+                  {isFiltered ? 'لا توجد خدمات تطابق المعايير المحددة' : 'لم يتم إضافة أي خدمات بعد'}
+                </p>
+                {isFiltered && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleClearFilters}
+                    className="hover:bg-saudi-green-50 hover:border-saudi-green-300"
+                  >
+                    مسح الفلاتر
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
@@ -342,140 +363,41 @@ const Services = () => {
         />
       )}
 
-      {/* Service Details Modal */}
-      <Modal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <ModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <ModalHeader>
-            <ModalTitle>تفاصيل الخدمة: {serviceDetails?.service_name}</ModalTitle>
-          </ModalHeader>
-          {serviceDetails && (
-            <div className="space-y-6 p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">المعلومات الأساسية</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div><strong>اسم الخدمة:</strong> {serviceDetails.service_name}</div>
-                    {serviceDetails.service_code && <div><strong>رمز الخدمة:</strong> {serviceDetails.service_code}</div>}
-                    {serviceDetails.service_description && <div><strong>الوصف:</strong> {serviceDetails.service_description}</div>}
-                    {serviceDetails.service_type && <div><strong>النوع:</strong> {serviceDetails.service_type}</div>}
-                    {serviceDetails.owning_department && <div><strong>الجهة المسؤولة:</strong> {serviceDetails.owning_department}</div>}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">التصنيف والنضج</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {serviceDetails.current_maturity && <div><strong>النضج الحالي:</strong> {serviceDetails.current_maturity}</div>}
-                    {serviceDetails.highest_maturity && <div><strong>أعلى نضج مستهدف:</strong> {serviceDetails.highest_maturity}</div>}
-                    {serviceDetails.service_priority && <div><strong>الأولوية:</strong> {serviceDetails.service_priority}</div>}
-                    {serviceDetails.authority_importance && <div><strong>أهمية السلطة:</strong> {serviceDetails.authority_importance}</div>}
-                    {serviceDetails.internal_external && <div><strong>النطاق:</strong> {serviceDetails.internal_external}</div>}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">المقاييس والتشغيل</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div><strong>الرسوم:</strong> {serviceDetails.service_fees ? `${serviceDetails.service_fees} ريال` : 'مجاني'}</div>
-                    {serviceDetails.annual_operations && <div><strong>العمليات السنوية:</strong> {serviceDetails.annual_operations.toLocaleString()}</div>}
-                    {serviceDetails.annual_beneficiaries && <div><strong>المستفيدين السنويين:</strong> {serviceDetails.annual_beneficiaries.toLocaleString()}</div>}
-                    {serviceDetails.customer_satisfaction && <div><strong>رضا العملاء:</strong> {serviceDetails.customer_satisfaction}%</div>}
-                    {serviceDetails.execution_time && <div><strong>وقت التنفيذ:</strong> {serviceDetails.execution_time}</div>}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">القنوات والمنصات</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {serviceDetails.platform && <div><strong>المنصة:</strong> {serviceDetails.platform}</div>}
-                    {serviceDetails.service_language && <div><strong>اللغة:</strong> {serviceDetails.service_language}</div>}
-                    {serviceDetails.delivery_channels && <div><strong>قنوات التقديم:</strong> {serviceDetails.delivery_channels}</div>}
-                    {serviceDetails.target_user && <div><strong>المستخدم المستهدف:</strong> {serviceDetails.target_user}</div>}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Links Section */}
-              {(serviceDetails.service_link || serviceDetails.user_guide || serviceDetails.faq_link || serviceDetails.sla_link) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">الروابط والموارد</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {serviceDetails.service_link && (
-                      <div>
-                        <strong>رابط الخدمة:</strong>
-                        <a href={serviceDetails.service_link} target="_blank" rel="noopener noreferrer" 
-                           className="text-blue-600 hover:text-blue-800 ml-2">
-                          {serviceDetails.service_link}
-                        </a>
-                      </div>
-                    )}
-                    {serviceDetails.user_guide && (
-                      <div>
-                        <strong>دليل المستخدم:</strong>
-                        <a href={serviceDetails.user_guide} target="_blank" rel="noopener noreferrer" 
-                           className="text-blue-600 hover:text-blue-800 ml-2">
-                          {serviceDetails.user_guide}
-                        </a>
-                      </div>
-                    )}
-                    {serviceDetails.faq_link && (
-                      <div>
-                        <strong>الأسئلة الشائعة:</strong>
-                        <a href={serviceDetails.faq_link} target="_blank" rel="noopener noreferrer" 
-                           className="text-blue-600 hover:text-blue-800 ml-2">
-                          {serviceDetails.faq_link}
-                        </a>
-                      </div>
-                    )}
-                    {serviceDetails.sla_link && (
-                      <div>
-                        <strong>اتفاقية مستوى الخدمة:</strong>
-                        <a href={serviceDetails.sla_link} target="_blank" rel="noopener noreferrer" 
-                           className="text-blue-600 hover:text-blue-800 ml-2">
-                          {serviceDetails.sla_link}
-                        </a>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </ModalContent>
-      </Modal>
+      {/* Enhanced Service Details Modal */}
+      <ServiceDetailsModal
+        service={serviceDetails}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+      />
 
       {/* Delete Confirmation Modal */}
       <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <ModalContent className="max-w-md">
           <ModalHeader>
-            <ModalTitle>تأكيد الحذف</ModalTitle>
+            <ModalTitle className="text-red-600">تأكيد الحذف</ModalTitle>
           </ModalHeader>
           <div className="py-4">
-            <p className="text-gray-600">
-              هل أنت متأكد من حذف الخدمة "{serviceToDelete?.service_name}"؟
-              هذا الإجراء لا يمكن التراجع عنه.
-            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-gray-700">
+                هل أنت متأكد من حذف الخدمة "<span className="font-bold text-red-700">{serviceToDelete?.service_name}</span>"؟
+              </p>
+              <p className="text-red-600 text-sm mt-2">
+                هذا الإجراء لا يمكن التراجع عنه.
+              </p>
+            </div>
           </div>
           <div className="flex justify-end space-x-2 space-x-reverse">
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
+              className="hover:bg-gray-50"
             >
               إلغاء
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
+              className="hover:bg-red-700"
             >
               حذف
             </Button>
