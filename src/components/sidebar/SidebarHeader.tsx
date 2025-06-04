@@ -22,8 +22,7 @@ const SidebarHeader = ({ user }: SidebarHeaderProps) => {
         <p className="text-green-100 text-sm">هيئة الصحة العامة</p>
         {user && (
           <div className="mt-3 py-1 px-2 bg-sidebar-accent/20 rounded-lg">
-          <p className="text-green-100 text-xs opacity-80 truncate">{user.display_name}</p> 
-          </div>
+            </div>
         )}
       </div>
     </div>
