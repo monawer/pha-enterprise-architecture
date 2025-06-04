@@ -6,7 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Server, 
   HardDrive, 
-  Wifi
+  Wifi,
+  Building2,
+  Network,
+  FileText,
+  Settings
 } from 'lucide-react';
 
 const TechnologyLayer = () => {
@@ -36,6 +40,38 @@ const TechnologyLayer = () => {
       path: '/architecture/technology/network-devices',
       color: 'bg-purple-500',
       stats: 'جهاز شبكة'
+    },
+    {
+      title: 'مراكز البيانات',
+      description: 'إدارة مراكز البيانات والمواقع',
+      icon: Building2,
+      path: '/architecture/technology/data-centers',
+      color: 'bg-orange-500',
+      stats: 'مركز بيانات'
+    },
+    {
+      title: 'الشبكات',
+      description: 'إدارة الشبكات والاتصالات',
+      icon: Network,
+      path: '/architecture/technology/networks',
+      color: 'bg-indigo-500',
+      stats: 'شبكة'
+    },
+    {
+      title: 'التراخيص',
+      description: 'إدارة تراخيص البرمجيات والأنظمة',
+      icon: FileText,
+      path: '/architecture/technology/licenses',
+      color: 'bg-teal-500',
+      stats: 'ترخيص'
+    },
+    {
+      title: 'الأنظمة',
+      description: 'إدارة الأنظمة التقنية',
+      icon: Settings,
+      path: '/architecture/technology/systems',
+      color: 'bg-red-500',
+      stats: 'نظام'
     }
   ];
 

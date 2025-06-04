@@ -43,6 +43,10 @@ const Dashboard = () => {
           { count: physicalServersCount },
           { count: virtualServersCount },
           { count: networkDevicesCount },
+          { count: dataCentersCount },
+          { count: networksCount },
+          { count: licensesCount },
+          { count: systemsCount },
           { count: securityDevicesCount },
           { count: securityServicesCount },
           { count: securitySoftwareCount },
@@ -65,6 +69,10 @@ const Dashboard = () => {
           supabase.from('tech_physical_servers').select('*', { count: 'exact', head: true }),
           supabase.from('tech_virtual_servers').select('*', { count: 'exact', head: true }),
           supabase.from('tech_network_devices').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_data_centers').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_networks').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_licenses').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_systems').select('*', { count: 'exact', head: true }),
           supabase.from('sec_devices').select('*', { count: 'exact', head: true }),
           supabase.from('sec_services').select('*', { count: 'exact', head: true }),
           supabase.from('sec_software').select('*', { count: 'exact', head: true }),
@@ -77,7 +85,7 @@ const Dashboard = () => {
           businessLayer: (servicesCount || 0) + (policiesCount || 0) + (capabilitiesCount || 0) + (branchesCount || 0) + (businessOwnersCount || 0) + (formsCount || 0) + (proceduresCount || 0),
           applicationsLayer: (applicationsCount || 0) + (databasesCount || 0) + (technicalLinksCount || 0),
           dataLayer: (dataEntitiesCount || 0) + (dataStorageCount || 0),
-          technologyLayer: (physicalServersCount || 0) + (virtualServersCount || 0) + (networkDevicesCount || 0),
+          technologyLayer: (physicalServersCount || 0) + (virtualServersCount || 0) + (networkDevicesCount || 0) + (dataCentersCount || 0) + (networksCount || 0) + (licensesCount || 0) + (systemsCount || 0),
           securityLayer: (securityDevicesCount || 0) + (securityServicesCount || 0) + (securitySoftwareCount || 0),
           uxLayer: (uxPersonasCount || 0) + (uxJourneysCount || 0) + (uxBeneficiariesCount || 0),
         });
@@ -121,8 +129,8 @@ const Dashboard = () => {
       value: stats.technologyLayer,
       icon: Server,
       color: "from-orange-500 to-orange-600",
-      description: "الخوادم والأجهزة التقنية",
-      components: ["الخوادم الفيزيائية", "الخوادم الافتراضية", "أجهزة الشبكة"]
+      description: "الخوادم والأجهزة والأنظمة التقنية",
+      components: ["الخوادم الفيزيائية", "الخوادم الافتراضية", "أجهزة الشبكة", "مراكز البيانات", "الشبكات", "التراخيص", "الأنظمة"]
     },
     {
       title: "طبقة الأمان",
@@ -171,7 +179,6 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* أشكال زخرفية */}
           <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] rotate-180 text-white">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[50px] relative block">
               <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" fill="currentColor"></path>
@@ -209,7 +216,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 leading-relaxed">{layer.description}</p>
               </div>
               
-              {/* قائمة المكونات */}
               <div className="pt-2 border-t border-gray-100">
                 <h4 className="text-xs font-medium text-gray-700 mb-2">المكونات:</h4>
                 <div className="flex flex-wrap gap-1">
@@ -230,7 +236,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* ملخص عام */}
       <div className="bg-gradient-to-r from-saudi-green-50 to-green-50 rounded-lg p-8 border border-saudi-green-100 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
         <div className="text-center space-y-4">
           <h3 className="text-2xl font-bold text-saudi-green-800 font-saudi">نظرة شاملة على البنية المؤسسية</h3>

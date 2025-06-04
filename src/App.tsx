@@ -29,6 +29,10 @@ import DataStorage from "./pages/architecture/data/DataStorage";
 import PhysicalServers from "./pages/architecture/technology/PhysicalServers";
 import VirtualServers from "./pages/architecture/technology/VirtualServers";
 import NetworkDevices from "./pages/architecture/technology/NetworkDevices";
+import DataCenters from "./pages/architecture/technology/DataCenters";
+import Networks from "./pages/architecture/technology/Networks";
+import Licenses from "./pages/architecture/technology/Licenses";
+import Systems from "./pages/architecture/technology/Systems";
 import SecurityDevices from "./pages/architecture/security/SecurityDevices";
 import Users from "./pages/admin/Users";
 import Roles from "./pages/admin/Roles";
@@ -142,6 +146,26 @@ const App: React.FC = () => (
           <Route path="/architecture/technology/network-devices" element={
             <MainLayout>
               <NetworkDevices />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology/data-centers" element={
+            <MainLayout>
+              <DataCenters />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology/networks" element={
+            <MainLayout>
+              <Networks />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology/licenses" element={
+            <MainLayout>
+              <Licenses />
+            </MainLayout>
+          } />
+          <Route path="/architecture/technology/systems" element={
+            <MainLayout>
+              <Systems />
             </MainLayout>
           } />
           <Route path="/architecture/data" element={
