@@ -31,33 +31,55 @@ const Dashboard = () => {
           { count: servicesCount },
           { count: policiesCount },
           { count: capabilitiesCount },
+          { count: branchesCount },
+          { count: businessOwnersCount },
+          { count: formsCount },
+          { count: proceduresCount },
           { count: applicationsCount },
           { count: databasesCount },
+          { count: technicalLinksCount },
           { count: dataEntitiesCount },
+          { count: dataStorageCount },
           { count: physicalServersCount },
           { count: virtualServersCount },
           { count: networkDevicesCount },
           { count: securityDevicesCount },
+          { count: securityServicesCount },
+          { count: securitySoftwareCount },
+          { count: uxPersonasCount },
+          { count: uxJourneysCount },
+          { count: uxBeneficiariesCount },
         ] = await Promise.all([
           supabase.from('biz_services').select('*', { count: 'exact', head: true }),
           supabase.from('biz_policies').select('*', { count: 'exact', head: true }),
           supabase.from('biz_capabilities').select('*', { count: 'exact', head: true }),
+          supabase.from('biz_branches').select('*', { count: 'exact', head: true }),
+          supabase.from('biz_business_owners').select('*', { count: 'exact', head: true }),
+          supabase.from('biz_forms').select('*', { count: 'exact', head: true }),
+          supabase.from('biz_procedures').select('*', { count: 'exact', head: true }),
           supabase.from('app_applications').select('*', { count: 'exact', head: true }),
           supabase.from('app_databases').select('*', { count: 'exact', head: true }),
+          supabase.from('app_technical_links').select('*', { count: 'exact', head: true }),
           supabase.from('data_entities').select('*', { count: 'exact', head: true }),
+          supabase.from('data_storage').select('*', { count: 'exact', head: true }),
           supabase.from('tech_physical_servers').select('*', { count: 'exact', head: true }),
           supabase.from('tech_virtual_servers').select('*', { count: 'exact', head: true }),
           supabase.from('tech_network_devices').select('*', { count: 'exact', head: true }),
           supabase.from('sec_devices').select('*', { count: 'exact', head: true }),
+          supabase.from('sec_services').select('*', { count: 'exact', head: true }),
+          supabase.from('sec_software').select('*', { count: 'exact', head: true }),
+          supabase.from('ux_personas').select('*', { count: 'exact', head: true }),
+          supabase.from('ux_journeys').select('*', { count: 'exact', head: true }),
+          supabase.from('ux_beneficiaries').select('*', { count: 'exact', head: true }),
         ]);
 
         setStats({
-          businessLayer: (servicesCount || 0) + (policiesCount || 0) + (capabilitiesCount || 0),
-          applicationsLayer: (applicationsCount || 0) + (databasesCount || 0),
-          dataLayer: (dataEntitiesCount || 0),
+          businessLayer: (servicesCount || 0) + (policiesCount || 0) + (capabilitiesCount || 0) + (branchesCount || 0) + (businessOwnersCount || 0) + (formsCount || 0) + (proceduresCount || 0),
+          applicationsLayer: (applicationsCount || 0) + (databasesCount || 0) + (technicalLinksCount || 0),
+          dataLayer: (dataEntitiesCount || 0) + (dataStorageCount || 0),
           technologyLayer: (physicalServersCount || 0) + (virtualServersCount || 0) + (networkDevicesCount || 0),
-          securityLayer: (securityDevicesCount || 0),
-          uxLayer: 0, // سيتم تحديثه لاحقاً عند إضافة جداول UX
+          securityLayer: (securityDevicesCount || 0) + (securityServicesCount || 0) + (securitySoftwareCount || 0),
+          uxLayer: (uxPersonasCount || 0) + (uxJourneysCount || 0) + (uxBeneficiariesCount || 0),
         });
       } catch (error) {
         console.error('Error fetching layer stats:', error);
@@ -75,7 +97,7 @@ const Dashboard = () => {
       value: stats.businessLayer,
       icon: Building,
       color: "from-saudi-green-600 to-saudi-green-800",
-      description: "الخدمات والسياسات والقدرات",
+      description: "الخدمات والسياسات والقدرات والفروع",
       components: ["الخدمات", "السياسات", "القدرات", "الفروع", "مالكي الأعمال", "النماذج", "الإجراءات"]
     },
     {
@@ -83,7 +105,7 @@ const Dashboard = () => {
       value: stats.applicationsLayer,
       icon: Monitor,
       color: "from-blue-500 to-blue-600",
-      description: "التطبيقات وقواعد البيانات",
+      description: "التطبيقات وقواعد البيانات والروابط التقنية",
       components: ["التطبيقات", "قواعد البيانات", "الروابط التقنية"]
     },
     {
@@ -91,15 +113,15 @@ const Dashboard = () => {
       value: stats.dataLayer,
       icon: Database,
       color: "from-purple-500 to-purple-600",
-      description: "كيانات ومخازن البيانات",
-      components: ["كيانات البيانات", "تخزين البيانات"]
+      description: "كيانات البيانات وأنواع التخزين",
+      components: ["كيانات البيانات", "أنواع التخزين"]
     },
     {
       title: "طبقة التقنية",
       value: stats.technologyLayer,
       icon: Server,
       color: "from-orange-500 to-orange-600",
-      description: "الخوادم والأجهزة الشبكية",
+      description: "الخوادم والأجهزة التقنية",
       components: ["الخوادم الفيزيائية", "الخوادم الافتراضية", "أجهزة الشبكة"]
     },
     {
@@ -107,16 +129,16 @@ const Dashboard = () => {
       value: stats.securityLayer,
       icon: Shield,
       color: "from-red-500 to-red-600",
-      description: "أجهزة وسياسات الأمان",
-      components: ["أجهزة الأمان"]
+      description: "أجهزة وخدمات وبرامج الأمان",
+      components: ["أجهزة الأمان", "خدمات الأمان", "برامج الأمان"]
     },
     {
       title: "طبقة تجربة المستخدم",
       value: stats.uxLayer,
       icon: Eye,
       color: "from-pink-500 to-pink-600",
-      description: "واجهات وتجربة المستخدم",
-      components: ["قريباً"]
+      description: "الشخصيات والرحلات والمستفيدين",
+      components: ["الشخصيات", "رحلات المستخدم", "المستفيدين"]
     },
   ];
 
