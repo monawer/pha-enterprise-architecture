@@ -2,131 +2,122 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Database, Shield, Users, Layers, Workflow, Clock, HelpCircle, Share } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Building2, Database, Shield, Users, Monitor, Server, Building, Eye } from "lucide-react";
 
-interface Stats {
-  components: number;
-  layers: number;
-  applications: number;
-  services: number;
-  users: number;
-  policies: number;
+interface LayerStats {
+  businessLayer: number;
+  applicationsLayer: number;
+  dataLayer: number;
+  technologyLayer: number;
+  securityLayer: number;
+  uxLayer: number;
 }
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<Stats>({
-    components: 0,
-    layers: 0,
-    applications: 0,
-    services: 0,
-    users: 0,
-    policies: 0,
+  const [stats, setStats] = useState<LayerStats>({
+    businessLayer: 0,
+    applicationsLayer: 0,
+    dataLayer: 0,
+    technologyLayer: 0,
+    securityLayer: 0,
+    uxLayer: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchLayerStats = async () => {
       try {
         const [
-          { count: componentsCount },
-          { count: layersCount },
-          { count: applicationsCount },
           { count: servicesCount },
-          { count: usersCount },
           { count: policiesCount },
+          { count: capabilitiesCount },
+          { count: applicationsCount },
+          { count: databasesCount },
+          { count: dataEntitiesCount },
+          { count: physicalServersCount },
+          { count: virtualServersCount },
+          { count: networkDevicesCount },
+          { count: securityDevicesCount },
         ] = await Promise.all([
-          supabase.from('architecture_components').select('*', { count: 'exact', head: true }),
-          supabase.from('architecture_layers').select('*', { count: 'exact', head: true }),
-          supabase.from('app_applications').select('*', { count: 'exact', head: true }),
           supabase.from('biz_services').select('*', { count: 'exact', head: true }),
-          supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
           supabase.from('biz_policies').select('*', { count: 'exact', head: true }),
+          supabase.from('biz_capabilities').select('*', { count: 'exact', head: true }),
+          supabase.from('app_applications').select('*', { count: 'exact', head: true }),
+          supabase.from('app_databases').select('*', { count: 'exact', head: true }),
+          supabase.from('data_entities').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_physical_servers').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_virtual_servers').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_network_devices').select('*', { count: 'exact', head: true }),
+          supabase.from('sec_devices').select('*', { count: 'exact', head: true }),
         ]);
 
         setStats({
-          components: componentsCount || 0,
-          layers: layersCount || 0,
-          applications: applicationsCount || 0,
-          services: servicesCount || 0,
-          users: usersCount || 0,
-          policies: policiesCount || 0,
+          businessLayer: (servicesCount || 0) + (policiesCount || 0) + (capabilitiesCount || 0),
+          applicationsLayer: (applicationsCount || 0) + (databasesCount || 0),
+          dataLayer: (dataEntitiesCount || 0),
+          technologyLayer: (physicalServersCount || 0) + (virtualServersCount || 0) + (networkDevicesCount || 0),
+          securityLayer: (securityDevicesCount || 0),
+          uxLayer: 0, // سيتم تحديثه لاحقاً عند إضافة جداول UX
         });
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching layer stats:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchLayerStats();
   }, []);
 
-  const statCards = [
+  const layerCards = [
     {
-      title: "مكونات البنية",
-      value: stats.components,
-      icon: Building2,
+      title: "طبقة الأعمال",
+      value: stats.businessLayer,
+      icon: Building,
       color: "from-saudi-green-600 to-saudi-green-800",
-      description: "إجمالي المكونات المسجلة"
+      description: "الخدمات والسياسات والقدرات",
+      components: ["الخدمات", "السياسات", "القدرات", "الفروع", "مالكي الأعمال", "النماذج", "الإجراءات"]
     },
     {
-      title: "الطبقات المعمارية",
-      value: stats.layers,
-      icon: Layers,
+      title: "طبقة التطبيقات",
+      value: stats.applicationsLayer,
+      icon: Monitor,
       color: "from-blue-500 to-blue-600",
-      description: "طبقات البنية المؤسسية"
+      description: "التطبيقات وقواعد البيانات",
+      components: ["التطبيقات", "قواعد البيانات", "الروابط التقنية"]
     },
     {
-      title: "التطبيقات",
-      value: stats.applications,
+      title: "طبقة البيانات",
+      value: stats.dataLayer,
       icon: Database,
       color: "from-purple-500 to-purple-600",
-      description: "التطبيقات المدارة"
+      description: "كيانات ومخازن البيانات",
+      components: ["كيانات البيانات", "تخزين البيانات"]
     },
     {
-      title: "الخدمات",
-      value: stats.services,
-      icon: Workflow,
+      title: "طبقة التقنية",
+      value: stats.technologyLayer,
+      icon: Server,
       color: "from-orange-500 to-orange-600",
-      description: "الخدمات المقدمة"
+      description: "الخوادم والأجهزة الشبكية",
+      components: ["الخوادم الفيزيائية", "الخوادم الافتراضية", "أجهزة الشبكة"]
     },
     {
-      title: "المستخدمين",
-      value: stats.users,
-      icon: Users,
-      color: "from-pink-500 to-pink-600",
-      description: "المستخدمين المسجلين"
-    },
-    {
-      title: "السياسات",
-      value: stats.policies,
+      title: "طبقة الأمان",
+      value: stats.securityLayer,
       icon: Shield,
       color: "from-red-500 to-red-600",
-      description: "السياسات المعتمدة"
-    },
-  ];
-
-  // الأخبار والتحديثات
-  const recentUpdates = [
-    {
-      title: "إطلاق نسخة جديدة من النظام",
-      time: "قبل ساعتين",
-      description: "تم إطلاق النسخة 2.0 من نظام البنية المؤسسية بمميزات جديدة",
-      icon: Clock
+      description: "أجهزة وسياسات الأمان",
+      components: ["أجهزة الأمان"]
     },
     {
-      title: "تدريب مستخدمي النظام",
-      time: "قبل 3 أيام",
-      description: "تم الانتهاء من تدريب 25 مستخدم على استخدام النظام",
-      icon: Users
+      title: "طبقة تجربة المستخدم",
+      value: stats.uxLayer,
+      icon: Eye,
+      color: "from-pink-500 to-pink-600",
+      description: "واجهات وتجربة المستخدم",
+      components: ["قريباً"]
     },
-    {
-      title: "إضافة طبقة الأمان الجديدة",
-      time: "قبل أسبوع",
-      description: "تمت إضافة طبقة الأمان الجديدة ضمن البنية المؤسسية",
-      icon: Shield
-    }
   ];
 
   return (
@@ -167,143 +158,75 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Stats Grid */}
+      {/* بطاقات إحصائيات الطبقات */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-        {statCards.map((stat, index) => (
-          <Card key={index} className="overflow-hidden shadow-saudi hover:shadow-saudi-lg transition-shadow duration-300 border-0">
+        {layerCards.map((layer, index) => (
+          <Card key={index} className="overflow-hidden shadow-saudi hover:shadow-saudi-lg transition-all duration-300 border-0 group cursor-pointer hover:-translate-y-1">
             <CardHeader className="pb-3 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-gray-800">
-                  {stat.title}
+                <CardTitle className="text-lg font-semibold text-gray-800 group-hover:text-saudi-green-700 transition-colors">
+                  {layer.title}
                 </CardTitle>
-                <div className={`p-3 rounded-full bg-gradient-to-br ${stat.color} transform transition-transform duration-300 hover:scale-105 hover:rotate-6`}>
-                  <stat.icon className="w-5 h-5 text-white" />
+                <div className={`p-3 rounded-full bg-gradient-to-br ${layer.color} transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
+                  <layer.icon className="w-5 h-5 text-white" />
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="space-y-2">
+            <CardContent className="pt-6 space-y-4">
+              <div className="space-y-3">
                 <div className="text-3xl font-bold text-gray-900">
                   {loading ? (
                     <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
                     <div className="flex items-baseline">
-                      <span className="tabular-nums">{stat.value.toLocaleString('ar-SA')}</span>
+                      <span className="tabular-nums">{layer.value.toLocaleString('ar-SA')}</span>
                       <span className="text-sm text-gray-500 font-normal mr-2">عنصر</span>
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">{stat.description}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{layer.description}</p>
+              </div>
+              
+              {/* قائمة المكونات */}
+              <div className="pt-2 border-t border-gray-100">
+                <h4 className="text-xs font-medium text-gray-700 mb-2">المكونات:</h4>
+                <div className="flex flex-wrap gap-1">
+                  {layer.components.slice(0, 3).map((component, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-gray-100 text-xs text-gray-600 rounded-full">
+                      {component}
+                    </span>
+                  ))}
+                  {layer.components.length > 3 && (
+                    <span className="px-2 py-1 bg-saudi-green-50 text-xs text-saudi-green-600 rounded-full">
+                      +{layer.components.length - 3} أخرى
+                    </span>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* الأقسام السفلية */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        {/* إجراءات سريعة */}
-        <Card className="md:col-span-1 shadow-saudi hover:shadow-saudi-lg transition-shadow duration-300 border-0">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Share className="w-5 h-5 text-saudi-green-700" /> 
-              <span>إجراءات سريعة</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-gray-100">
-              <button className="w-full p-4 flex items-center text-right hover:bg-saudi-green-50 transition-colors duration-200">
-                <Building2 className="w-5 h-5 text-saudi-green-600 ml-3 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="font-medium">إضافة مكون جديد</div>
-                  <div className="text-xs text-gray-500">إضافة مكون للبنية المؤسسية</div>
-                </div>
-              </button>
-              <button className="w-full p-4 flex items-center text-right hover:bg-saudi-green-50 transition-colors duration-200">
-                <Database className="w-5 h-5 text-saudi-green-600 ml-3 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="font-medium">إضافة تطبيق</div>
-                  <div className="text-xs text-gray-500">تسجيل تطبيق جديد في النظام</div>
-                </div>
-              </button>
-              <button className="w-full p-4 flex items-center text-right hover:bg-saudi-green-50 transition-colors duration-200">
-                <Workflow className="w-5 h-5 text-saudi-green-600 ml-3 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="font-medium">إضافة خدمة</div>
-                  <div className="text-xs text-gray-500">تسجيل خدمة جديدة</div>
-                </div>
-              </button>
-              <button className="w-full p-4 flex items-center text-right hover:bg-saudi-green-50 transition-colors duration-200">
-                <Shield className="w-5 h-5 text-saudi-green-600 ml-3 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="font-medium">إضافة سياسة</div>
-                  <div className="text-xs text-gray-500">إنشاء سياسة جديدة</div>
-                </div>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* آخر التحديثات والإشعارات */}
-        <Card className="md:col-span-2 shadow-saudi hover:shadow-saudi-lg transition-shadow duration-300 border-0">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="w-5 h-5 text-saudi-green-700" /> 
-              <span>آخر التحديثات</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-gray-100">
-              {recentUpdates.map((update, index) => (
-                <div key={index} className="p-4 hover:bg-gray-50 transition-colors duration-200">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-saudi-green-50 text-saudi-green-700">
-                      <update.icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-medium text-gray-900">{update.title}</h4>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">{update.time}</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{update.description}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              <div className="p-4 text-center">
-                <button className="text-saudi-green-700 text-sm hover:text-saudi-green-800 hover:underline">
-                  عرض كل التحديثات
-                </button>
+      {/* ملخص عام */}
+      <div className="bg-gradient-to-r from-saudi-green-50 to-green-50 rounded-lg p-8 border border-saudi-green-100 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="text-center space-y-4">
+          <h3 className="text-2xl font-bold text-saudi-green-800 font-saudi">نظرة شاملة على البنية المؤسسية</h3>
+          <p className="text-saudi-green-600 font-saudi text-lg">
+            إجمالي العناصر المدارة عبر جميع الطبقات
+          </p>
+          <div className="flex justify-center items-center space-x-8 space-x-reverse mt-6">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-saudi-green-700">
+                {loading ? "..." : (stats.businessLayer + stats.applicationsLayer + stats.dataLayer + stats.technologyLayer + stats.securityLayer + stats.uxLayer).toLocaleString('ar-SA')}
               </div>
+              <div className="text-sm text-saudi-green-600">إجمالي العناصر</div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* قسم المساعدة السريعة */}
-      <div className="bg-white rounded-xl p-6 shadow-saudi animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-saudi-green-700 text-white">
-            <HelpCircle className="w-5 h-5" />
-          </div>
-          <h3 className="text-lg font-semibold">هل تحتاج إلى مساعدة؟</h3>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-            <h4 className="font-medium text-gray-900 mb-2">دليل المستخدم</h4>
-            <p className="text-sm text-gray-600">اطلع على دليل استخدام النظام والإرشادات</p>
-          </div>
-          <div className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-            <h4 className="font-medium text-gray-900 mb-2">الأسئلة الشائعة</h4>
-            <p className="text-sm text-gray-600">الإجابات على الأسئلة المتكررة</p>
-          </div>
-          <div className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-            <h4 className="font-medium text-gray-900 mb-2">التواصل مع الدعم</h4>
-            <p className="text-sm text-gray-600">تواصل مع فريق الدعم الفني للمساعدة</p>
+            <div className="w-px h-12 bg-saudi-green-200"></div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-saudi-green-700">6</div>
+              <div className="text-sm text-saudi-green-600">طبقات معمارية</div>
+            </div>
           </div>
         </div>
       </div>
