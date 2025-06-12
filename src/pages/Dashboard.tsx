@@ -80,13 +80,13 @@ const Dashboard = () => {
   ];
 
   const adminModules = [
-    {
+   {/*  {
       title: "إدارة المستخدمين",
       description: "إضافة وتعديل المستخدمين",
       icon: Users,
       path: "/admin/users",
       show: hasPermission('users.view')
-    },
+    },*/}
     {
       title: "التقارير والإحصائيات",
       description: "تقارير النظام والبيانات",
