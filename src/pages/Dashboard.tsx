@@ -80,13 +80,14 @@ const Dashboard = () => {
   ];
 
   const adminModules = [
-   {/*  {
-      title: "إدارة المستخدمين",
-      description: "إضافة وتعديل المستخدمين",
-      icon: Users,
-      path: "/admin/users",
-      show: hasPermission('users.view')
-    },*/}
+    // إدارة المستخدمين معطلة مؤقتاً
+    // {
+    //   title: "إدارة المستخدمين",
+    //   description: "إضافة وتعديل المستخدمين",
+    //   icon: Users,
+    //   path: "/admin/users",
+    //   show: hasPermission('users.view')
+    // },
     {
       title: "التقارير والإحصائيات",
       description: "تقارير النظام والبيانات",
@@ -104,19 +105,19 @@ const Dashboard = () => {
       {/* Header Section */}
       <div className="text-center space-y-3 md:space-y-4">
         <h1 className="text-2xl md:text-4xl font-bold text-gray-900 font-saudi">
-  الإدارة التنفيذية لتقنية المعلومات - هيئة الصحة العامة
+          الإدارة التنفيذية لتقنية المعلومات - هيئة الصحة العامة
         </h1>
      
-         {/* Welcome Message */}
-      <div className="bg-gradient-to-r from-saudi-green-50 to-white rounded-lg p-4 md:p-8 text-center">
-        <h3 className="text-lg md:text-2xl font-bold text-saudi-green-800 mb-2 md:mb-4">
-          نظام إدارة البنية المؤسسية 
-       </h3>  <h3> منصة شاملة لإدارة وتطوير الخدمات والتطبيقات
-        </h3>
-        <p className="text-sm md:text-lg text-saudi-green-700">
-          استخدم القائمة الجانبية للتنقل بين الأقسام المختلفة أو اختر من البطاقات أدناه
-        </p>
-      </div>
+        {/* Welcome Message */}
+        <div className="bg-gradient-to-r from-saudi-green-50 to-white rounded-lg p-4 md:p-8 text-center">
+          <h3 className="text-lg md:text-2xl font-bold text-saudi-green-800 mb-2 md:mb-4">
+            نظام إدارة البنية المؤسسية 
+          </h3>
+          <h3>منصة شاملة لإدارة وتطوير الخدمات والتطبيقات</h3>
+          <p className="text-sm md:text-lg text-saudi-green-700">
+            استخدم القائمة الجانبية للتنقل بين الأقسام المختلفة أو اختر من البطاقات أدناه
+          </p>
+        </div>
       </div>
 
       {/* Architecture Layers Grid */}
@@ -184,8 +185,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-     
     </div>
   );
 };
