@@ -106,13 +106,11 @@ const Dashboard = () => {
         <h1 className="text-2xl md:text-4xl font-bold text-gray-900 font-saudi">
           البنية المؤسسية
         </h1>
-        <p className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto">
-          نظام إدارة البنية المؤسسية لهيئة الصحة العامة - منصة شاملة لإدارة وتطوير الخدمات والتطبيقات
-        </p>
+     
          {/* Welcome Message */}
       <div className="bg-gradient-to-r from-saudi-green-50 to-white rounded-lg p-4 md:p-8 text-center">
         <h3 className="text-lg md:text-2xl font-bold text-saudi-green-800 mb-2 md:mb-4">
-          مرحباً بكم في نظام البنية المؤسسية
+          مرحباً بكم في نظام إدارة البنية المؤسسية لهيئة الصحة العامة - منصة شاملة لإدارة وتطوير الخدمات والتطبيقات
         </h3>
         <p className="text-sm md:text-lg text-saudi-green-700">
           استخدم القائمة الجانبية للتنقل بين الأقسام المختلفة أو اختر من البطاقات أدناه
