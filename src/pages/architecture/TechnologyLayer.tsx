@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -147,50 +146,47 @@ const TechnologyLayer = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {technologyComponents.map((component, index) => {
-          const Icon = component.icon;
-          return (
-            <Card 
-              key={component.path} 
-              className="group hover:shadow-saudi-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-saudi-green-200 hover:-translate-y-1 bg-white"
-              onClick={() => navigate(component.path)}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 space-x-reverse">
-                    <div className={`p-3 rounded-xl ${component.color} text-white shadow-saudi group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl font-saudi group-hover:text-saudi-green-700 transition-colors">
-                        {component.title}
-                      </CardTitle>
-                      <p className="text-xs text-saudi-green-600 mt-1 bg-saudi-green-50 px-2 py-1 rounded-full inline-block">
-                        {component.stats}
-                      </p>
-                    </div>
+        {technologyComponents.map((component, index) => (
+          <Card 
+            key={component.path} 
+            className="group hover:shadow-saudi-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-saudi-green-200 hover:-translate-y-1 bg-white"
+            onClick={() => navigate(component.path)}
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div className={`p-3 rounded-xl ${component.color} text-white shadow-saudi group-hover:scale-110 transition-transform duration-300`}>
+                    {component.icon}
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-saudi group-hover:text-saudi-green-700 transition-colors">
+                      {component.title}
+                    </CardTitle>
+                    <p className="text-xs text-saudi-green-600 mt-1 bg-saudi-green-50 px-2 py-1 rounded-full inline-block">
+                      {component.stats}
+                    </p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600 text-sm leading-relaxed font-saudi">
-                  {component.description}
-                </p>
-                <Button 
-                  variant="outline" 
-                  className="w-full group-hover:bg-saudi-green-50 group-hover:border-saudi-green-300 group-hover:text-saudi-green-700 transition-all duration-300 font-saudi"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(component.path);
-                  }}
-                >
-                  عرض التفاصيل
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600 text-sm leading-relaxed font-saudi">
+                {component.description}
+              </p>
+              <Button 
+                variant="outline" 
+                className="w-full group-hover:bg-saudi-green-50 group-hover:border-saudi-green-300 group-hover:text-saudi-green-700 transition-all duration-300 font-saudi"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(component.path);
+                }}
+              >
+                عرض التفاصيل
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="bg-gradient-to-r from-saudi-green-50 to-green-50 rounded-lg p-6 border border-saudi-green-100">
