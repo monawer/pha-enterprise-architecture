@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -7,28 +7,53 @@ import {
   Database, 
   HardDrive
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import LayerStatsCard from '@/components/layer/LayerStatsCard';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const dataComponents = [
+  {
+    title: 'كيانات البيانات',
+    description: 'إدارة كيانات البيانات وتصنيفاتها',
+    icon: <Database className="w-6 h-6" />,
+    path: '/architecture/data/entities',
+    color: 'bg-blue-500',
+    stats: 'كيان بيانات',
+    table: 'data_entities'
+  },
+  {
+    title: 'تخزين البيانات',
+    description: 'إدارة أنواع ومواقع تخزين البيانات',
+    icon: <HardDrive className="w-6 h-6" />,
+    path: '/architecture/data/storage',
+    color: 'bg-green-500',
+    stats: 'نوع تخزين',
+    table: 'data_storage'
+  }
+];
 
 const DataLayer = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<{ [key: string]: number | null }>({});
+  const [loading, setLoading] = useState(true);
 
-  const dataComponents = [
-    {
-      title: 'كيانات البيانات',
-      description: 'إدارة كيانات البيانات وتصنيفاتها',
-      icon: Database,
-      path: '/architecture/data/entities',
-      color: 'bg-blue-500',
-      stats: 'كيان بيانات'
-    },
-    {
-      title: 'تخزين البيانات',
-      description: 'إدارة أنواع ومواقع تخزين البيانات',
-      icon: HardDrive,
-      path: '/architecture/data/storage',
-      color: 'bg-green-500',
-      stats: 'نوع تخزين'
+  useEffect(() => {
+    async function fetchCounts() {
+      setLoading(true);
+      const newCounts: { [key: string]: number | null } = {};
+      await Promise.all(
+        dataComponents.map(async (comp) => {
+          const { count } = await supabase
+            .from(comp.table as any)
+            .select("*", { count: "exact", head: true });
+          newCounts[comp.table] = count ?? 0;
+        })
+      );
+      setCounts(newCounts);
+      setLoading(false);
     }
-  ];
+    fetchCounts();
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -50,6 +75,25 @@ const DataLayer = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* قسم إحصائيات الطبقة */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingSpinner size="sm" />
+          </div>
+        ) : (
+          dataComponents.map((comp) => (
+            <LayerStatsCard
+              key={comp.table}
+              icon={comp.icon}
+              label={comp.title}
+              count={counts[comp.table] ?? 0}
+              color={comp.color}
+            />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

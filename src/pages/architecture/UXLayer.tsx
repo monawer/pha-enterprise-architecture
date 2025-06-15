@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -8,36 +8,62 @@ import {
   Users, 
   Smartphone
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import LayerStatsCard from '@/components/layer/LayerStatsCard';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const uxComponents = [
+  {
+    title: 'واجهات المستخدم',
+    description: 'إدارة واجهات المستخدم والتفاعل',
+    icon: <Eye className="w-6 h-6" />,
+    path: '/architecture/ux/interfaces',
+    color: 'bg-blue-500',
+    stats: 'واجهة مستخدم',
+    table: 'ux_beneficiaries'
+  },
+  {
+    title: 'تجربة المستخدم',
+    description: 'إدارة عناصر تجربة المستخدم',
+    icon: <Users className="w-6 h-6" />,
+    path: '/architecture/ux/experience',
+    color: 'bg-green-500',
+    stats: 'تجربة مستخدم',
+    table: 'ux_personas'
+  },
+  {
+    title: 'التطبيقات المحمولة',
+    description: 'إدارة التطبيقات المحمولة والذكية',
+    icon: <Smartphone className="w-6 h-6" />,
+    path: '/architecture/ux/mobile-apps',
+    color: 'bg-purple-500',
+    stats: 'تطبيق محمول',
+    table: 'ux_stages'
+  }
+];
 
 const UXLayer = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<{ [key: string]: number | null }>({});
+  const [loading, setLoading] = useState(true);
 
-  const uxComponents = [
-    {
-      title: 'واجهات المستخدم',
-      description: 'إدارة واجهات المستخدم والتفاعل',
-      icon: Eye,
-      path: '/architecture/ux/interfaces',
-      color: 'bg-blue-500',
-      stats: 'واجهة مستخدم'
-    },
-    {
-      title: 'تجربة المستخدم',
-      description: 'إدارة عناصر تجربة المستخدم',
-      icon: Users,
-      path: '/architecture/ux/experience',
-      color: 'bg-green-500',
-      stats: 'تجربة مستخدم'
-    },
-    {
-      title: 'التطبيقات المحمولة',
-      description: 'إدارة التطبيقات المحمولة والذكية',
-      icon: Smartphone,
-      path: '/architecture/ux/mobile-apps',
-      color: 'bg-purple-500',
-      stats: 'تطبيق محمول'
+  useEffect(() => {
+    async function fetchCounts() {
+      setLoading(true);
+      const newCounts: { [key: string]: number | null } = {};
+      await Promise.all(
+        uxComponents.map(async (comp) => {
+          const { count } = await supabase
+            .from(comp.table as any)
+            .select("*", { count: "exact", head: true });
+          newCounts[comp.table] = count ?? 0;
+        })
+      );
+      setCounts(newCounts);
+      setLoading(false);
     }
-  ];
+    fetchCounts();
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -59,6 +85,25 @@ const UXLayer = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* قسم إحصائيات الطبقة */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingSpinner size="sm" />
+          </div>
+        ) : (
+          uxComponents.map((comp) => (
+            <LayerStatsCard
+              key={comp.table}
+              icon={comp.icon}
+              label={comp.title}
+              count={counts[comp.table] ?? 0}
+              color={comp.color}
+            />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -8,36 +8,62 @@ import {
   Database, 
   Link
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import LayerStatsCard from '@/components/layer/LayerStatsCard';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const applicationComponents = [
+  {
+    title: 'قائمة التطبيقات',
+    description: 'إدارة التطبيقات والأنظمة',
+    icon: <Monitor className="w-6 h-6" />,
+    path: '/architecture/applications/apps',
+    color: 'bg-blue-500',
+    stats: 'تطبيق نشط',
+    table: 'app_applications'
+  },
+  {
+    title: 'قواعد بيانات التطبيقات',
+    description: 'إدارة قواعد البيانات ومحركاتها',
+    icon: <Database className="w-6 h-6" />,
+    path: '/architecture/applications/databases',
+    color: 'bg-green-500',
+    stats: 'قاعدة بيانات',
+    table: 'app_databases'
+  },
+  {
+    title: 'نقاط الربط التقني',
+    description: 'إدارة الروابط والاتصالات التقنية',
+    icon: <Link className="w-6 h-6" />,
+    path: '/architecture/applications/technical-links',
+    color: 'bg-purple-500',
+    stats: 'نقطة ربط',
+    table: 'app_technical_links'
+  }
+];
 
 const ApplicationsLayer = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<{ [key: string]: number | null }>({});
+  const [loading, setLoading] = useState(true);
 
-  const applicationComponents = [
-    {
-      title: 'قائمة التطبيقات',
-      description: 'إدارة التطبيقات والأنظمة',
-      icon: Monitor,
-      path: '/architecture/applications/apps',
-      color: 'bg-blue-500',
-      stats: 'تطبيق نشط'
-    },
-    {
-      title: 'قواعد بيانات التطبيقات',
-      description: 'إدارة قواعد البيانات ومحركاتها',
-      icon: Database,
-      path: '/architecture/applications/databases',
-      color: 'bg-green-500',
-      stats: 'قاعدة بيانات'
-    },
-    {
-      title: 'نقاط الربط التقني',
-      description: 'إدارة الروابط والاتصالات التقنية',
-      icon: Link,
-      path: '/architecture/applications/technical-links',
-      color: 'bg-purple-500',
-      stats: 'نقطة ربط'
+  useEffect(() => {
+    async function fetchCounts() {
+      setLoading(true);
+      const newCounts: { [key: string]: number | null } = {};
+      await Promise.all(
+        applicationComponents.map(async (comp) => {
+          const { count } = await supabase
+            .from(comp.table as any)
+            .select("*", { count: "exact", head: true });
+          newCounts[comp.table] = count ?? 0;
+        })
+      );
+      setCounts(newCounts);
+      setLoading(false);
     }
-  ];
+    fetchCounts();
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -59,6 +85,25 @@ const ApplicationsLayer = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* قسم إحصائيات الطبقة */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingSpinner size="sm" />
+          </div>
+        ) : (
+          applicationComponents.map((comp) => (
+            <LayerStatsCard
+              key={comp.table}
+              icon={comp.icon}
+              label={comp.title}
+              count={counts[comp.table] ?? 0}
+              color={comp.color}
+            />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

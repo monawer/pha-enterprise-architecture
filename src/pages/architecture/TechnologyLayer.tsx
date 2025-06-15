@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -12,68 +12,98 @@ import {
   FileText,
   Settings
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import LayerStatsCard from '@/components/layer/LayerStatsCard';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const technologyComponents = [
+  {
+    title: 'الخوادم الفيزيائية',
+    description: 'إدارة الخوادم الفيزيائية والأجهزة',
+    icon: <Server className="w-6 h-6" />,
+    path: '/architecture/technology/physical-servers',
+    color: 'bg-blue-500',
+    stats: 'خادم نشط',
+    table: 'tech_physical_servers'
+  },
+  {
+    title: 'الخوادم الافتراضية',
+    description: 'إدارة الخوادم الافتراضية والحاويات',
+    icon: <HardDrive className="w-6 h-6" />,
+    path: '/architecture/technology/virtual-servers',
+    color: 'bg-green-500',
+    stats: 'خادم افتراضي',
+    table: 'tech_virtual_servers'
+  },
+  {
+    title: 'أجهزة الشبكة',
+    description: 'إدارة أجهزة الشبكة والاتصالات',
+    icon: <Wifi className="w-6 h-6" />,
+    path: '/architecture/technology/network-devices',
+    color: 'bg-purple-500',
+    stats: 'جهاز شبكة',
+    table: 'tech_network_devices'
+  },
+  {
+    title: 'مراكز البيانات',
+    description: 'إدارة مراكز البيانات والمواقع',
+    icon: <Building2 className="w-6 h-6" />,
+    path: '/architecture/technology/data-centers',
+    color: 'bg-orange-500',
+    stats: 'مركز بيانات',
+    table: 'tech_data_centers'
+  },
+  {
+    title: 'الشبكات',
+    description: 'إدارة الشبكات والاتصالات',
+    icon: <Network className="w-6 h-6" />,
+    path: '/architecture/technology/networks',
+    color: 'bg-indigo-500',
+    stats: 'شبكة',
+    table: 'tech_networks'
+  },
+  {
+    title: 'التراخيص',
+    description: 'إدارة تراخيص البرمجيات والأنظمة',
+    icon: <FileText className="w-6 h-6" />,
+    path: '/architecture/technology/licenses',
+    color: 'bg-teal-500',
+    stats: 'ترخيص',
+    table: 'tech_licenses'
+  },
+  {
+    title: 'الأنظمة',
+    description: 'إدارة الأنظمة التقنية',
+    icon: <Settings className="w-6 h-6" />,
+    path: '/architecture/technology/systems',
+    color: 'bg-red-500',
+    stats: 'نظام',
+    table: 'tech_systems'
+  }
+];
 
 const TechnologyLayer = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<{ [key: string]: number | null }>({});
+  const [loading, setLoading] = useState(true);
 
-  const technologyComponents = [
-    {
-      title: 'الخوادم الفيزيائية',
-      description: 'إدارة الخوادم الفيزيائية والأجهزة',
-      icon: Server,
-      path: '/architecture/technology/physical-servers',
-      color: 'bg-blue-500',
-      stats: 'خادم نشط'
-    },
-    {
-      title: 'الخوادم الافتراضية',
-      description: 'إدارة الخوادم الافتراضية والحاويات',
-      icon: HardDrive,
-      path: '/architecture/technology/virtual-servers',
-      color: 'bg-green-500',
-      stats: 'خادم افتراضي'
-    },
-    {
-      title: 'أجهزة الشبكة',
-      description: 'إدارة أجهزة الشبكة والاتصالات',
-      icon: Wifi,
-      path: '/architecture/technology/network-devices',
-      color: 'bg-purple-500',
-      stats: 'جهاز شبكة'
-    },
-    {
-      title: 'مراكز البيانات',
-      description: 'إدارة مراكز البيانات والمواقع',
-      icon: Building2,
-      path: '/architecture/technology/data-centers',
-      color: 'bg-orange-500',
-      stats: 'مركز بيانات'
-    },
-    {
-      title: 'الشبكات',
-      description: 'إدارة الشبكات والاتصالات',
-      icon: Network,
-      path: '/architecture/technology/networks',
-      color: 'bg-indigo-500',
-      stats: 'شبكة'
-    },
-    {
-      title: 'التراخيص',
-      description: 'إدارة تراخيص البرمجيات والأنظمة',
-      icon: FileText,
-      path: '/architecture/technology/licenses',
-      color: 'bg-teal-500',
-      stats: 'ترخيص'
-    },
-    {
-      title: 'الأنظمة',
-      description: 'إدارة الأنظمة التقنية',
-      icon: Settings,
-      path: '/architecture/technology/systems',
-      color: 'bg-red-500',
-      stats: 'نظام'
+  useEffect(() => {
+    async function fetchCounts() {
+      setLoading(true);
+      const newCounts: { [key: string]: number | null } = {};
+      await Promise.all(
+        technologyComponents.map(async (comp) => {
+          const { count } = await supabase
+            .from(comp.table as any)
+            .select("*", { count: "exact", head: true });
+          newCounts[comp.table] = count ?? 0;
+        })
+      );
+      setCounts(newCounts);
+      setLoading(false);
     }
-  ];
+    fetchCounts();
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -95,6 +125,25 @@ const TechnologyLayer = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* قسم إحصائيات الطبقة */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingSpinner size="sm" />
+          </div>
+        ) : (
+          technologyComponents.map((comp) => (
+            <LayerStatsCard
+              key={comp.table}
+              icon={comp.icon}
+              label={comp.title}
+              count={counts[comp.table] ?? 0}
+              color={comp.color}
+            />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

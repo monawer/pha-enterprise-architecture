@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -8,36 +8,62 @@ import {
   Server, 
   Settings
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import LayerStatsCard from '@/components/layer/LayerStatsCard';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const securityComponents = [
+  {
+    title: 'أجهزة الأمان',
+    description: 'إدارة أجهزة الأمان والحماية',
+    icon: <Shield className="w-6 h-6" />,
+    path: '/architecture/security/devices',
+    color: 'bg-red-500',
+    stats: 'جهاز أمان',
+    table: 'sec_devices'
+  },
+  {
+    title: 'خدمات الأمان',
+    description: 'إدارة خدمات الأمان السيبراني',
+    icon: <Server className="w-6 h-6" />,
+    path: '/architecture/security/services',
+    color: 'bg-orange-500',
+    stats: 'خدمة أمان',
+    table: 'sec_services'
+  },
+  {
+    title: 'برامج الأمان',
+    description: 'إدارة برامج الحماية والأمان',
+    icon: <Settings className="w-6 h-6" />,
+    path: '/architecture/security/software',
+    color: 'bg-purple-500',
+    stats: 'برنامج أمان',
+    table: 'sec_software'
+  }
+];
 
 const SecurityLayer = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<{ [key: string]: number | null }>({});
+  const [loading, setLoading] = useState(true);
 
-  const securityComponents = [
-    {
-      title: 'أجهزة الأمان',
-      description: 'إدارة أجهزة الأمان والحماية',
-      icon: Shield,
-      path: '/architecture/security/devices',
-      color: 'bg-red-500',
-      stats: 'جهاز أمان'
-    },
-    {
-      title: 'خدمات الأمان',
-      description: 'إدارة خدمات الأمان السيبراني',
-      icon: Server,
-      path: '/architecture/security/services',
-      color: 'bg-orange-500',
-      stats: 'خدمة أمان'
-    },
-    {
-      title: 'برامج الأمان',
-      description: 'إدارة برامج الحماية والأمان',
-      icon: Settings,
-      path: '/architecture/security/software',
-      color: 'bg-purple-500',
-      stats: 'برنامج أمان'
+  useEffect(() => {
+    async function fetchCounts() {
+      setLoading(true);
+      const newCounts: { [key: string]: number | null } = {};
+      await Promise.all(
+        securityComponents.map(async (comp) => {
+          const { count } = await supabase
+            .from(comp.table as any)
+            .select("*", { count: "exact", head: true });
+          newCounts[comp.table] = count ?? 0;
+        })
+      );
+      setCounts(newCounts);
+      setLoading(false);
     }
-  ];
+    fetchCounts();
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -59,6 +85,25 @@ const SecurityLayer = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* قسم إحصائيات الطبقة */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingSpinner size="sm" />
+          </div>
+        ) : (
+          securityComponents.map((comp) => (
+            <LayerStatsCard
+              key={comp.table}
+              icon={comp.icon}
+              label={comp.title}
+              count={counts[comp.table] ?? 0}
+              color={comp.color}
+            />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
