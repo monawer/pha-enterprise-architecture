@@ -14,35 +14,41 @@ function fixFieldsMapping(p: Partial<Procedure>): Partial<Procedure> {
 
   console.log("🔧 [fixFieldsMapping] Initial values:", { automation: originalAutomation, importance: originalImportance });
 
-  const automationIsActuallyImportance = originalAutomation &&
-    !AUTOMATION_LEVELS.includes(originalAutomation) &&
-    IMPORTANCE_LEVELS.some(level => originalAutomation.includes(level));
-    
-  const importanceIsActuallyAutomation = originalImportance &&
-    !IMPORTANCE_LEVELS.some(level => originalImportance.includes(level)) &&
-    AUTOMATION_LEVELS.includes(originalImportance);
+  // Keywords to detect mismatched fields
+  const automationKeywords = ['مؤتمت', 'يدوي', 'آلي'];
+  const importanceKeywords = ['عالي', 'متوسط', 'منخفض'];
 
-  if (automationIsActuallyImportance && importanceIsActuallyAutomation) {
+  const automationLooksLikeImportance = originalAutomation && importanceKeywords.some(k => originalAutomation.includes(k));
+  const importanceLooksLikeAutomation = originalImportance && automationKeywords.some(k => originalImportance.includes(k));
+
+  const isCurrentAutomationInvalid = originalAutomation && !AUTOMATION_LEVELS.includes(originalAutomation);
+  const isCurrentImportanceInvalid = originalImportance && !IMPORTANCE_LEVELS.includes(originalImportance);
+
+  if (automationLooksLikeImportance && importanceLooksLikeAutomation && isCurrentAutomationInvalid && isCurrentImportanceInvalid) {
     // This is a swap
     console.log("🔄 [fixFieldsMapping] Swapping automation_level and importance");
-    updated.automation_level = originalImportance;
-    updated.importance = originalAutomation;
-  } else if (automationIsActuallyImportance && !updated.importance) {
+    [updated.automation_level, updated.importance] = [originalImportance, originalAutomation];
+  } else if (automationLooksLikeImportance && isCurrentAutomationInvalid && !originalImportance) {
     // Only automation is wrong, and importance is empty
     console.log("➡️ [fixFieldsMapping] Moving automation_level to importance");
     updated.importance = originalAutomation;
     updated.automation_level = '';
-  } else if (importanceIsActuallyAutomation && !updated.automation_level) {
+  } else if (importanceLooksLikeAutomation && isCurrentImportanceInvalid && !originalAutomation) {
     // Only importance is wrong, and automation is empty
     console.log("➡️ [fixFieldsMapping] Moving importance to automation_level");
     updated.automation_level = originalImportance;
     updated.importance = '';
   }
 
-  // Normalize importance value to match select options
-  if (updated.importance?.includes("متوسط")) {
-      console.log(`[fixFieldsMapping] Normalizing importance from "${updated.importance}" to "متوسطة"`);
+  // After potential swap/move, normalize the importance value to match select options exactly.
+  if (updated.importance) {
+    if (updated.importance.includes("عالي")) {
+      updated.importance = "عالية";
+    } else if (updated.importance.includes("متوسط")) {
       updated.importance = "متوسطة";
+    } else if (updated.importance.includes("منخفض")) {
+      updated.importance = "منخفضة";
+    }
   }
   
   console.log("🔧 [fixFieldsMapping] Final values:", { automation: updated.automation_level, importance: updated.importance });
