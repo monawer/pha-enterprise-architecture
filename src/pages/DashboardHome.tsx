@@ -8,7 +8,23 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
-const layers = [
+// 1. تحديد نوع ثابت لأسماء الجداول المسموحة
+type LayerTable = 
+  | "biz_services"
+  | "app_applications"
+  | "data_entities"
+  | "tech_physical_servers"
+  | "sec_devices"
+  | "ux_beneficiaries";
+
+interface LayerDef {
+  key: string;
+  label: string;
+  color: string;
+  table: LayerTable;
+}
+
+const layers: LayerDef[] = [
   { key: "business", label: "طبقة الأعمال", color: "bg-green-500", table: "biz_services" },
   { key: "applications", label: "طبقة التطبيقات", color: "bg-orange-500", table: "app_applications" },
   { key: "data", label: "طبقة البيانات", color: "bg-blue-500", table: "data_entities" },
@@ -32,7 +48,10 @@ const DashboardHome: React.FC = () => {
       const out: StatsState = {};
       await Promise.all(
         layers.map(async (l) => {
-          const { count } = await supabase.from(l.table).select("*", { count: "exact", head: true });
+          // 2. l.table صار نوعه LayerTable وبالتالي يقبله .from كمحدد نوعي صحيح
+          const { count } = await supabase
+            .from(l.table)
+            .select("*", { count: "exact", head: true });
           out[l.key] = count ?? 0;
         })
       );
