@@ -82,48 +82,36 @@ export const useProcedureFormData = (
   procedure?: Procedure,
   policyOptions: PolicyOption[] = []
 ) => {
-  const getInitialFormData = (): Procedure => {
-    console.log("🆕 [getInitialFormData] Creating empty form data");
-    return sanitizeProcedure();
-  };
-
-  const [formData, setFormData] = useState<Procedure>(getInitialFormData);
-
-  useEffect(() => {
-    console.log(`🔵 [useProcedureFormData] useEffect - START. Procedure ID: ${procedure?.id}`);
-
+  // The useState initializer runs only on the first render of the component instance.
+  // Thanks to the `key` prop on ProcedureForm, we get a new instance each time,
+  // so this initializer is run with the correct `procedure` prop.
+  const [formData, setFormData] = useState<Procedure>(() => {
+    console.log(`🔵 [useState initializer] Running for procedure: ${procedure?.id}`);
     if (procedure) {
-      console.log("🔵 [useProcedureFormData] useEffect - Procedure found. Processing...");
-      const processedRelatedPolicies = processPolicies(
-        procedure.related_policies ?? '',
-        policyOptions
-      );
-      
-      const sanitized = sanitizeProcedure({ 
-        ...procedure, 
-        related_policies: processedRelatedPolicies 
-      });
-      
-      console.log("🎯 [useProcedureFormData] useEffect - Final sanitized form data:", sanitized);
-      console.log("📝 [useProcedureFormData] useEffect - Setting formData state.");
-      
-      setFormData(sanitized);
-    } else {
-      console.log("🔵 [useProcedureFormData] useEffect - No procedure found. Resetting form.");
-      const emptyData = getInitialFormData();
-      console.log("📝 [useProcedureFormData] useEffect - Setting formData to empty.");
-      setFormData(emptyData);
+      const processedRelatedPolicies = processPolicies(procedure.related_policies ?? '', policyOptions);
+      return sanitizeProcedure({ ...procedure, related_policies: processedRelatedPolicies });
     }
-    console.log(`🔵 [useProcedureFormData] useEffect - END. Procedure ID: ${procedure?.id}`);
-  }, [procedure, policyOptions]);
+    return sanitizeProcedure();
+  });
 
-  // إضافة console log عند تغيير formData
+  // This effect's only job is to update the form if policyOptions load *after*
+  // the initial render. It should not reset the form.
+  useEffect(() => {
+    if (procedure && policyOptions.length > 0) {
+      console.log(`🔵 [useEffect] Checking for policy updates for procedure: ${procedure.id}`);
+      const processedRelatedPolicies = processPolicies(procedure.related_policies ?? '', policyOptions);
+      if (processedRelatedPolicies !== formData.related_policies) {
+        console.log('📝 [useEffect] Policies have changed, updating form data.');
+        setFormData(currentData => ({ ...currentData, related_policies: processedRelatedPolicies }));
+      }
+    }
+  }, [policyOptions, procedure, formData.related_policies]);
+
+  // Keep the logger effect
   useEffect(() => {
     console.log("🔄 [useProcedureFormData] formData state changed:", {
       id: formData.id,
       procedure_name: formData.procedure_name,
-      procedure_code: formData.procedure_code,
-      procedure_description: formData.procedure_description
     });
   }, [formData]);
 
