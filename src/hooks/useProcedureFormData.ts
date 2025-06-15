@@ -35,8 +35,10 @@ function fixFieldsMapping(p: Partial<Procedure>): Partial<Procedure> {
 }
 
 function sanitizeProcedure(p: Partial<Procedure> = {}): Procedure {
+  console.log("🧹 [sanitizeProcedure] Input data before sanitization:", p);
+  
   const cleaned = fixFieldsMapping(p);
-  return {
+  const result = {
     id: cleaned.id || '',
     procedure_name: cleaned.procedure_name ?? '',
     procedure_code: cleaned.procedure_code ?? '',
@@ -55,13 +57,19 @@ function sanitizeProcedure(p: Partial<Procedure> = {}): Procedure {
     notes: cleaned.notes ?? '',
     created_at: cleaned.created_at,
   };
+  
+  console.log("🧹 [sanitizeProcedure] Output data after sanitization:", result);
+  return result;
 }
 
 export const useProcedureFormData = (
   procedure?: Procedure,
   policyOptions: PolicyOption[] = []
 ) => {
-  const getInitialFormData = (): Procedure => sanitizeProcedure();
+  const getInitialFormData = (): Procedure => {
+    console.log("🆕 [getInitialFormData] Creating empty form data");
+    return sanitizeProcedure();
+  };
 
   const [formData, setFormData] = useState<Procedure>(getInitialFormData);
 
@@ -72,19 +80,51 @@ export const useProcedureFormData = (
 
     if (procedure) {
       console.log("🔵 [useProcedureFormData] Setting form data from procedure");
+      console.log("📋 [useProcedureFormData] Original procedure data:", {
+        id: procedure.id,
+        procedure_name: procedure.procedure_name,
+        procedure_code: procedure.procedure_code,
+        procedure_description: procedure.procedure_description,
+        procedure_type: procedure.procedure_type,
+        automation_level: procedure.automation_level,
+        importance: procedure.importance
+      });
 
       const processedRelatedPolicies = processPolicies(
         procedure.related_policies ?? '',
         policyOptions
       );
-      const sanitized = sanitizeProcedure({ ...procedure, related_policies: processedRelatedPolicies });
+      
+      const sanitized = sanitizeProcedure({ 
+        ...procedure, 
+        related_policies: processedRelatedPolicies 
+      });
+      
       console.log("🎯 [useProcedureFormData] Final sanitized form data:", sanitized);
+      console.log("📝 [useProcedureFormData] Setting formData state to:", {
+        procedure_name: sanitized.procedure_name,
+        procedure_code: sanitized.procedure_code,
+        procedure_description: sanitized.procedure_description
+      });
+      
       setFormData(sanitized);
     } else {
       console.log("🔵 [useProcedureFormData] No procedure prop, resetting form");
-      setFormData(getInitialFormData());
+      const emptyData = getInitialFormData();
+      console.log("📝 [useProcedureFormData] Setting formData to empty:", emptyData);
+      setFormData(emptyData);
     }
   }, [procedure, policyOptions]);
+
+  // إضافة console log عند تغيير formData
+  useEffect(() => {
+    console.log("🔄 [useProcedureFormData] formData state changed:", {
+      id: formData.id,
+      procedure_name: formData.procedure_name,
+      procedure_code: formData.procedure_code,
+      procedure_description: formData.procedure_description
+    });
+  }, [formData]);
 
   return {
     formData,

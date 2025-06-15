@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +11,18 @@ import ProcedureFormActions from './procedure/ProcedureFormActions';
 
 const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onCancel }) => {
   useEffect(() => {
+    console.log("🟡 [ProcedureForm] Component mounted/updated");
     console.log("🟡 [ProcedureForm] Received procedure prop:", procedure);
+    if (procedure) {
+      console.log("📋 [ProcedureForm] Procedure details:", {
+        id: procedure.id,
+        name: procedure.procedure_name,
+        code: procedure.procedure_code,
+        description: procedure.procedure_description
+      });
+    } else {
+      console.log("❌ [ProcedureForm] No procedure data received (new form)");
+    }
   }, [procedure]);
   
   const {
@@ -23,6 +35,16 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
     getPoliciesString,
     handleSubmit,
   } = useProcedureForm(procedure);
+
+  // إضافة console log لتتبع formData في المكون
+  useEffect(() => {
+    console.log("📝 [ProcedureForm] Current formData state:", {
+      id: formData.id,
+      procedure_name: formData.procedure_name,
+      procedure_code: formData.procedure_code,
+      procedure_description: formData.procedure_description
+    });
+  }, [formData]);
 
   return (
     <form onSubmit={(e) => handleSubmit(e, onSuccess)} className="space-y-6 max-h-[70vh] overflow-y-auto">

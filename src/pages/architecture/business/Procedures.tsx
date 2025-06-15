@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,12 +32,27 @@ const Procedures = () => {
 
   // تحسين اختيار البيانات للمودال
   const handleEdit = (procedure: Procedure) => {
-    console.log("🟠 [Procedures] handleEdit - procedure:", procedure);
+    console.log("🟠 [Procedures] handleEdit clicked");
+    console.log("🟠 [Procedures] handleEdit - procedure received:", procedure);
+    console.log("📋 [Procedures] Full procedure object:", {
+      id: procedure.id,
+      procedure_name: procedure.procedure_name,
+      procedure_code: procedure.procedure_code,
+      procedure_description: procedure.procedure_description,
+      procedure_type: procedure.procedure_type,
+      automation_level: procedure.automation_level,
+      importance: procedure.importance
+    });
+    
+    console.log("🔄 [Procedures] Setting selectedProcedure state to:", procedure);
     setSelectedProcedure(procedure);
+    
+    console.log("🔄 [Procedures] Opening modal for edit");
     setIsModalOpen(true);
   };
 
   const handleAdd = () => {
+    console.log("➕ [Procedures] handleAdd clicked - creating new procedure");
     setSelectedProcedure(null);
     setIsModalOpen(true);
   };
@@ -54,6 +70,7 @@ const Procedures = () => {
   };
 
   const handleFormSuccess = () => {
+    console.log("✅ [Procedures] Form submitted successfully, closing modal");
     setIsModalOpen(false);
     setSelectedProcedure(null);
     fetchProcedures();
@@ -65,6 +82,28 @@ const Procedures = () => {
     (procedure.procedure_description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (procedure.procedure_code?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // إضافة console log عند تغيير selectedProcedure
+  React.useEffect(() => {
+    console.log("🔄 [Procedures] selectedProcedure state changed:", selectedProcedure);
+    if (selectedProcedure) {
+      console.log("📋 [Procedures] Selected procedure details:", {
+        id: selectedProcedure.id,
+        name: selectedProcedure.procedure_name,
+        code: selectedProcedure.procedure_code
+      });
+    }
+  }, [selectedProcedure]);
+
+  // إضافة console log عند فتح/إغلاق المودال
+  React.useEffect(() => {
+    console.log("🔄 [Procedures] Modal state changed - isModalOpen:", isModalOpen);
+    if (isModalOpen && selectedProcedure) {
+      console.log("📋 [Procedures] Modal opened with procedure:", selectedProcedure.procedure_name);
+    } else if (isModalOpen && !selectedProcedure) {
+      console.log("➕ [Procedures] Modal opened for new procedure");
+    }
+  }, [isModalOpen, selectedProcedure]);
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-2 md:px-8 animate-fade-in-up">
@@ -138,6 +177,8 @@ const Procedures = () => {
               {selectedProcedure ? 'تعديل الإجراء' : 'إضافة إجراء جديد'}
             </ModalTitle>
           </ModalHeader>
+          {/* إضافة console log قبل تمرير البيانات للنموذج */}
+          {console.log("🎯 [Procedures] Rendering ProcedureForm with procedure:", selectedProcedure)}
           <ProcedureForm
             procedure={selectedProcedure || undefined}
             onSuccess={handleFormSuccess}
