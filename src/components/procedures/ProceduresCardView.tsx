@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import { Procedure } from '@/types/procedure';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { Badge } from '@/components/ui/badge';
 
 interface ProceduresCardViewProps {
   data: Procedure[];
@@ -21,7 +21,6 @@ const ProceduresCardView: React.FC<ProceduresCardViewProps> = ({
   if (loading) {
     return <LoadingSpinner message="جاري تحميل الإجراءات..." />;
   }
-
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 animate-fade-in">
@@ -29,53 +28,56 @@ const ProceduresCardView: React.FC<ProceduresCardViewProps> = ({
       </div>
     );
   }
-
   return (
     <div className="grid grid-cols-1 gap-4">
       {data.map((procedure) => (
-        <div key={procedure.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white hover:shadow-md transition-shadow">
+        <div key={procedure.id} className="rounded-xl border shadow-sm p-4 flex flex-col gap-3 bg-gradient-to-br from-gray-50 to-white hover:shadow-lg transition-shadow">
           <div className="flex justify-between items-center">
             <span className="font-bold text-blue-700">{procedure.procedure_name}</span>
-            <span className="text-xs text-gray-500">{procedure.procedure_code || '-'}</span>
+            <span className="text-xs text-gray-400">{procedure.procedure_code || '-'}</span>
           </div>
-          
-          {procedure.procedure_type && (
-            <span className="text-xs text-gray-600">النوع: {procedure.procedure_type}</span>
-          )}
-          
-          {procedure.automation_level && (
-            <span className="text-xs text-gray-600">الأتمتة: {procedure.automation_level}</span>
-          )}
-          
-          {procedure.importance && (
-            <span className="text-xs text-gray-600">الأهمية: {procedure.importance}</span>
-          )}
-          
-          <div className="text-xs text-gray-600">
-            {procedure.execution_duration && <>المدة: {procedure.execution_duration}</>}
+          <div className="flex flex-wrap gap-2">
+            {procedure.procedure_type && (
+              <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-800">{procedure.procedure_type}</Badge>
+            )}
+            {procedure.automation_level && (
+              <Badge variant="secondary" className="bg-green-50 border-green-200">{procedure.automation_level}</Badge>
+            )}
+            {procedure.importance && (
+              <Badge
+                variant={
+                  procedure.importance === 'عالية'
+                    ? 'destructive'
+                    : procedure.importance === 'متوسطة'
+                    ? 'default'
+                    : 'outline'
+                }
+              >
+                {procedure.importance}
+              </Badge>
+            )}
+            {procedure.execution_duration && (
+              <span className="text-xs text-gray-600">⏱ {procedure.execution_duration}</span>
+            )}
           </div>
-          
           {procedure.procedure_description && (
-            <div className="text-xs text-gray-500 line-clamp-2">{procedure.procedure_description}</div>
+            <div className="text-xs text-gray-500 line-clamp-3">{procedure.procedure_description}</div>
           )}
-          
           <div className="flex gap-2 pt-2">
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 hover-scale"
+              className="flex-1 hover:scale-105"
               onClick={() => onEdit(procedure)}
             >
-              <Edit className="w-4 h-4" />
               <span className="ml-1">تعديل</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 hover-scale text-red-600 hover:text-red-700"
+              className="flex-1 text-red-600 hover:text-red-700 hover:scale-105"
               onClick={() => onDelete(procedure)}
             >
-              <Trash2 className="w-4 h-4" />
               <span className="ml-1">حذف</span>
             </Button>
           </div>
@@ -84,5 +86,4 @@ const ProceduresCardView: React.FC<ProceduresCardViewProps> = ({
     </div>
   );
 };
-
 export default ProceduresCardView;

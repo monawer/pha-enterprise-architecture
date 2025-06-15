@@ -23,10 +23,14 @@ const ProceduresTable: React.FC<ProceduresTableProps> = ({
       header: 'اسم الإجراء',
       render: (procedure: Procedure) => (
         <div>
-          <p className="font-semibold">{procedure.procedure_name}</p>
+          <p className="font-semibold text-blue-900">
+            {procedure.procedure_name}
+          </p>
           {procedure.procedure_description && (
-            <p className="text-sm text-gray-500 mt-1">
-              {procedure.procedure_description.substring(0, 100)}...
+            <p className="text-xs text-gray-500 mt-1">
+              {procedure.procedure_description.length > 100
+                ? procedure.procedure_description.substring(0, 100) + '...'
+                : procedure.procedure_description}
             </p>
           )}
         </div>
@@ -42,7 +46,7 @@ const ProceduresTable: React.FC<ProceduresTableProps> = ({
       header: 'النوع',
       render: (procedure: Procedure) => 
         procedure.procedure_type ? (
-          <Badge variant="outline">{procedure.procedure_type}</Badge>
+          <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-800">{procedure.procedure_type}</Badge>
         ) : '-',
     },
     {
@@ -84,8 +88,9 @@ const ProceduresTable: React.FC<ProceduresTableProps> = ({
       onDelete={onDelete}
       emptyMessage="لا توجد إجراءات متاحة"
       itemsPerPage={10}
+      className="rounded-lg border bg-white shadow-sm"
+      rowClassName="transition hover:bg-orange-50 cursor-pointer"
     />
   );
 };
-
 export default ProceduresTable;

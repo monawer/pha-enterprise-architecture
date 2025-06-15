@@ -8,7 +8,6 @@ import {
   ModalContent,
   ModalHeader,
   ModalTitle,
-  ModalTrigger,
 } from '@/components/ui/modal';
 import { FileText, Plus } from 'lucide-react';
 import ProcedureForm from '@/components/forms/ProcedureForm';
@@ -19,7 +18,6 @@ import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
 import ProceduresTable from '@/components/procedures/ProceduresTable';
 import ProceduresCardView from '@/components/procedures/ProceduresCardView';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import EntityHeader from '@/components/common/EntityHeader';
 
 const Procedures = () => {
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
@@ -32,31 +30,9 @@ const Procedures = () => {
   
   const { procedures, loading, fetchProcedures, deleteProcedure } = useProcedures();
 
+  // تحسين اختيار البيانات للمودال
   const handleEdit = (procedure: Procedure) => {
-    console.log("🟡 [Procedures] handleEdit called with:", procedure);
-    
-    const completeData: Procedure = {
-      id: procedure.id,
-      procedure_name: procedure.procedure_name || '',
-      procedure_code: procedure.procedure_code || '',
-      procedure_description: procedure.procedure_description || '',
-      procedure_type: procedure.procedure_type || '',
-      automation_level: procedure.automation_level || '',
-      importance: procedure.importance || '',
-      execution_duration: procedure.execution_duration || '',
-      procedure_inputs: procedure.procedure_inputs || '',
-      procedure_outputs: procedure.procedure_outputs || '',
-      execution_steps: procedure.execution_steps || '',
-      business_rules: procedure.business_rules || '',
-      execution_requirements: procedure.execution_requirements || '',
-      related_services: procedure.related_services || '',
-      related_policies: procedure.related_policies || '',
-      notes: procedure.notes || '',
-      created_at: procedure.created_at
-    };
-    
-    console.log("🟡 [Procedures] completeData being sent:", completeData);
-    setSelectedProcedure(completeData);
+    setSelectedProcedure(procedure);
     setIsModalOpen(true);
   };
 
@@ -83,59 +59,82 @@ const Procedures = () => {
     fetchProcedures();
   };
 
+  // فلترة ديناميكية تشمل الاسم والرمز والوصف
   const filteredProcedures = procedures.filter(procedure =>
-    procedure.procedure_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (procedure.procedure_description && procedure.procedure_description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (procedure.procedure_code && procedure.procedure_code.toLowerCase().includes(searchTerm.toLowerCase()))
+    (procedure.procedure_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (procedure.procedure_description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (procedure.procedure_code?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
-    <div className="space-y-6">
-      <EntityHeader
-        icon={<FileText className="w-6 h-6" />}
-        title="إدارة الإجراءات"
-        description="عرض وإدارة الإجراءات التشغيلية والإدارية"
-        onAdd={handleAdd}
-        addButtonText="إضافة إجراء جديد"
-        addButtonIcon={<Plus className="w-4 h-4" />}
-      />
+    <div className="max-w-7xl mx-auto py-8 px-2 md:px-8 animate-fade-in-up">
+      <div className="flex flex-col md:flex-row md:justify-between items-center mb-8 gap-3">
+        <div className="flex items-center gap-3">
+          <FileText className="w-8 h-8 text-saudi-green-700" />
+          <div>
+            <h1 className="text-3xl font-bold text-saudi-green-900">إدارة الإجراءات</h1>
+            <span className="block text-base text-gray-500 mt-1">
+              عرض وإدارة الإجراءات التشغيلية والإدارية بشكل احترافي
+            </span>
+          </div>
+        </div>
+        <Button
+          size="lg"
+          className="gap-1 bg-saudi-green-700 text-white hover:bg-saudi-green-800 transition"
+          onClick={handleAdd}
+        >
+          <Plus className="w-5 h-5" />
+          إضافة إجراء جديد
+        </Button>
+      </div>
 
-      <SearchAndFilterCard
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        placeholder="البحث في الإجراءات..."
-        totalCount={filteredProcedures.length}
-        entityName="إجراء"
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>قائمة الإجراءات ({filteredProcedures.length})</CardTitle>
+      <Card className="mb-6 shadow-lg border-gray-200">
+        <div className="p-4">
+          <SearchAndFilterCard
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder="ابحث في الإجراءات بالاسم أو الوصف أو الرمز..."
+            totalCount={filteredProcedures.length}
+            entityName="إجراء"
+          />
+        </div>
+        <CardHeader className="bg-gray-50 rounded-t-lg border-b">
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-6 h-6 text-gray-600" />
+            قائمة جميع الإجراءات
+            <span className="ml-2 text-base text-gray-400 font-normal">
+              ({filteredProcedures.length})
+            </span>
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {isMobile ? (
-            <ProceduresCardView
-              data={filteredProcedures}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <div className="p-2">
+              <ProceduresCardView
+                data={filteredProcedures}
+                loading={loading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </div>
           ) : (
-            <ProceduresTable
-              data={filteredProcedures}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <div className="p-2">
+              <ProceduresTable
+                data={filteredProcedures}
+                loading={loading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Add/Edit Modal */}
+      {/* Modal لإضافة/تعديل إجراء */}
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <ModalContent className="max-w-4xl">
+        <ModalContent className="max-w-3xl">
           <ModalHeader>
-            <ModalTitle>
+            <ModalTitle className="font-bold text-lg">
               {selectedProcedure ? 'تعديل الإجراء' : 'إضافة إجراء جديد'}
             </ModalTitle>
           </ModalHeader>
@@ -147,14 +146,16 @@ const Procedures = () => {
         </ModalContent>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
+      {/* تأكيد حذف */}
       <ConfirmationModal
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
         onConfirm={confirmDelete}
         title="تأكيد الحذف"
-        description={`هل أنت متأكد من حذف الإجراء "${procedureToDelete?.procedure_name}"؟ هذا الإجراء لا يمكن التراجع عنه.`}
-        confirmText="حذف"
+        description={procedureToDelete ? (
+          <>هل أنت متأكد من حذف الإجراء <span className="font-bold text-red-700">"{procedureToDelete.procedure_name}"</span>؟ لا يمكن التراجع عن هذا الإجراء.</>
+        ) : ''}
+        confirmText="نعم، حذف"
         cancelText="إلغاء"
         variant="destructive"
       />

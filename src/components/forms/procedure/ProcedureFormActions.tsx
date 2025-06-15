@@ -22,16 +22,20 @@ const ProcedureFormActions: React.FC<ProcedureFormActionsProps> = ({
         variant="outline"
         onClick={onCancel}
         disabled={loading}
+        className="hover:bg-gray-100"
       >
         <X className="w-4 h-4 ml-2" />
         إلغاء
       </Button>
-      <Button type="submit" disabled={loading}>
+      <Button type="submit" disabled={loading} className="bg-saudi-green-700 text-white hover:bg-saudi-green-800">
         <Save className="w-4 h-4 ml-2" />
-        {loading ? 'جاري الحفظ...' : procedure?.id ? 'تحديث' : 'إضافة'}
+        {loading ? (
+          <span>
+            <span className="animate-spin inline-block mr-1">⏳</span> جاري الحفظ...
+          </span>
+        ) : procedure?.id ? 'تحديث' : 'إضافة'}
       </Button>
     </div>
   );
 };
-
 export default ProcedureFormActions;

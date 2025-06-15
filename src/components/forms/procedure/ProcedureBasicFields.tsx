@@ -20,13 +20,14 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
   return (
     <>
       <div className="md:col-span-2">
-        <Label htmlFor="procedure_name">اسم الإجراء *</Label>
+        <Label htmlFor="procedure_name">اسم الإجراء <span className="text-red-500">*</span></Label>
         <Input
           id="procedure_name"
           value={formData.procedure_name}
           onChange={(e) => setFormData({ ...formData, procedure_name: e.target.value })}
           placeholder="أدخل اسم الإجراء"
           required
+          className="bg-gray-50"
         />
       </div>
       <div>
@@ -35,7 +36,8 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           id="procedure_code"
           value={formData.procedure_code}
           onChange={(e) => setFormData({ ...formData, procedure_code: e.target.value })}
-          placeholder="أدخل رمز الإجراء"
+          placeholder="رمز الإجراء (اختياري)"
+          className="bg-gray-50"
         />
       </div>
       <div>
@@ -46,7 +48,7 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           disabled={loadingTypes}
         >
           <SelectTrigger>
-            <SelectValue placeholder="اختر نوع الإجراء" />
+            <SelectValue placeholder={loadingTypes ? "جارٍ التحميل..." : "اختر نوع الإجراء"} />
           </SelectTrigger>
           <SelectContent>
             {typeOptions.map(opt => (
@@ -63,7 +65,7 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           disabled={loadingAutomation}
         >
           <SelectTrigger>
-            <SelectValue placeholder="اختر مستوى الأتمتة" />
+            <SelectValue placeholder={loadingAutomation ? "جارٍ التحميل..." : "اختر المستوى"} />
           </SelectTrigger>
           <SelectContent>
             {automationLevels.map(opt => (
@@ -79,7 +81,7 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           onValueChange={(value) => setFormData({ ...formData, importance: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="اختر مستوى الأهمية" />
+            <SelectValue placeholder="اختر الأهمية" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="عالية">عالية</SelectItem>
@@ -94,7 +96,8 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           id="execution_duration"
           value={formData.execution_duration}
           onChange={(e) => setFormData({ ...formData, execution_duration: e.target.value })}
-          placeholder="أدخل مدة التنفيذ"
+          placeholder="مثال: 3 أيام عمل"
+          className="bg-gray-50"
         />
       </div>
       <div className="md:col-span-2">
@@ -103,8 +106,9 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           id="procedure_description"
           value={formData.procedure_description}
           onChange={(e) => setFormData({ ...formData, procedure_description: e.target.value })}
-          placeholder="أدخل وصف الإجراء"
+          placeholder="تفاصيل أو ملاحظات حول الإجراء"
           rows={3}
+          className="bg-gray-50"
         />
       </div>
     </>
