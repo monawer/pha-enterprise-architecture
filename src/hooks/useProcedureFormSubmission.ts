@@ -14,7 +14,10 @@ export const useProcedureFormSubmission = (procedure?: Procedure) => {
     onSuccess: () => void
   ) => {
     e.preventDefault();
-    
+
+    // سجل القيم أول شيء
+    console.log("⏳ [handleSubmit] formData عند التعديل/الإضافة:", formData);
+
     if (!formData.procedure_name.trim()) {
       toast({
         title: "خطأ في التحقق",
@@ -25,11 +28,14 @@ export const useProcedureFormSubmission = (procedure?: Procedure) => {
     }
 
     setLoading(true);
-    
+
     try {
       // إعداد البيانات للحفظ (بدون حقل id للإدراج الجديد)
       const { id, ...dataToSave } = formData;
-      
+
+      // سجل البيانات قبل رفعها
+      console.log("⏫ [handleSubmit] dataToSave المُرسلة إلى Supabase:", dataToSave);
+
       if (procedure?.id) {
         console.log("🟢 [useProcedureFormSubmission] Updating procedure with data:", dataToSave);
         const { error } = await supabase
@@ -38,7 +44,7 @@ export const useProcedureFormSubmission = (procedure?: Procedure) => {
           .eq('id', procedure.id);
 
         if (error) throw error;
-        
+
         toast({
           title: "تم بنجاح",
           description: "تم تحديث الإجراء بنجاح",
@@ -50,13 +56,13 @@ export const useProcedureFormSubmission = (procedure?: Procedure) => {
           .insert([dataToSave]);
 
         if (error) throw error;
-        
+
         toast({
           title: "تم بنجاح",
           description: "تم إضافة الإجراء بنجاح",
         });
       }
-      
+
       onSuccess();
     } catch (error) {
       console.error('Error saving procedure:', error);
