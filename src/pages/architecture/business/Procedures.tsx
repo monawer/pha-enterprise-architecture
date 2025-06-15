@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import ProcedureForm from '@/components/forms/ProcedureForm';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// تحديث نوع البيانات ليشمل كل الحقول المستخدمة بنموذج الاجراء
 interface Procedure {
   id: string;
   procedure_name: string;
@@ -33,6 +34,16 @@ interface Procedure {
   automation_level?: string;
   importance?: string;
   execution_duration?: string;
+  execution_steps?: string;
+  business_rules?: string;
+  execution_requirements?: string;
+  procedure_inputs?: string;
+  procedure_outputs?: string;
+  related_services?: string;
+  related_policies?: string;
+  notes?: string;
+  // الحقول المفيدة لدعم النموذج مستقبلًا
+  [key: string]: any;
   created_at: string;
 }
 
@@ -54,9 +65,12 @@ const Procedures = () => {
   const fetchProcedures = async () => {
     try {
       setLoading(true);
+      // تأكد من جلب كل الأعمدة وليس فقط الأساسية
       const { data, error } = await supabase
         .from('biz_procedures')
-        .select('*')
+        .select(
+          'id, procedure_name, procedure_code, procedure_description, procedure_type, automation_level, importance, execution_duration, execution_steps, business_rules, execution_requirements, procedure_inputs, procedure_outputs, related_services, related_policies, notes, created_at'
+        )
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -74,6 +88,7 @@ const Procedures = () => {
   };
 
   const handleEdit = (procedure: Procedure) => {
+    // يمرر الكائن كاملًا إلى الـForm ليتم تعبئة كل الحقول المطلوبة
     setSelectedProcedure(procedure);
     setIsModalOpen(true);
   };
@@ -156,7 +171,7 @@ const Procedures = () => {
               </ModalTitle>
             </ModalHeader>
             <ProcedureForm
-              procedure={selectedProcedure}
+              procedure={selectedProcedure!}
               onSuccess={handleFormSuccess}
               onCancel={() => setIsModalOpen(false)}
             />
