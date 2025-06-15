@@ -68,12 +68,11 @@ const Procedures = () => {
       // تأكد من جلب كل الأعمدة وليس فقط الأساسية
       const { data, error } = await supabase
         .from('biz_procedures')
-        .select(
-          'id, procedure_name, procedure_code, procedure_description, procedure_type, automation_level, importance, execution_duration, execution_steps, business_rules, execution_requirements, procedure_inputs, procedure_outputs, related_services, related_policies, notes, created_at'
-        )
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log("🟢 [Procedures] Fetched data:", data);
       setProcedures(data || []);
     } catch (error) {
       console.error('Error fetching procedures:', error);
@@ -88,9 +87,31 @@ const Procedures = () => {
   };
 
   const handleEdit = (procedure: Procedure) => {
-    // يمرر الكائن كاملًا إلى الـForm ليتم تعبئة كل الحقول المطلوبة
-    console.log("🟡 handleEdit - procedure sent to form:", procedure);
-    setSelectedProcedure(procedure);
+    console.log("🟡 [Procedures] handleEdit called with:", procedure);
+    console.log("🟡 [Procedures] procedure.related_policies:", procedure.related_policies);
+    
+    // تأكد من أن الكائن كامل قبل تمريره
+    const completeData = {
+      id: procedure.id,
+      procedure_name: procedure.procedure_name || '',
+      procedure_code: procedure.procedure_code || '',
+      procedure_description: procedure.procedure_description || '',
+      procedure_type: procedure.procedure_type || '',
+      automation_level: procedure.automation_level || '',
+      importance: procedure.importance || '',
+      execution_duration: procedure.execution_duration || '',
+      procedure_inputs: procedure.procedure_inputs || '',
+      procedure_outputs: procedure.procedure_outputs || '',
+      execution_steps: procedure.execution_steps || '',
+      business_rules: procedure.business_rules || '',
+      execution_requirements: procedure.execution_requirements || '',
+      related_services: procedure.related_services || '',
+      related_policies: procedure.related_policies || '',
+      notes: procedure.notes || ''
+    };
+    
+    console.log("🟡 [Procedures] completeData being sent:", completeData);
+    setSelectedProcedure(completeData);
     setIsModalOpen(true);
   };
 

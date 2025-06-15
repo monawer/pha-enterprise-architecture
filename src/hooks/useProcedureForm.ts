@@ -28,39 +28,50 @@ export const useProcedureForm = (procedure?: Procedure) => {
   const { options: policyOptions, loading: loadingPolicies } = usePoliciesOptions();
 
   useEffect(() => {
+    console.log("🔵 [useProcedureForm] useEffect triggered");
+    console.log("🔵 [useProcedureForm] procedure prop:", procedure);
+    console.log("🔵 [useProcedureForm] policyOptions length:", policyOptions.length);
+    
     if (procedure) {
-      console.log("🟣 [ProcedureForm] useEffect procedure prop value:", procedure);
+      console.log("🔵 [useProcedureForm] Setting form data from procedure");
       
-      // معالجة related_policies - إذا كانت تحتوي على قيم نصية نبحث عن IDs المقابلة
-      let relatedPolicyIds = '';
+      // معالجة related_policies
+      let processedPolicies = '';
       if (procedure.related_policies && policyOptions.length > 0) {
-        console.log("🔍 Processing related_policies:", procedure.related_policies);
-        console.log("🔍 Available policy options:", policyOptions);
+        console.log("🔍 [useProcedureForm] Processing related_policies:", procedure.related_policies);
         
-        // إذا كانت تحتوي على فاصلة، قم بتقسيمها
-        const policyNames = procedure.related_policies.split(',').map(p => p.trim());
+        // تقسيم النص إلى قائمة من الأسماء أو الأكواد
+        const policyIdentifiers = procedure.related_policies.split(',').map(p => p.trim()).filter(Boolean);
         const foundIds: string[] = [];
         
-        policyNames.forEach(policyName => {
-          // البحث عن السياسة بالاسم أو الكود
+        policyIdentifiers.forEach(identifier => {
+          // البحث عن السياسة بالاسم، الكود، أو الـ ID
           const foundPolicy = policyOptions.find(option => 
-            option.policy_name === policyName || 
-            option.id === policyName
+            option.policy_name === identifier || 
+            option.id === identifier ||
+            identifier.includes(option.id)
           );
           
           if (foundPolicy) {
             foundIds.push(foundPolicy.id);
-            console.log(`✅ Found policy: ${policyName} -> ID: ${foundPolicy.id}`);
+            console.log(`✅ [useProcedureForm] Found policy: ${identifier} -> ID: ${foundPolicy.id}`);
           } else {
-            console.log(`❌ Policy not found: ${policyName}`);
+            console.log(`❌ [useProcedureForm] Policy not found: ${identifier}`);
+            // إذا لم نجد السياسة، نبقي النص الأصلي
+            foundIds.push(identifier);
           }
         });
         
-        relatedPolicyIds = foundIds.join(',');
-        console.log("🎯 Final related_policies IDs:", relatedPolicyIds);
+        processedPolicies = foundIds.join(',');
+        console.log("🎯 [useProcedureForm] Final processed policies:", processedPolicies);
+      } else if (procedure.related_policies) {
+        // إذا لم تكن خيارات السياسات محملة بعد، نبقي النص الأصلي
+        processedPolicies = procedure.related_policies;
+        console.log("🔄 [useProcedureForm] Keeping original policies (options not loaded):", processedPolicies);
       }
 
-      setFormData({
+      const newFormData = {
+        id: procedure.id,
         procedure_name: procedure.procedure_name || '',
         procedure_code: procedure.procedure_code || '',
         procedure_description: procedure.procedure_description || '',
@@ -74,15 +85,34 @@ export const useProcedureForm = (procedure?: Procedure) => {
         business_rules: procedure.business_rules || '',
         execution_requirements: procedure.execution_requirements || '',
         related_services: procedure.related_services || '',
-        related_policies: relatedPolicyIds,
+        related_policies: processedPolicies,
         notes: procedure.notes || '',
+      };
+      
+      console.log("🎯 [useProcedureForm] Final form data:", newFormData);
+      setFormData(newFormData);
+    } else {
+      console.log("🔵 [useProcedureForm] No procedure prop, resetting form");
+      // إعادة تعيين النموذج للوضع الافتراضي
+      setFormData({
+        procedure_name: '',
+        procedure_code: '',
+        procedure_description: '',
+        procedure_type: '',
+        automation_level: '',
+        importance: '',
+        execution_duration: '',
+        procedure_inputs: '',
+        procedure_outputs: '',
+        execution_steps: '',
+        business_rules: '',
+        execution_requirements: '',
+        related_services: '',
+        related_policies: '',
+        notes: '',
       });
     }
   }, [procedure, policyOptions]);
-
-  useEffect(() => {
-    console.log("⚡ [ProcedureForm] current formData.related_policies:", formData.related_policies);
-  }, [formData.related_policies]);
 
   function getPolicyIds(value: string | undefined): string[] {
     if (!value || !value.trim()) return [];
@@ -114,10 +144,14 @@ export const useProcedureForm = (procedure?: Procedure) => {
     setLoading(true);
     
     try {
+      // إعداد البيانات للحفظ (بدون حقل id للإدراج الجديد)
+      const { id, ...dataToSave } = formData;
+      
       if (procedure?.id) {
+        console.log("🟢 [useProcedureForm] Updating procedure with data:", dataToSave);
         const { error } = await supabase
           .from('biz_procedures')
-          .update(formData)
+          .update(dataToSave)
           .eq('id', procedure.id);
 
         if (error) throw error;
@@ -127,9 +161,10 @@ export const useProcedureForm = (procedure?: Procedure) => {
           description: "تم تحديث الإجراء بنجاح",
         });
       } else {
+        console.log("🟢 [useProcedureForm] Creating new procedure with data:", dataToSave);
         const { error } = await supabase
           .from('biz_procedures')
-          .insert([formData]);
+          .insert([dataToSave]);
 
         if (error) throw error;
         
