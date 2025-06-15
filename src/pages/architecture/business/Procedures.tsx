@@ -105,6 +105,13 @@ const Procedures = () => {
     }
   }, [isModalOpen, selectedProcedure]);
 
+  // إضافة console log قبل تمرير البيانات للنموذج
+  React.useEffect(() => {
+    if (isModalOpen) {
+      console.log("🎯 [Procedures] About to render ProcedureForm with procedure:", selectedProcedure);
+    }
+  }, [isModalOpen, selectedProcedure]);
+
   return (
     <div className="max-w-7xl mx-auto py-8 px-2 md:px-8 animate-fade-in-up">
       <div className="flex flex-col md:flex-row md:justify-between items-center mb-8 gap-3">
@@ -177,8 +184,6 @@ const Procedures = () => {
               {selectedProcedure ? 'تعديل الإجراء' : 'إضافة إجراء جديد'}
             </ModalTitle>
           </ModalHeader>
-          {/* إضافة console log قبل تمرير البيانات للنموذج */}
-          {console.log("🎯 [Procedures] Rendering ProcedureForm with procedure:", selectedProcedure)}
           <ProcedureForm
             procedure={selectedProcedure || undefined}
             onSuccess={handleFormSuccess}
