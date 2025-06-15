@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,8 @@ import PaginationControls from '@/components/common/PaginationControls';
 import { useSearchAndFilter } from '@/hooks/useSearchAndFilter';
 import { usePagination } from '@/hooks/usePagination';
 import BranchForm from '@/components/forms/BranchForm';
+import BranchCardMobile from "@/components/business/BranchCardMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Branch {
   id: string;
@@ -42,6 +43,7 @@ const Branches = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchBranches();
@@ -212,76 +214,120 @@ const Branches = () => {
               totalResults={searchAndFilter.totalResults}
             />
           </div>
-
-          {pagination.paginatedData.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg font-saudi">
-                {searchAndFilter.isFiltered ? 'لا توجد نتائج مطابقة للبحث' : 'لا توجد فروع مسجلة'}
-              </p>
-              <p className="text-gray-400 font-saudi">
-                {searchAndFilter.isFiltered ? 'جرب تغيير معايير البحث' : 'قم بإضافة أول فرع لبدء الإدارة'}
-              </p>
-            </div>
-          ) : (
+          {/* Mobile view: بطاقات */}
+          {isMobile ? (
             <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="font-saudi">اسم الفرع</TableHead>
-                      <TableHead className="font-saudi">رمز الفرع</TableHead>
-                      <TableHead className="font-saudi">الموقع</TableHead>
-                      <TableHead className="font-saudi">الإجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pagination.paginatedData.map((branch) => (
-                      <TableRow key={branch.id} className="hover:bg-saudi-green-50/50">
-                        <TableCell className="font-medium font-saudi">{branch.branch_name}</TableCell>
-                        <TableCell className="font-saudi">{branch.branch_code || '-'}</TableCell>
-                        <TableCell className="font-saudi">{branch.branch_location || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2 space-x-reverse">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEdit(branch)}
-                              className="hover:bg-saudi-green-50 hover:border-saudi-green-300"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setBranchToDelete(branch);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              className="hover:bg-red-50 hover:border-red-300"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="p-4 border-t border-gray-100">
-                <PaginationControls
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  onPageChange={pagination.goToPage}
-                  hasNextPage={pagination.hasNextPage}
-                  hasPrevPage={pagination.hasPrevPage}
-                  startIndex={pagination.startIndex}
-                  endIndex={pagination.endIndex}
-                  totalItems={pagination.totalItems}
-                />
-              </div>
+              {pagination.paginatedData.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg font-saudi">
+                    {searchAndFilter.isFiltered ? 'لا توجد نتائج مطابقة للبحث' : 'لا توجد فروع مسجلة'}
+                  </p>
+                  <p className="text-gray-400 font-saudi">
+                    {searchAndFilter.isFiltered ? 'جرب تغيير معايير البحث' : 'قم بإضافة أول فرع لبدء الإدارة'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {pagination.paginatedData.map((branch) => (
+                    <BranchCardMobile
+                      key={branch.id}
+                      branch={branch}
+                      onEdit={handleEdit}
+                      onDelete={() => {
+                        setBranchToDelete(branch);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    />
+                  ))}
+                  <div className="p-4 border-t border-gray-100">
+                    <PaginationControls
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      onPageChange={pagination.goToPage}
+                      hasNextPage={pagination.hasNextPage}
+                      hasPrevPage={pagination.hasPrevPage}
+                      startIndex={pagination.startIndex}
+                      endIndex={pagination.endIndex}
+                      totalItems={pagination.totalItems}
+                    />
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            // Desktop: الجدول التقليدي
+            <>
+              {pagination.paginatedData.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg font-saudi">
+                    {searchAndFilter.isFiltered ? 'لا توجد نتائج مطابقة للبحث' : 'لا توجد فروع مسجلة'}
+                  </p>
+                  <p className="text-gray-400 font-saudi">
+                    {searchAndFilter.isFiltered ? 'جرب تغيير معايير البحث' : 'قم بإضافة أول فرع لبدء الإدارة'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-saudi">اسم الفرع</TableHead>
+                          <TableHead className="font-saudi">رمز الفرع</TableHead>
+                          <TableHead className="font-saudi">الموقع</TableHead>
+                          <TableHead className="font-saudi">الإجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pagination.paginatedData.map((branch) => (
+                          <TableRow key={branch.id} className="hover:bg-saudi-green-50/50">
+                            <TableCell className="font-medium font-saudi">{branch.branch_name}</TableCell>
+                            <TableCell className="font-saudi">{branch.branch_code || '-'}</TableCell>
+                            <TableCell className="font-saudi">{branch.branch_location || '-'}</TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2 space-x-reverse">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleEdit(branch)}
+                                  className="hover:bg-saudi-green-50 hover:border-saudi-green-300"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setBranchToDelete(branch);
+                                    setIsDeleteModalOpen(true);
+                                  }}
+                                  className="hover:bg-red-50 hover:border-red-300"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="p-4 border-t border-gray-100">
+                    <PaginationControls
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      onPageChange={pagination.goToPage}
+                      hasNextPage={pagination.hasNextPage}
+                      hasPrevPage={pagination.hasPrevPage}
+                      startIndex={pagination.startIndex}
+                      endIndex={pagination.endIndex}
+                      totalItems={pagination.totalItems}
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
         </CardContent>
