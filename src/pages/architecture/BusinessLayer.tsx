@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -12,68 +11,99 @@ import {
   UserCheck,
   Briefcase
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import LayerStatsCard from '@/components/layer/LayerStatsCard';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const businessComponents = [
+  {
+    title: 'الخدمات',
+    description: 'إدارة الخدمات المقدمة للمستفيدين',
+    icon: <Briefcase className="w-6 h-6" />,
+    path: '/architecture/business/services',
+    color: 'bg-blue-500',
+    stats: 'خدمة نشطة',
+    table: 'biz_services'
+  },
+  {
+    title: 'الإجراءات',
+    description: 'إدارة الإجراءات والعمليات التشغيلية',
+    icon: <ClipboardList className="w-6 h-6" />,
+    path: '/architecture/business/procedures',
+    color: 'bg-green-500',
+    stats: 'إجراء مسجل',
+    table: 'biz_procedures'
+  },
+  {
+    title: 'القدرات',
+    description: 'إدارة القدرات المؤسسية والتنظيمية',
+    icon: <Settings className="w-6 h-6" />,
+    path: '/architecture/business/capabilities',
+    color: 'bg-red-500',
+    stats: 'قدرة أساسية',
+    table: 'biz_capabilities'
+  },
+  {
+    title: 'السياسات',
+    description: 'إدارة السياسات والقوانين التنظيمية',
+    icon: <FileText className="w-6 h-6" />,
+    path: '/architecture/business/policies',
+    color: 'bg-purple-500',
+    stats: 'سياسة فعالة',
+    table: 'biz_policies'
+  },
+  {
+    title: 'النماذج',
+    description: 'إدارة النماذج المستخدمة في العمليات',
+    icon: <ClipboardList className="w-6 h-6" />,
+    path: '/architecture/business/forms',
+    color: 'bg-orange-500',
+    stats: 'نموذج متاح',
+    table: 'biz_forms'
+  },
+  {
+    title: 'الفروع',
+    description: 'إدارة الفروع والمواقع الجغرافية',
+    icon: <Building className="w-6 h-6" />,
+    path: '/architecture/business/branches',
+    color: 'bg-indigo-500',
+    stats: 'فرع نشط',
+    table: 'biz_branches'
+  },
+  {
+    title: 'ملاك الأعمال',
+    description: 'إدارة ملاك الأعمال والمسؤوليات',
+    icon: <UserCheck className="w-6 h-6" />,
+    path: '/architecture/business/business-owners',
+    color: 'bg-teal-500',
+    stats: 'مالك أعمال',
+    table: 'biz_business_owners'
+  }
+];
 
 const BusinessLayer = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<{ [key: string]: number | null }>({});
+  const [loading, setLoading] = useState(true);
 
-  const businessComponents = [
-    {
-      title: 'الخدمات',
-      description: 'إدارة الخدمات المقدمة للمستفيدين',
-      icon: Briefcase,
-      path: '/architecture/business/services',
-      color: 'bg-blue-500',
-      stats: 'خدمة نشطة'
-    },
-    {
-      title: 'الإجراءات',
-      description: 'إدارة الإجراءات والعمليات التشغيلية',
-      icon: ClipboardList,
-      path: '/architecture/business/procedures',
-      color: 'bg-green-500',
-      stats: 'إجراء مسجل'
-    },
-    {
-      title: 'القدرات',
-      description: 'إدارة القدرات المؤسسية والتنظيمية',
-      icon: Settings,
-      path: '/architecture/business/capabilities',
-      color: 'bg-red-500',
-      stats: 'قدرة أساسية'
-    },
-    {
-      title: 'السياسات',
-      description: 'إدارة السياسات والقوانين التنظيمية',
-      icon: FileText,
-      path: '/architecture/business/policies',
-      color: 'bg-purple-500',
-      stats: 'سياسة فعالة'
-    },
-    {
-      title: 'النماذج',
-      description: 'إدارة النماذج المستخدمة في العمليات',
-      icon: ClipboardList,
-      path: '/architecture/business/forms',
-      color: 'bg-orange-500',
-      stats: 'نموذج متاح'
-    },
-    {
-      title: 'الفروع',
-      description: 'إدارة الفروع والمواقع الجغرافية',
-      icon: Building,
-      path: '/architecture/business/branches',
-      color: 'bg-indigo-500',
-      stats: 'فرع نشط'
-    },
-    {
-      title: 'ملاك الأعمال',
-      description: 'إدارة ملاك الأعمال والمسؤوليات',
-      icon: UserCheck,
-      path: '/architecture/business/business-owners',
-      color: 'bg-teal-500',
-      stats: 'مالك أعمال'
+  useEffect(() => {
+    async function fetchCounts() {
+      setLoading(true);
+      const newCounts: { [key: string]: number | null } = {};
+      await Promise.all(
+        businessComponents.map(async (comp) => {
+          const { count } = await supabase
+            .from(comp.table as any)
+            .select("*", { count: "exact", head: true });
+          newCounts[comp.table] = count ?? 0;
+        })
+      );
+      setCounts(newCounts);
+      setLoading(false);
     }
-  ];
+    fetchCounts();
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -97,6 +127,25 @@ const BusinessLayer = () => {
         </div>
       </div>
 
+      {/* قسم إحصائيات الطبقة */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingSpinner size="sm" />
+          </div>
+        ) : (
+          businessComponents.map((comp) => (
+            <LayerStatsCard
+              key={comp.table}
+              icon={comp.icon}
+              label={comp.title}
+              count={counts[comp.table] ?? 0}
+              color={comp.color}
+            />
+          ))
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {businessComponents.map((component, index) => {
           const Icon = component.icon;
@@ -111,7 +160,7 @@ const BusinessLayer = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 space-x-reverse">
                     <div className={`p-3 rounded-xl ${component.color} text-white shadow-saudi group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="w-6 h-6" />
+                      {Icon}
                     </div>
                     <div>
                       <CardTitle className="text-xl font-saudi group-hover:text-saudi-green-700 transition-colors">
