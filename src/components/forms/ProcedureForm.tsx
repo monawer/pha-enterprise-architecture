@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,17 +57,39 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
   const { toast } = useToast();
   const { options: policyOptions, loading: loadingPolicies } = usePoliciesOptions();
 
-  // --- تعديل: راقب التحديث عند استدعاء النموذج أو تغيّر procedure
   useEffect(() => {
     if (procedure) {
       console.log("🟣 [ProcedureForm] useEffect procedure prop value:", procedure);
-      // تأكد أن related_policies إذا كانت عبارة عن كود سياسة أو نص غير متوافق تتحول إلى ''
-      let rp = procedure.related_policies;
-      // إذا كانت ليست سلسلة من المعرفات، نتجاهلها (تحقق whether بها ارقام أو يفصلها فاصلة )
-      if (rp && typeof rp === "string" && !rp.includes(",") && rp.length > 0 && isNaN(Number(rp))) {
-        // غالبًا غير متوافق (نص وليس id): تجاهل
-        rp = '';
+      
+      // معالجة related_policies - إذا كانت تحتوي على قيم نصية نبحث عن IDs المقابلة
+      let relatedPolicyIds = '';
+      if (procedure.related_policies && policyOptions.length > 0) {
+        console.log("🔍 Processing related_policies:", procedure.related_policies);
+        console.log("🔍 Available policy options:", policyOptions);
+        
+        // إذا كانت تحتوي على فاصلة، قم بتقسيمها
+        const policyNames = procedure.related_policies.split(',').map(p => p.trim());
+        const foundIds: string[] = [];
+        
+        policyNames.forEach(policyName => {
+          // البحث عن السياسة بالاسم أو الكود
+          const foundPolicy = policyOptions.find(option => 
+            option.policy_name === policyName || 
+            option.id === policyName
+          );
+          
+          if (foundPolicy) {
+            foundIds.push(foundPolicy.id);
+            console.log(`✅ Found policy: ${policyName} -> ID: ${foundPolicy.id}`);
+          } else {
+            console.log(`❌ Policy not found: ${policyName}`);
+          }
+        });
+        
+        relatedPolicyIds = foundIds.join(',');
+        console.log("🎯 Final related_policies IDs:", relatedPolicyIds);
       }
+
       setFormData({
         procedure_name: procedure.procedure_name || '',
         procedure_code: procedure.procedure_code || '',
@@ -81,25 +104,22 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
         business_rules: procedure.business_rules || '',
         execution_requirements: procedure.execution_requirements || '',
         related_services: procedure.related_services || '',
-        related_policies: rp || '',
+        related_policies: relatedPolicyIds,
         notes: procedure.notes || '',
       });
-      console.log("🚩 [ProcedureForm] Editing, related_policies after sanitize:", rp);
     }
-  }, [procedure]);
+  }, [procedure, policyOptions]);
 
-  // أيضاً راقب كل تغيّر للقيمة المخزنة حاليًا
   useEffect(() => {
     console.log("⚡ [ProcedureForm] current formData.related_policies:", formData.related_policies);
   }, [formData.related_policies]);
 
-  // مساعدين لتحويل القيمة من النص للقائمة والعكس (مع تحسين التعقيم)
   function getPolicyIds(value: string | undefined): string[] {
     if (!value || !value.trim()) return [];
     return value.split(',')
       .map(s => s.trim())
       .filter(Boolean)
-      .filter((v, i, arr) => arr.indexOf(v) === i); // يمنع تكرار IDs
+      .filter((v, i, arr) => arr.indexOf(v) === i);
   }
 
   function getPoliciesString(ids: string[]): string {
@@ -315,7 +335,6 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
           />
         </div>
 
-        {/* ------ السياسات المرتبطة (ديناميكي متعدد) ------ */}
         <div>
           <Label htmlFor="related_policies">السياسات المرتبطة</Label>
           <select
@@ -336,7 +355,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
           </select>
           <small className="text-gray-400 pr-1">يمكن اختيار أكثر من سياسة بالضغط على Ctrl / Cmd</small>
         </div>
-        {/* ... باقي النموذج ... */}
+
         <div className="md:col-span-2">
           <Label htmlFor="notes">ملاحظات</Label>
           <Textarea
