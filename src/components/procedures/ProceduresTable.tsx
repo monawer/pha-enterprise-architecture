@@ -88,7 +88,6 @@ const ProceduresTable: React.FC<ProceduresTableProps> = ({
       onDelete={onDelete}
       emptyMessage="لا توجد إجراءات متاحة"
       itemsPerPage={10}
-      className="rounded-lg border bg-white shadow-sm"
       rowClassName="transition hover:bg-orange-50 cursor-pointer"
     />
   );

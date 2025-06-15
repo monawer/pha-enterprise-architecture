@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -152,9 +151,11 @@ const Procedures = () => {
         onOpenChange={setIsDeleteModalOpen}
         onConfirm={confirmDelete}
         title="تأكيد الحذف"
-        description={procedureToDelete ? (
-          <>هل أنت متأكد من حذف الإجراء <span className="font-bold text-red-700">"{procedureToDelete.procedure_name}"</span>؟ لا يمكن التراجع عن هذا الإجراء.</>
-        ) : ''}
+        description={
+          procedureToDelete
+            ? `هل أنت متأكد من حذف الإجراء "${procedureToDelete.procedure_name}"؟ لا يمكن التراجع عن هذا الإجراء.`
+            : ''
+        }
         confirmText="نعم، حذف"
         cancelText="إلغاء"
         variant="destructive"
