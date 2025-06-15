@@ -1214,33 +1214,6 @@ export type Database = {
         }
         Relationships: []
       }
-      permissions: {
-        Row: {
-          code: string
-          created_at: string
-          description: string | null
-          id: string
-          module: string
-          name: string
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          module: string
-          name: string
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          module?: string
-          name?: string
-        }
-        Relationships: []
-      }
       ref_app_status: {
         Row: {
           code: string
@@ -1596,66 +1569,6 @@ export type Database = {
           id?: string
           name?: string
           type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      role_permissions: {
-        Row: {
-          created_at: string
-          id: string
-          permission_id: string
-          role_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          permission_id: string
-          role_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          permission_id?: string
-          role_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "role_permissions_permission_id_fkey"
-            columns: ["permission_id"]
-            isOneToOne: false
-            referencedRelation: "permissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "role_permissions_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      roles: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -2429,35 +2342,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ux_beneficiaries: {
         Row: {
           component_id: string | null
@@ -2671,29 +2555,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_permissions: {
-        Args: { user_uuid: string }
-        Returns: {
-          permission_code: string
-          permission_name: string
-          module: string
-        }[]
-      }
-      get_user_roles: {
-        Args: { user_uuid: string }
-        Returns: {
-          role_id: string
-          role_name: string
-        }[]
-      }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      user_has_permission: {
-        Args: { user_uuid: string; permission_code_param: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       automation_level: "manual" | "semi_automated" | "automated"

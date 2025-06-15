@@ -20,7 +20,6 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +29,6 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ user }: AppSidebarProps) {
-  const { hasPermission } = usePermissions(user);
   const location = useLocation();
   const { toast } = useToast();
 
@@ -62,43 +60,43 @@ export function AppSidebar({ user }: AppSidebarProps) {
       title: "طبقة الأعمال",
       icon: Building,
       path: "/architecture/business",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة التطبيقات", 
       icon: Monitor,
       path: "/architecture/applications",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة البيانات",
       icon: Database,
       path: "/architecture/data",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة التقنية",
       icon: Server,
       path: "/architecture/technology",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة الأمان",
       icon: Shield,
       path: "/architecture/security",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة تجربة المستخدم",
       icon: Eye,
       path: "/architecture/ux",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "الإعدادات",
       icon: Settings,
       path: "/admin/users",
-      show: hasPermission('users.view')
+      show: true
     }
   ];
 
