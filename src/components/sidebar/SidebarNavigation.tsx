@@ -17,7 +17,6 @@ import {
   UserCheck,
   Home
 } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import SidebarMenuItem from "./SidebarMenuItem";
 

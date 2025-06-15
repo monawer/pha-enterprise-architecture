@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -35,8 +34,6 @@ import Licenses from "./pages/architecture/technology/Licenses";
 import Systems from "./pages/architecture/technology/Systems";
 import SecurityDevices from "./pages/architecture/security/SecurityDevices";
 import Users from "./pages/admin/Users";
-import Roles from "./pages/admin/Roles";
-import Permissions from "./pages/admin/Permissions";
 import References from "./pages/admin/References";
 import MainLayout from "./components/layout/MainLayout";
 import NotFound from "./pages/NotFound";
@@ -201,16 +198,6 @@ const App: React.FC = () => (
           <Route path="/admin/users" element={
             <MainLayout>
               <Users />
-            </MainLayout>
-          } />
-          <Route path="/admin/roles" element={
-            <MainLayout>
-              <Roles />
-            </MainLayout>
-          } />
-          <Route path="/admin/permissions" element={
-            <MainLayout>
-              <Permissions />
             </MainLayout>
           } />
           <Route path="/admin/references" element={

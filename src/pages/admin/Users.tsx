@@ -1,14 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { usePermissions } from '@/hooks/usePermissions';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, Users as UsersIcon, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
 
@@ -24,7 +16,6 @@ const Users = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
-  const { hasPermission, loading: permissionsLoading } = usePermissions(user);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,23 +36,11 @@ const Users = () => {
   }, []);
 
   useEffect(() => {
-    if (!permissionsLoading && user) {
-      console.log('Checking permissions for Users page...');
-      if (!hasPermission('users.view')) {
-        console.log('User does not have users.view permission');
-        toast({
-          title: "غير مسموح",
-          description: "ليس لديك صلاحية لعرض هذه الصفحة",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
-
-      console.log('User has users.view permission, fetching users...');
+    if (user) {
       fetchUsers();
     }
-  }, [user, hasPermission, permissionsLoading, navigate, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const fetchUsers = async () => {
     try {
@@ -115,17 +94,6 @@ const Users = () => {
     (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (permissionsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 text-green-500 animate-spin mx-auto mb-4" />
-          <p className="text-green-700 text-lg">جاري تحميل الصلاحيات...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -161,15 +129,13 @@ const Users = () => {
           <UsersIcon className="w-8 h-8 text-green-600" />
           <h1 className="text-2xl font-bold text-gray-900">إدارة المستخدمين</h1>
         </div>
-        {hasPermission('users.create') && (
-          <Button 
-            onClick={() => navigate('/admin/users/new')}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Plus className="w-4 h-4 ml-2" />
-            إضافة مستخدم جديد
-          </Button>
-        )}
+        <Button 
+          onClick={() => navigate('/admin/users/new')}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 ml-2" />
+          إضافة مستخدم جديد
+        </Button>
       </div>
 
       <Card>
@@ -217,24 +183,20 @@ const Users = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2 space-x-reverse">
-                        {hasPermission('users.edit') && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/admin/users/${user.id}`)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {hasPermission('users.delete') && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => console.log('Delete user:', user.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/admin/users/${user.id}`)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => console.log('Delete user:', user.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

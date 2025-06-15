@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Building, 
@@ -11,14 +10,12 @@ import {
   BarChart3
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { usePermissions } from "@/hooks/usePermissions";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
-  const { hasPermission } = usePermissions(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,7 +32,7 @@ const Dashboard = () => {
       icon: Building,
       path: "/architecture/business",
       color: "from-blue-500 to-blue-600",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة التطبيقات",
@@ -43,7 +40,7 @@ const Dashboard = () => {
       icon: Monitor,
       path: "/architecture/applications",
       color: "from-green-500 to-green-600",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة البيانات",
@@ -51,7 +48,7 @@ const Dashboard = () => {
       icon: Database,
       path: "/architecture/data",
       color: "from-purple-500 to-purple-600",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة التقنية",
@@ -59,7 +56,7 @@ const Dashboard = () => {
       icon: Server,
       path: "/architecture/technology",
       color: "from-orange-500 to-orange-600",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة الأمان",
@@ -67,7 +64,7 @@ const Dashboard = () => {
       icon: Shield,
       path: "/architecture/security",
       color: "from-red-500 to-red-600",
-      show: hasPermission('architecture.view')
+      show: true
     },
     {
       title: "طبقة تجربة المستخدم",
@@ -75,7 +72,7 @@ const Dashboard = () => {
       icon: Eye,
       path: "/architecture/ux",
       color: "from-pink-500 to-pink-600",
-      show: hasPermission('architecture.view')
+      show: true
     }
   ];
 
@@ -86,14 +83,14 @@ const Dashboard = () => {
     //   description: "إضافة وتعديل المستخدمين",
     //   icon: Users,
     //   path: "/admin/users",
-    //   show: hasPermission('users.view')
+    //   show: true
     // },
     {
       title: "التقارير والإحصائيات",
       description: "تقارير النظام والبيانات",
       icon: BarChart3,
       path: "/reports",
-      show: hasPermission('reports.view')
+      show: true
     }
   ];
 

@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { usePermissions } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Database, Settings, Plus, Edit, Trash2 } from 'lucide-react';
@@ -21,7 +19,6 @@ const References = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
-  const { hasPermission, loading: permissionsLoading } = usePermissions(user);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,18 +28,6 @@ const References = () => {
     };
     getUser();
   }, []);
-
-  useEffect(() => {
-    if (!permissionsLoading && user && !hasPermission('references.view')) {
-      toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لعرض هذه الصفحة",
-        variant: "destructive",
-      });
-      navigate('/');
-      return;
-    }
-  }, [user, hasPermission, permissionsLoading, navigate, toast]);
 
   const referenceTables: ReferenceTable[] = [
     {
@@ -107,24 +92,13 @@ const References = () => {
     }
   ];
 
-  if (permissionsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-green-700 text-lg">جاري التحميل...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (selectedTable) {
     const table = referenceTables.find(t => t.tableName === selectedTable);
     return (
       <ReferenceTableManager
         table={table!}
         onBack={() => setSelectedTable(null)}
-        canEdit={hasPermission('references.edit')}
+        canEdit={true}
       />
     );
   }
