@@ -22,6 +22,8 @@ import {
 import { HardDrive, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import VirtualServerForm from '@/components/forms/VirtualServerForm';
+import VirtualServerCardMobile from '@/components/technology/VirtualServerCardMobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 interface VirtualServer {
   id: string;
@@ -46,6 +48,8 @@ const VirtualServers = () => {
   const [selectedServer, setSelectedServer] = useState<VirtualServer | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerContent, setDrawerContent] = useState<React.ReactNode>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -125,6 +129,11 @@ const VirtualServers = () => {
     handleModalClose();
   };
 
+  const openDrawer = (node: React.ReactNode) => {
+    setDrawerContent(node);
+    setIsDrawerOpen(true);
+  };
+
   const filteredServers = servers.filter(server =>
     server.host_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (server.os_type && server.os_type.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -173,56 +182,89 @@ const VirtualServers = () => {
           {isMobile ? (
             <div className="grid grid-cols-1 gap-4">
               {filteredServers.map((server) => (
-                <div key={server.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-green-800">{server.host_name}</span>
-                    <span className="text-xs text-gray-500">{server.os_type || '-'}</span>
-                  </div>
-                  {server.os_version && (
-                    <span className="text-xs text-gray-500">الإصدار: {server.os_version}</span>
-                  )}
-                  {server.environment && (
-                    <span className="text-xs text-gray-600">البيئة: {server.environment}</span>
-                  )}
-                  {server.virtual_cpu && (
-                    <span className="text-xs text-gray-600">CPU: {server.virtual_cpu}</span>
-                  )}
-                  {server.virtual_ram && (
-                    <span className="text-xs text-gray-600">RAM: {server.virtual_ram}</span>
-                  )}
-                  {server.virtual_disk && (
-                    <span className="text-xs text-gray-600">القرص: {server.virtual_disk}</span>
-                  )}
-                  {server.status && (
-                    <span className="text-xs text-gray-600">الحالة: {server.status}</span>
-                  )}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleEdit(server)}
-                    >
-                      <Edit className="w-4 h-4" />
-                      <span className="ml-1">تعديل</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleDelete(server)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="ml-1">حذف</span>
-                    </Button>
-                  </div>
-                </div>
+                <VirtualServerCardMobile
+                  key={server.id}
+                  server={server}
+                  onEdit={() =>
+                    openDrawer(
+                      <>
+                        <DrawerHeader>
+                          <DrawerTitle>تعديل الخادم الافتراضي</DrawerTitle>
+                        </DrawerHeader>
+                        <VirtualServerForm
+                          server={server}
+                          onSuccess={() => {
+                            setIsDrawerOpen(false);
+                            handleFormSuccess();
+                          }}
+                          onCancel={() => setIsDrawerOpen(false)}
+                        />
+                      </>
+                    )
+                  }
+                  onDelete={() =>
+                    openDrawer(
+                      <>
+                        <DrawerHeader>
+                          <DrawerTitle>تأكيد الحذف</DrawerTitle>
+                        </DrawerHeader>
+                        <div className="py-4">
+                          <p className="text-gray-600">
+                            هل أنت متأكد من حذف الخادم الافتراضي "{server.host_name}"؟ هذا الإجراء لا يمكن التراجع عنه.
+                          </p>
+                        </div>
+                        <div className="flex justify-end space-x-2 space-x-reverse">
+                          <Button variant="outline" onClick={() => setIsDrawerOpen(false)}>
+                            إلغاء
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => {
+                              setIsDrawerOpen(false);
+                              handleDelete(server);
+                            }}
+                          >
+                            حذف
+                          </Button>
+                        </div>
+                      </>
+                    )
+                  }
+                />
               ))}
+              {/* إضافة خادم افتراضي جديد للجوال */}
+              <Button
+                className="w-full my-2"
+                onClick={() =>
+                  openDrawer(
+                    <>
+                      <DrawerHeader>
+                        <DrawerTitle>إضافة خادم افتراضي جديد</DrawerTitle>
+                      </DrawerHeader>
+                      <VirtualServerForm
+                        server={undefined}
+                        onSuccess={() => {
+                          setIsDrawerOpen(false);
+                          handleFormSuccess();
+                        }}
+                        onCancel={() => setIsDrawerOpen(false)}
+                      />
+                    </>
+                  )
+                }
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة خادم افتراضي جديد
+              </Button>
               {filteredServers.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   لا توجد خوادم افتراضية متاحة
                 </div>
               )}
+              {/* Drawer للجوال */}
+              <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                <DrawerContent>{drawerContent}</DrawerContent>
+              </Drawer>
             </div>
           ) : (
             <div className="overflow-x-auto">

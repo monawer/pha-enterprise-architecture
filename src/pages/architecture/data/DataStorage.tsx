@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { HardDrive, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import DataStorageForm from '@/components/forms/DataStorageForm';
+import DataStorageCardMobile from '@/components/data/DataStorageCardMobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 interface DataStorage {
   id: string;
@@ -129,6 +131,15 @@ const DataStorage = () => {
     );
   }
 
+  // متغيرات خاصة لدروار الجوال
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerContent, setDrawerContent] = useState<React.ReactNode>(null);
+
+  const openDrawer = (node: React.ReactNode) => {
+    setDrawerContent(node);
+    setIsDrawerOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -181,50 +192,118 @@ const DataStorage = () => {
           {isMobile ? (
             <div className="grid grid-cols-1 gap-4">
               {filteredStorages.map((storage) => (
-                <div key={storage.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-green-800">{storage.name}</span>
-                    <span className="text-xs text-gray-500">{storage.code || '-'}</span>
-                  </div>
-                  {storage.type && (
-                    <span className="text-xs text-gray-600">النوع: {storage.type}</span>
-                  )}
-                  {storage.structure && (
-                    <span className="text-xs text-gray-600">الهيكل: {storage.structure}</span>
-                  )}
-                  {storage.description && (
-                    <div className="text-xs text-gray-500 truncate">{storage.description}</div>
-                  )}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleEdit(storage)}
-                    >
-                      <Edit className="w-4 h-4" />
-                      <span className="ml-1">تعديل</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        setStorageToDelete(storage);
-                        setIsDeleteModalOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="ml-1">حذف</span>
-                    </Button>
-                  </div>
-                </div>
+                <DataStorageCardMobile
+                  key={storage.id}
+                  storage={storage}
+                  onEdit={() =>
+                    openDrawer(
+                      <>
+                        <DrawerHeader>
+                          <DrawerTitle>تعديل مخزن البيانات</DrawerTitle>
+                        </DrawerHeader>
+                        <DataStorageForm
+                          storage={storage}
+                          onSuccess={() => {
+                            setIsDrawerOpen(false);
+                            handleFormSuccess();
+                          }}
+                          onCancel={() => setIsDrawerOpen(false)}
+                        />
+                      </>
+                    )
+                  }
+                  onDelete={() =>
+                    openDrawer(
+                      <>
+                        <DrawerHeader>
+                          <DrawerTitle>تأكيد الحذف</DrawerTitle>
+                        </DrawerHeader>
+                        <div className="py-4">
+                          <p className="text-gray-600">
+                            هل أنت متأكد من حذف مخزن البيانات "{storage.name}"؟ هذا الإجراء لا يمكن التراجع عنه.
+                          </p>
+                        </div>
+                        <div className="flex justify-end space-x-2 space-x-reverse">
+                          <Button variant="outline" onClick={() => setIsDrawerOpen(false)}>
+                            إلغاء
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => {
+                              setStorageToDelete(storage);
+                              setIsDrawerOpen(false);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            حذف
+                          </Button>
+                        </div>
+                      </>
+                    )
+                  }
+                />
               ))}
+              {/* إضافة مخزن بيانات جديد للجوال */}
+              <Button
+                className="w-full my-2"
+                onClick={() =>
+                  openDrawer(
+                    <>
+                      <DrawerHeader>
+                        <DrawerTitle>إضافة مخزن بيانات جديد</DrawerTitle>
+                      </DrawerHeader>
+                      <DataStorageForm
+                        storage={null}
+                        onSuccess={() => {
+                          setIsDrawerOpen(false);
+                          handleFormSuccess();
+                        }}
+                        onCancel={() => setIsDrawerOpen(false)}
+                      />
+                    </>
+                  )
+                }
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة مخزن بيانات جديد
+              </Button>
               {filteredStorages.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   لا توجد مخازن بيانات متاحة
                 </div>
               )}
+              {/* Drawer للجوال */}
+              <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                <DrawerContent>{drawerContent}</DrawerContent>
+              </Drawer>
+              {/* Modal للحذف الاحتياطي لسطح المكتب */}
+              <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                <ModalContent className="max-w-md">
+                  <ModalHeader>
+                    <ModalTitle>تأكيد الحذف</ModalTitle>
+                  </ModalHeader>
+                  <div className="py-4">
+                    <p className="text-gray-600">
+                      هل أنت متأكد من حذف مخزن البيانات "{storageToDelete?.name}"؟
+                      هذا الإجراء لا يمكن التراجع عنه.
+                    </p>
+                  </div>
+                  <div className="flex justify-end space-x-2 space-x-reverse">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDeleteModalOpen(false)}
+                    >
+                      إلغاء
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDelete}
+                    >
+                      حذف
+                    </Button>
+                  </div>
+                </ModalContent>
+              </Modal>
             </div>
           ) : (
             <>
@@ -295,33 +374,7 @@ const DataStorage = () => {
       </Card>
 
       {/* Delete Confirmation Modal */}
-      <Modal open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <ModalContent className="max-w-md">
-          <ModalHeader>
-            <ModalTitle>تأكيد الحذف</ModalTitle>
-          </ModalHeader>
-          <div className="py-4">
-            <p className="text-gray-600">
-              هل أنت متأكد من حذف مخزن البيانات "{storageToDelete?.name}"؟
-              هذا الإجراء لا يمكن التراجع عنه.
-            </p>
-          </div>
-          <div className="flex justify-end space-x-2 space-x-reverse">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-            >
-              إلغاء
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-            >
-              حذف
-            </Button>
-          </div>
-        </ModalContent>
-      </Modal>
+      {/* هذه المودال تظهر فقط إذا استخدم المستخدم حذف من خارج الدروار */}
     </div>
   );
 };
