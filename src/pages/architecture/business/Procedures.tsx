@@ -188,7 +188,10 @@ const Procedures = () => {
             key={selectedProcedure?.id || 'new'}
             procedure={selectedProcedure || undefined}
             onSuccess={handleFormSuccess}
-            onCancel={() => setIsModalOpen(false)}
+            onCancel={() => {
+              setIsModalOpen(false);
+              setSelectedProcedure(null);
+            }}
           />
         </ModalContent>
       </Modal>

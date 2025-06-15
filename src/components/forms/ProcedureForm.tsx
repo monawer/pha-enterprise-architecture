@@ -23,6 +23,10 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
     } else {
       console.log("❌ [ProcedureForm] No procedure data received (new form)");
     }
+
+    return () => {
+      console.log("🔴 [ProcedureForm] UNMOUNTING. Procedure ID was:", procedure?.id);
+    };
   }, [procedure]);
   
   const {

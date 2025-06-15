@@ -90,22 +90,10 @@ export const useProcedureFormData = (
   const [formData, setFormData] = useState<Procedure>(getInitialFormData);
 
   useEffect(() => {
-    console.log("🔵 [useProcedureFormData] useEffect triggered");
-    console.log("🔵 [useProcedureFormData] procedure prop:", procedure);
-    console.log("🔵 [useProcedureFormData] policyOptions length:", policyOptions.length);
+    console.log(`🔵 [useProcedureFormData] useEffect - START. Procedure ID: ${procedure?.id}`);
 
     if (procedure) {
-      console.log("🔵 [useProcedureFormData] Setting form data from procedure");
-      console.log("📋 [useProcedureFormData] Original procedure data:", {
-        id: procedure.id,
-        procedure_name: procedure.procedure_name,
-        procedure_code: procedure.procedure_code,
-        procedure_description: procedure.procedure_description,
-        procedure_type: procedure.procedure_type,
-        automation_level: procedure.automation_level,
-        importance: procedure.importance
-      });
-
+      console.log("🔵 [useProcedureFormData] useEffect - Procedure found. Processing...");
       const processedRelatedPolicies = processPolicies(
         procedure.related_policies ?? '',
         policyOptions
@@ -116,20 +104,17 @@ export const useProcedureFormData = (
         related_policies: processedRelatedPolicies 
       });
       
-      console.log("🎯 [useProcedureFormData] Final sanitized form data:", sanitized);
-      console.log("📝 [useProcedureFormData] Setting formData state to:", {
-        procedure_name: sanitized.procedure_name,
-        procedure_code: sanitized.procedure_code,
-        procedure_description: sanitized.procedure_description
-      });
+      console.log("🎯 [useProcedureFormData] useEffect - Final sanitized form data:", sanitized);
+      console.log("📝 [useProcedureFormData] useEffect - Setting formData state.");
       
       setFormData(sanitized);
     } else {
-      console.log("🔵 [useProcedureFormData] No procedure prop, resetting form");
+      console.log("🔵 [useProcedureFormData] useEffect - No procedure found. Resetting form.");
       const emptyData = getInitialFormData();
-      console.log("📝 [useProcedureFormData] Setting formData to empty:", emptyData);
+      console.log("📝 [useProcedureFormData] useEffect - Setting formData to empty.");
       setFormData(emptyData);
     }
+    console.log(`🔵 [useProcedureFormData] useEffect - END. Procedure ID: ${procedure?.id}`);
   }, [procedure, policyOptions]);
 
   // إضافة console log عند تغيير formData
