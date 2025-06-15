@@ -1250,6 +1250,21 @@ export type Database = {
         }
         Relationships: []
       }
+      ref_automation_levels: {
+        Row: {
+          code: string
+          name: string
+        }
+        Insert: {
+          code: string
+          name: string
+        }
+        Update: {
+          code?: string
+          name?: string
+        }
+        Relationships: []
+      }
       ref_channel_types: {
         Row: {
           code: string
