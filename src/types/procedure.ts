@@ -16,6 +16,7 @@ export interface Procedure {
   related_services?: string;
   related_policies?: string;
   notes?: string;
+  created_at?: string;
 }
 
 export interface ProcedureFormProps {

@@ -23,29 +23,7 @@ import { FileText, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ProcedureForm from '@/components/forms/ProcedureForm';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-// تحديث نوع البيانات ليشمل كل الحقول المستخدمة بنموذج الاجراء
-interface Procedure {
-  id: string;
-  procedure_name: string;
-  procedure_code?: string;
-  procedure_description?: string;
-  procedure_type?: string;
-  automation_level?: string;
-  importance?: string;
-  execution_duration?: string;
-  execution_steps?: string;
-  business_rules?: string;
-  execution_requirements?: string;
-  procedure_inputs?: string;
-  procedure_outputs?: string;
-  related_services?: string;
-  related_policies?: string;
-  notes?: string;
-  // الحقول المفيدة لدعم النموذج مستقبلًا
-  [key: string]: any;
-  created_at: string;
-}
+import { Procedure } from '@/types/procedure';
 
 const Procedures = () => {
   const [procedures, setProcedures] = useState<Procedure[]>([]);
@@ -91,7 +69,7 @@ const Procedures = () => {
     console.log("🟡 [Procedures] procedure.related_policies:", procedure.related_policies);
     
     // تأكد من أن الكائن كامل قبل تمريره
-    const completeData = {
+    const completeData: Procedure = {
       id: procedure.id,
       procedure_name: procedure.procedure_name || '',
       procedure_code: procedure.procedure_code || '',
@@ -107,7 +85,8 @@ const Procedures = () => {
       execution_requirements: procedure.execution_requirements || '',
       related_services: procedure.related_services || '',
       related_policies: procedure.related_policies || '',
-      notes: procedure.notes || ''
+      notes: procedure.notes || '',
+      created_at: procedure.created_at
     };
     
     console.log("🟡 [Procedures] completeData being sent:", completeData);
