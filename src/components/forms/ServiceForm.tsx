@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
+import { useReferenceOptions } from '@/hooks/useReferenceOptions';
 
 interface Service {
   id?: string;
@@ -104,6 +104,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSuccess, onCancel 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const { toast } = useToast();
+
+  // جلب أنواع الخدمات من جدول المرجع
+  const { options: serviceTypeOptions } = useReferenceOptions('ref_service_types');
 
   useEffect(() => {
     if (service) {
@@ -299,10 +302,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSuccess, onCancel 
                   <SelectValue placeholder="اختر نوع الخدمة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="إلكترونية">إلكترونية</SelectItem>
-                  <SelectItem value="ورقية">ورقية</SelectItem>
-                  <SelectItem value="مختلطة">مختلطة</SelectItem>
-                  <SelectItem value="هاتفية">هاتفية</SelectItem>
+                  {serviceTypeOptions.map(option =>
+                    <SelectItem key={option.code} value={option.name}>{option.name}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

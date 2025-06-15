@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useReferenceOptions } from '@/hooks/useReferenceOptions';
 
 interface Policy {
   id?: string;
@@ -54,6 +56,9 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // جلب أنواع السياسات من جدول المرجع
+  const { options: policyTypeOptions } = useReferenceOptions('ref_policy_types');
+
   useEffect(() => {
     if (policy) {
       setFormData(policy);
@@ -62,7 +67,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.policy_name?.trim()) {
       toast({
         title: "خطأ في التحقق",
@@ -71,35 +75,22 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       });
       return;
     }
-
     setLoading(true);
-    
     try {
       if (policy?.id) {
         const { error } = await supabase
           .from('biz_policies')
           .update(formData)
           .eq('id', policy.id);
-
         if (error) throw error;
-        
-        toast({
-          title: "تم بنجاح",
-          description: "تم تحديث السياسة بنجاح",
-        });
+        toast({ title: "تم بنجاح", description: "تم تحديث السياسة بنجاح" });
       } else {
         const { error } = await supabase
           .from('biz_policies')
           .insert([formData]);
-
         if (error) throw error;
-        
-        toast({
-          title: "تم بنجاح",
-          description: "تم إضافة السياسة بنجاح",
-        });
+        toast({ title: "تم بنجاح", description: "تم إضافة السياسة بنجاح" });
       }
-      
       onSuccess();
     } catch (error: any) {
       console.error('Error saving policy:', error);
@@ -126,7 +117,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             required
           />
         </div>
-
         <div>
           <Label htmlFor="policy_code">رمز السياسة</Label>
           <Input
@@ -136,17 +126,22 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             placeholder="أدخل رمز السياسة"
           />
         </div>
-
         <div>
           <Label htmlFor="policy_type">نوع السياسة</Label>
-          <Input
-            id="policy_type"
+          <Select
             value={formData.policy_type || ''}
-            onChange={(e) => setFormData({ ...formData, policy_type: e.target.value })}
-            placeholder="أدخل نوع السياسة"
-          />
+            onValueChange={(value) => setFormData({ ...formData, policy_type: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="اختر نوع السياسة" />
+            </SelectTrigger>
+            <SelectContent>
+              {policyTypeOptions.map(option =>
+                <SelectItem key={option.code} value={option.name}>{option.name}</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
         </div>
-
         <div>
           <Label htmlFor="policy_type_ref">مرجع نوع السياسة</Label>
           <Input
@@ -156,7 +151,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             placeholder="أدخل مرجع نوع السياسة"
           />
         </div>
-
         <div>
           <Label htmlFor="owning_department">الجهة المسؤولة</Label>
           <Input
@@ -166,7 +160,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             placeholder="أدخل الجهة المسؤولة"
           />
         </div>
-
         <div>
           <Label htmlFor="owning_department_ref">مرجع الجهة المسؤولة</Label>
           <Input
@@ -176,7 +169,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             placeholder="أدخل مرجع الجهة المسؤولة"
           />
         </div>
-
         <div>
           <Label htmlFor="owning_sector">القطاع المالك</Label>
           <Input
@@ -186,7 +178,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             placeholder="أدخل القطاع المالك"
           />
         </div>
-
         <div>
           <Label htmlFor="policy_status">حالة السياسة</Label>
           <Input
@@ -196,7 +187,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             placeholder="أدخل حالة السياسة"
           />
         </div>
-
         <div>
           <Label htmlFor="activation_date">تاريخ التفعيل</Label>
           <Input
@@ -206,7 +196,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             onChange={(e) => setFormData({ ...formData, activation_date: e.target.value })}
           />
         </div>
-
         <div>
           <Label htmlFor="component_id">معرف المكون</Label>
           <Input
@@ -217,7 +206,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
           />
         </div>
       </div>
-
       <div className="space-y-4">
         <div>
           <Label htmlFor="policy_description">وصف السياسة</Label>
@@ -229,7 +217,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             rows={4}
           />
         </div>
-
         <div>
           <Label htmlFor="related_services">الخدمات المرتبطة</Label>
           <Textarea
@@ -240,7 +227,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             rows={3}
           />
         </div>
-
         <div>
           <Label htmlFor="related_procedures">الإجراءات المرتبطة</Label>
           <Textarea
@@ -252,7 +238,6 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
           />
         </div>
       </div>
-
       <div className="flex justify-end space-x-2 space-x-reverse">
         <Button
           type="button"
