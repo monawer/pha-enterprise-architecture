@@ -1,4 +1,3 @@
-
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import {
   Sidebar,
@@ -103,8 +102,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
--    <Sidebar>
-+    <Sidebar side="right">
+    <Sidebar side="right">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center justify-center mb-4 p-4">
           <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-white shadow-saudi p-2">
