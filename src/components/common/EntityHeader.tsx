@@ -1,37 +1,43 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 interface EntityHeaderProps {
+  icon: React.ReactNode;
   title: string;
   description: string;
-  icon: React.ReactNode;
   onAdd: () => void;
-  addButtonText?: string;
+  addButtonText: string;
+  addButtonIcon?: React.ReactNode;
 }
 
 const EntityHeader: React.FC<EntityHeaderProps> = ({
+  icon,
   title,
   description,
-  icon,
   onAdd,
-  addButtonText = 'إضافة جديد'
+  addButtonText,
+  addButtonIcon
 }) => {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3 space-x-reverse">
-        {icon}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          <p className="text-gray-600">{description}</p>
+    <Card className="animate-fade-in">
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center space-x-3 space-x-reverse">
+            {icon}
+            <div>
+              <CardTitle className="text-xl">{title}</CardTitle>
+              <p className="text-gray-600 mt-1">{description}</p>
+            </div>
+          </div>
+          <Button onClick={onAdd} className="hover-scale">
+            {addButtonIcon}
+            <span className="mr-2">{addButtonText}</span>
+          </Button>
         </div>
-      </div>
-      <Button onClick={onAdd} className="animate-scale-in">
-        <Plus className="w-4 h-4 ml-2" />
-        {addButtonText}
-      </Button>
-    </div>
+      </CardHeader>
+    </Card>
   );
 };
 

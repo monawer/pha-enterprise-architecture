@@ -7,6 +7,7 @@ import { Procedure } from '@/types/procedure';
 
 export const useProcedureForm = (procedure?: Procedure) => {
   const [formData, setFormData] = useState<Procedure>({
+    id: '', // Add default id for new procedures
     procedure_name: '',
     procedure_code: '',
     procedure_description: '',
@@ -70,7 +71,7 @@ export const useProcedureForm = (procedure?: Procedure) => {
         console.log("🔄 [useProcedureForm] Keeping original policies (options not loaded):", processedPolicies);
       }
 
-      const newFormData = {
+      const newFormData: Procedure = {
         id: procedure.id,
         procedure_name: procedure.procedure_name || '',
         procedure_code: procedure.procedure_code || '',
@@ -95,6 +96,7 @@ export const useProcedureForm = (procedure?: Procedure) => {
       console.log("🔵 [useProcedureForm] No procedure prop, resetting form");
       // إعادة تعيين النموذج للوضع الافتراضي
       setFormData({
+        id: '', // Set empty id for new procedures
         procedure_name: '',
         procedure_code: '',
         procedure_description: '',

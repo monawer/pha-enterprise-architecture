@@ -1,185 +1,139 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Modal, ModalContent, ModalHeader, ModalTitle } from '@/components/ui/modal';
-import { Network } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useModal } from '@/hooks/useModal';
-import { useNetworkDevices } from '@/hooks/useNetworkDevices';
-import EntityHeader from '@/components/common/EntityHeader';
-import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
-import NetworkDevicesTable from '@/components/technology/NetworkDevicesTable';
-import EntityCardList from '@/components/common/EntityCardList';
-import NetworkDeviceCardMobile from '@/components/technology/NetworkDeviceCardMobile';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
+import { Plus, Router } from 'lucide-react';
 import NetworkDeviceForm from '@/components/forms/NetworkDeviceForm';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-
-interface NetworkDevice {
-  id: string;
-  host_name: string;
-  manufacturer?: string;
-  model?: string;
-  type?: string;
-  function?: string;
-  network_segment?: string;
-  device_status?: string;
-  firmware_version?: string;
-  vendor_support_status?: string;
-  initial_cost?: number;
-  operational_cost?: number;
-  created_at: string;
-}
+import { useIsMobile } from '@/hooks/use-mobile';
+import { NetworkDevice } from '@/types/network-device';
+import { useNetworkDevices } from '@/hooks/useNetworkDevices';
+import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
+import NetworkDevicesTable from '@/components/network-devices/NetworkDevicesTable';
+import NetworkDevicesCardView from '@/components/network-devices/NetworkDevicesCardView';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
+import EntityHeader from '@/components/common/EntityHeader';
 
 const NetworkDevices = () => {
-  const {
-    devices,
-    loading,
-    searchTerm,
-    setSearchTerm,
-    refetch,
-    handleDelete
-  } = useNetworkDevices();
-
-  const {
-    isOpen: isModalOpen,
-    selectedItem: selectedDevice,
-    isEditing,
-    openModal,
-    closeModal
-  } = useModal<NetworkDevice>();
-
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [drawerContent, setDrawerContent] = React.useState<React.ReactNode>(null);
+  const [selectedDevice, setSelectedDevice] = useState<NetworkDevice | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState<NetworkDevice | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  const { networkDevices, loading, fetchNetworkDevices, deleteNetworkDevice } = useNetworkDevices();
+
+  const handleEdit = (device: NetworkDevice) => {
+    setSelectedDevice(device);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedDevice(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (device: NetworkDevice) => {
+    setDeviceToDelete(device);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deviceToDelete?.id) return;
+    await deleteNetworkDevice(deviceToDelete.id);
+    setIsDeleteModalOpen(false);
+    setDeviceToDelete(null);
+  };
+
   const handleFormSuccess = () => {
-    refetch();
-    closeModal();
+    setIsModalOpen(false);
+    setSelectedDevice(null);
+    fetchNetworkDevices();
   };
 
-  const openDrawer = (content: React.ReactNode) => {
-    setDrawerContent(content);
-    setIsDrawerOpen(true);
-  };
-
-  const renderMobileCard = (device: NetworkDevice, onEdit: (device: NetworkDevice) => void, onDelete: (device: NetworkDevice) => void) => (
-    <NetworkDeviceCardMobile
-      device={device}
-      onEdit={() =>
-        openDrawer(
-          <>
-            <DrawerHeader>
-              <DrawerTitle>تعديل جهاز الشبكة</DrawerTitle>
-            </DrawerHeader>
-            <NetworkDeviceForm
-              device={device}
-              onSuccess={() => {
-                setIsDrawerOpen(false);
-                handleFormSuccess();
-              }}
-              onCancel={() => setIsDrawerOpen(false)}
-            />
-          </>
-        )
-      }
-      onDelete={() => onDelete(device)}
-    />
+  const filteredDevices = networkDevices.filter(device =>
+    device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (device.ip_address && device.ip_address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (device.model && device.model.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
     <div className="space-y-6">
       <EntityHeader
-        title="أجهزة الشبكة"
-        description="عرض وإدارة أجهزة الشبكة"
-        icon={<Network className="w-8 h-8 text-purple-500" />}
-        onAdd={() => openModal()}
-        addButtonText="إضافة جهاز شبكة جديد"
+        icon={<Router className="w-6 h-6" />}
+        title="إدارة الأجهزة الشبكية"
+        description="عرض وإدارة الأجهزة المتصلة بالشبكة"
+        onAdd={handleAdd}
+        addButtonText="إضافة جهاز جديد"
+        addButtonIcon={<Plus className="w-4 h-4" />}
       />
 
       <SearchAndFilterCard
-        title="قائمة أجهزة الشبكة"
-        count={devices.length}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        placeholder="البحث في أجهزة الشبكة..."
+        placeholder="البحث في الأجهزة الشبكية..."
+        totalCount={filteredDevices.length}
+        entityName="جهاز شبكي"
       />
 
       <Card>
+        <CardHeader>
+          <CardTitle>قائمة الأجهزة الشبكية ({filteredDevices.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {isMobile ? (
-            <>
-              <EntityCardList
-                data={devices}
-                loading={loading}
-                onEdit={(device) =>
-                  openDrawer(
-                    <>
-                      <DrawerHeader>
-                        <DrawerTitle>تعديل جهاز الشبكة</DrawerTitle>
-                      </DrawerHeader>
-                      <NetworkDeviceForm
-                        device={device}
-                        onSuccess={() => {
-                          setIsDrawerOpen(false);
-                          handleFormSuccess();
-                        }}
-                        onCancel={() => setIsDrawerOpen(false)}
-                      />
-                    </>
-                  )
-                }
-                onDelete={handleDelete}
-                onAdd={() =>
-                  openDrawer(
-                    <>
-                      <DrawerHeader>
-                        <DrawerTitle>إضافة جهاز شبكة جديد</DrawerTitle>
-                      </DrawerHeader>
-                      <NetworkDeviceForm
-                        device={undefined}
-                        onSuccess={() => {
-                          setIsDrawerOpen(false);
-                          handleFormSuccess();
-                        }}
-                        onCancel={() => setIsDrawerOpen(false)}
-                      />
-                    </>
-                  )
-                }
-                renderCard={renderMobileCard}
-                emptyMessage="لا توجد أجهزة شبكة متاحة"
-                addButtonText="إضافة جهاز شبكة جديد"
-              />
-              
-              <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <DrawerContent>{drawerContent}</DrawerContent>
-              </Drawer>
-            </>
+            <NetworkDevicesCardView
+              data={filteredDevices}
+              loading={loading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           ) : (
             <NetworkDevicesTable
-              devices={devices}
+              data={filteredDevices}
               loading={loading}
-              onEdit={openModal}
+              onEdit={handleEdit}
               onDelete={handleDelete}
             />
           )}
         </CardContent>
       </Card>
 
-      <Modal open={isModalOpen} onOpenChange={closeModal}>
+      {/* Add/Edit Modal */}
+      <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
         <ModalContent className="max-w-4xl">
           <ModalHeader>
             <ModalTitle>
-              {isEditing ? 'تعديل جهاز الشبكة' : 'إضافة جهاز شبكة جديد'}
+              {selectedDevice ? 'تعديل الجهاز الشبكي' : 'إضافة جهاز شبكي جديد'}
             </ModalTitle>
           </ModalHeader>
           <NetworkDeviceForm
             device={selectedDevice || undefined}
             onSuccess={handleFormSuccess}
-            onCancel={closeModal}
+            onCancel={() => setIsModalOpen(false)}
           />
         </ModalContent>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={confirmDelete}
+        title="تأكيد الحذف"
+        description={`هل أنت متأكد من حذف الجهاز "${deviceToDelete?.device_name}"؟ هذا الإجراء لا يمكن التراجع عنه.`}
+        confirmText="حذف"
+        cancelText="إلغاء"
+        variant="destructive"
+      />
     </div>
   );
 };
