@@ -7,6 +7,7 @@ interface Application {
   name: string;
   description?: string;
   version?: string;
+  code?: string;
   app_type?: string;
   app_status?: string;
   using_department?: string;
@@ -33,7 +34,8 @@ export const useApps = () => {
     
     return applications.filter(app =>
       app.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      app.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.code?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [applications, searchTerm]);
 
