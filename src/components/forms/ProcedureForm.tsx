@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
+import { usePoliciesOptions } from '@/hooks/usePoliciesOptions';
 
 interface Procedure {
   id?: string;
@@ -54,6 +54,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { options: policyOptions, loading: loadingPolicies } = usePoliciesOptions();
 
   useEffect(() => {
     if (procedure) {
@@ -129,6 +130,16 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
       setLoading(false);
     }
   };
+
+  // مساعدين لتحويل القيمة من النص للقائمة والعكس
+  function getPolicyIds(value: string | undefined): string[] {
+    if (!value) return [];
+    return value.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  function getPoliciesString(ids: string[]): string {
+    return ids.join(',');
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto">
@@ -283,24 +294,26 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
           />
         </div>
 
-        <div>
-          <Label htmlFor="related_services">الخدمات المرتبطة</Label>
-          <Input
-            id="related_services"
-            value={formData.related_services}
-            onChange={(e) => setFormData({ ...formData, related_services: e.target.value })}
-            placeholder="أدخل الخدمات المرتبطة"
-          />
-        </div>
-
+        {/* ------ السياسات المرتبطة (ديناميكي متعدد) ------ */}
         <div>
           <Label htmlFor="related_policies">السياسات المرتبطة</Label>
-          <Input
+          <select
             id="related_policies"
-            value={formData.related_policies}
-            onChange={(e) => setFormData({ ...formData, related_policies: e.target.value })}
-            placeholder="أدخل السياسات المرتبطة"
-          />
+            multiple
+            value={getPolicyIds(formData.related_policies)}
+            onChange={e => {
+              const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+              setFormData({ ...formData, related_policies: getPoliciesString(selected) });
+            }}
+            disabled={loadingPolicies}
+            className="w-full border rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-saudi-green-500"
+            style={{ minHeight: "3.2em" }}
+          >
+            {policyOptions.map(option => (
+              <option key={option.id} value={option.id}>{option.policy_name}</option>
+            ))}
+          </select>
+          <small className="text-gray-400 pr-1">يمكن اختيار أكثر من سياسة بالضغط على Ctrl / Cmd</small>
         </div>
 
         <div className="md:col-span-2">
