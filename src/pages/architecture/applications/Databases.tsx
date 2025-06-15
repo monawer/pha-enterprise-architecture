@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,29 +10,26 @@ import {
   ModalTitle,
   ModalTrigger,
 } from '@/components/ui/modal';
-import { Plus, Database as DatabaseIcon } from 'lucide-react';
+import { Plus, Database } from 'lucide-react';
 import DatabaseForm from '@/components/forms/DatabaseForm';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Database } from '@/types/database';
 import { useDatabases } from '@/hooks/useDatabases';
 import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
-import DatabasesTable from '@/components/databases/DatabasesTable';
-import DatabasesCardView from '@/components/databases/DatabasesCardView';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import EntityHeader from '@/components/common/EntityHeader';
 
 const Databases = () => {
-  const [selectedDatabase, setSelectedDatabase] = useState<Database | null>(null);
+  const [selectedDatabase, setSelectedDatabase] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [databaseToDelete, setDatabaseToDelete] = useState<Database | null>(null);
+  const [databaseToDelete, setDatabaseToDelete] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const { databases, loading, fetchDatabases, deleteDatabase } = useDatabases();
+  const { databases, loading, refetch, handleDelete } = useDatabases();
 
-  const handleEdit = (database: Database) => {
+  const handleEdit = (database: any) => {
     setSelectedDatabase(database);
     setIsModalOpen(true);
   };
@@ -41,14 +39,14 @@ const Databases = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (database: Database) => {
+  const handleDeleteDatabase = (database: any) => {
     setDatabaseToDelete(database);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!databaseToDelete?.id) return;
-    await deleteDatabase(databaseToDelete.id);
+    handleDelete(databaseToDelete);
     setIsDeleteModalOpen(false);
     setDatabaseToDelete(null);
   };
@@ -56,19 +54,19 @@ const Databases = () => {
   const handleFormSuccess = () => {
     setIsModalOpen(false);
     setSelectedDatabase(null);
-    fetchDatabases();
+    refetch();
   };
 
-  const filteredDatabases = databases.filter(database =>
-    database.database_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (database.description && database.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (database.database_type && database.database_type.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredDatabases = databases.filter(db =>
+    db.database_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (db.application_name && db.application_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (db.database_environment_type && db.database_environment_type.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
     <div className="space-y-6">
       <EntityHeader
-        icon={<DatabaseIcon className="w-6 h-6" />}
+        icon={<Database className="w-6 h-6" />}
         title="إدارة قواعد البيانات"
         description="عرض وإدارة قواعد البيانات المستخدمة في المؤسسة"
         onAdd={handleAdd}
@@ -89,20 +87,42 @@ const Databases = () => {
           <CardTitle>قائمة قواعد البيانات ({filteredDatabases.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isMobile ? (
-            <DatabasesCardView
-              data={filteredDatabases}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+          {loading ? (
+            <div className="text-center py-4">جاري التحميل...</div>
           ) : (
-            <DatabasesTable
-              data={filteredDatabases}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <div className="grid gap-4">
+              {filteredDatabases.map((db) => (
+                <Card key={db.id} className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{db.database_name}</h3>
+                      {db.application_name && (
+                        <p className="text-gray-600 mt-1">التطبيق: {db.application_name}</p>
+                      )}
+                      {db.database_environment_type && (
+                        <p className="text-sm text-gray-500 mt-2">نوع البيئة: {db.database_environment_type}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(db)}
+                      >
+                        تعديل
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteDatabase(db)}
+                      >
+                        حذف
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -116,9 +136,11 @@ const Databases = () => {
             </ModalTitle>
           </ModalHeader>
           <DatabaseForm
-            database={selectedDatabase || undefined}
             onSuccess={handleFormSuccess}
             onCancel={() => setIsModalOpen(false)}
+            initialData={selectedDatabase}
+            isEdit={!!selectedDatabase}
+            databaseId={selectedDatabase?.id}
           />
         </ModalContent>
       </Modal>

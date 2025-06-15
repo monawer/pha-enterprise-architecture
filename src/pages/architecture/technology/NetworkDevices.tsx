@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,26 +13,23 @@ import {
 import { Plus, Router } from 'lucide-react';
 import NetworkDeviceForm from '@/components/forms/NetworkDeviceForm';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { NetworkDevice } from '@/types/network-device';
 import { useNetworkDevices } from '@/hooks/useNetworkDevices';
 import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
-import NetworkDevicesTable from '@/components/network-devices/NetworkDevicesTable';
-import NetworkDevicesCardView from '@/components/network-devices/NetworkDevicesCardView';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import EntityHeader from '@/components/common/EntityHeader';
 
 const NetworkDevices = () => {
-  const [selectedDevice, setSelectedDevice] = useState<NetworkDevice | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deviceToDelete, setDeviceToDelete] = useState<NetworkDevice | null>(null);
+  const [deviceToDelete, setDeviceToDelete] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const { networkDevices, loading, fetchNetworkDevices, deleteNetworkDevice } = useNetworkDevices();
+  const { devices, loading, refetch, handleDelete } = useNetworkDevices();
 
-  const handleEdit = (device: NetworkDevice) => {
+  const handleEdit = (device: any) => {
     setSelectedDevice(device);
     setIsModalOpen(true);
   };
@@ -41,14 +39,14 @@ const NetworkDevices = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (device: NetworkDevice) => {
+  const handleDeleteDevice = (device: any) => {
     setDeviceToDelete(device);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!deviceToDelete?.id) return;
-    await deleteNetworkDevice(deviceToDelete.id);
+    handleDelete(deviceToDelete);
     setIsDeleteModalOpen(false);
     setDeviceToDelete(null);
   };
@@ -56,13 +54,13 @@ const NetworkDevices = () => {
   const handleFormSuccess = () => {
     setIsModalOpen(false);
     setSelectedDevice(null);
-    fetchNetworkDevices();
+    refetch();
   };
 
-  const filteredDevices = networkDevices.filter(device =>
-    device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (device.ip_address && device.ip_address.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (device.model && device.model.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredDevices = devices.filter(device =>
+    device.host_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (device.model && device.model.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (device.manufacturer && device.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -89,20 +87,42 @@ const NetworkDevices = () => {
           <CardTitle>قائمة الأجهزة الشبكية ({filteredDevices.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isMobile ? (
-            <NetworkDevicesCardView
-              data={filteredDevices}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+          {loading ? (
+            <div className="text-center py-4">جاري التحميل...</div>
           ) : (
-            <NetworkDevicesTable
-              data={filteredDevices}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <div className="grid gap-4">
+              {filteredDevices.map((device) => (
+                <Card key={device.id} className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{device.host_name}</h3>
+                      {device.model && (
+                        <p className="text-gray-600 mt-1">الموديل: {device.model}</p>
+                      )}
+                      {device.manufacturer && (
+                        <p className="text-sm text-gray-500 mt-2">الشركة المصنعة: {device.manufacturer}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(device)}
+                      >
+                        تعديل
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteDevice(device)}
+                      >
+                        حذف
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -129,7 +149,7 @@ const NetworkDevices = () => {
         onOpenChange={setIsDeleteModalOpen}
         onConfirm={confirmDelete}
         title="تأكيد الحذف"
-        description={`هل أنت متأكد من حذف الجهاز "${deviceToDelete?.device_name}"؟ هذا الإجراء لا يمكن التراجع عنه.`}
+        description={`هل أنت متأكد من حذف الجهاز "${deviceToDelete?.host_name}"؟ هذا الإجراء لا يمكن التراجع عنه.`}
         confirmText="حذف"
         cancelText="إلغاء"
         variant="destructive"
