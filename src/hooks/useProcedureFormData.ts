@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Procedure } from '@/types/procedure';
 import { PolicyOption } from '@/hooks/usePoliciesOptions';

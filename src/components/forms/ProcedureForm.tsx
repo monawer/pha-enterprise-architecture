@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useProcedureForm } from '@/hooks/useProcedureForm';
@@ -10,6 +9,10 @@ import ProcedurePoliciesField from './procedure/ProcedurePoliciesField';
 import ProcedureFormActions from './procedure/ProcedureFormActions';
 
 const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onCancel }) => {
+  useEffect(() => {
+    console.log("🟡 [ProcedureForm] Received procedure prop:", procedure);
+  }, [procedure]);
+  
   const {
     formData,
     setFormData,

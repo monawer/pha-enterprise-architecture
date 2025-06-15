@@ -31,6 +31,7 @@ const Procedures = () => {
 
   // تحسين اختيار البيانات للمودال
   const handleEdit = (procedure: Procedure) => {
+    console.log("🟠 [Procedures] handleEdit - procedure:", procedure);
     setSelectedProcedure(procedure);
     setIsModalOpen(true);
   };
