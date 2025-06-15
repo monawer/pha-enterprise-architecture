@@ -10,33 +10,32 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   title: string;
-  message: string;
+  description: string;
   confirmText?: string;
   cancelText?: string;
   variant?: 'destructive' | 'default';
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onConfirm,
   title,
-  message,
+  description,
   confirmText = 'تأكيد',
   cancelText = 'إلغاء',
   variant = 'destructive'
 }) => {
   const handleConfirm = () => {
     onConfirm();
-    onClose();
   };
 
   return (
-    <Modal open={isOpen} onOpenChange={onClose}>
+    <Modal open={open} onOpenChange={onOpenChange}>
       <ModalContent className="max-w-md">
         <ModalHeader>
           <div className="flex items-center space-x-3 space-x-reverse">
@@ -45,9 +44,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </div>
         </ModalHeader>
         <div className="p-6 space-y-4">
-          <p className="text-gray-600">{message}</p>
+          <p className="text-gray-600">{description}</p>
           <div className="flex justify-end space-x-2 space-x-reverse">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               {cancelText}
             </Button>
             <Button variant={variant} onClick={handleConfirm}>

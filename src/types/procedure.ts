@@ -1,6 +1,6 @@
 
 export interface Procedure {
-  id?: string;
+  id: string; // Make id required instead of optional
   procedure_name: string;
   procedure_code?: string;
   procedure_description?: string;

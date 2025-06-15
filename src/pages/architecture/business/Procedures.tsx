@@ -92,12 +92,12 @@ const Procedures = () => {
   return (
     <div className="space-y-6">
       <EntityHeader
-        icon={FileText}
+        icon={<FileText className="w-6 h-6" />}
         title="إدارة الإجراءات"
         description="عرض وإدارة الإجراءات التشغيلية والإدارية"
         onAdd={handleAdd}
         addButtonText="إضافة إجراء جديد"
-        addButtonIcon={Plus}
+        addButtonIcon={<Plus className="w-4 h-4" />}
       />
 
       <SearchAndFilterCard
