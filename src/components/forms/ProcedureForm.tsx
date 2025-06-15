@@ -56,6 +56,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
   const { toast } = useToast();
   const { options: policyOptions, loading: loadingPolicies } = usePoliciesOptions();
 
+  // --- تعديل: راقب التحديث عند استدعاء النموذج أو تغيّر procedure
   useEffect(() => {
     if (procedure) {
       setFormData({
@@ -75,8 +76,30 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
         related_policies: procedure.related_policies || '',
         notes: procedure.notes || '',
       });
+      console.log("🚩 [ProcedureForm] Editing, related_policies from procedure:", procedure.related_policies);
     }
   }, [procedure]);
+
+  // أيضاً راقب كل تغيّر للقيمة المخزنة حاليًا
+  useEffect(() => {
+    console.log("⚡ [ProcedureForm] current formData.related_policies:", formData.related_policies);
+  }, [formData.related_policies]);
+
+  // مساعدين لتحويل القيمة من النص للقائمة والعكس (مع تحسين التعقيم)
+  function getPolicyIds(value: string | undefined): string[] {
+    if (!value || !value.trim()) return [];
+    return value.split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .filter((v, i, arr) => arr.indexOf(v) === i); // يمنع تكرار IDs
+  }
+
+  function getPoliciesString(ids: string[]): string {
+    return ids
+      .map(s => (s && String(s).trim()))
+      .filter(Boolean)
+      .join(',');
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,16 +153,6 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
       setLoading(false);
     }
   };
-
-  // مساعدين لتحويل القيمة من النص للقائمة والعكس
-  function getPolicyIds(value: string | undefined): string[] {
-    if (!value) return [];
-    return value.split(',').map(s => s.trim()).filter(Boolean);
-  }
-
-  function getPoliciesString(ids: string[]): string {
-    return ids.join(',');
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto">
@@ -315,7 +328,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
           </select>
           <small className="text-gray-400 pr-1">يمكن اختيار أكثر من سياسة بالضغط على Ctrl / Cmd</small>
         </div>
-
+        {/* ... باقي النموذج ... */}
         <div className="md:col-span-2">
           <Label htmlFor="notes">ملاحظات</Label>
           <Textarea
@@ -327,7 +340,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
           />
         </div>
       </div>
-
+      {/* ... keep existing buttons ... */}
       <div className="flex justify-end space-x-2 space-x-reverse pt-4 border-t">
         <Button
           type="button"
