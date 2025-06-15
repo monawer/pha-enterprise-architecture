@@ -710,7 +710,7 @@ export type Database = {
             foreignKeyName: "biz_policies_owning_department_ref_fkey"
             columns: ["owning_department_ref"]
             isOneToOne: false
-            referencedRelation: "ref_departments"
+            referencedRelation: "biz_business_owners"
             referencedColumns: ["code"]
           },
           {
