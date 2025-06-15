@@ -1,8 +1,31 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
+
+// UI and icon imports
+import { 
+  Loader2,
+  AlertCircle,
+  Plus,
+  Users,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 
 interface UserProfile {
   id: string;
@@ -12,7 +35,7 @@ interface UserProfile {
   created_at: string;
 }
 
-const Users = () => {
+const UsersPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
@@ -126,7 +149,7 @@ const Users = () => {
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2 space-x-reverse">
-          <UsersIcon className="w-8 h-8 text-green-600" />
+          <Users className="w-8 h-8 text-green-600" />
           <h1 className="text-2xl font-bold text-gray-900">إدارة المستخدمين</h1>
         </div>
         <Button 
@@ -210,4 +233,5 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default UsersPage;
+
