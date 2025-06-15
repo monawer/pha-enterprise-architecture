@@ -66,9 +66,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50" dir="rtl">
-        <AppSidebar user={user} />
-        <SidebarInset>
+-      <div className="min-h-screen flex w-full bg-gray-50" dir="rtl">
+-        <AppSidebar user={user} />
+-        <SidebarInset>
++      <div className="min-h-screen flex w-full bg-gray-50 flex-row-reverse" dir="rtl">
++        <AppSidebar user={user} />
++        <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
             <SidebarTrigger className="-ml-1" />
             <div className="flex items-center gap-2 px-2">
