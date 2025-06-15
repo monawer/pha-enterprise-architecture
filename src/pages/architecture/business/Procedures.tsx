@@ -89,6 +89,7 @@ const Procedures = () => {
 
   const handleEdit = (procedure: Procedure) => {
     // يمرر الكائن كاملًا إلى الـForm ليتم تعبئة كل الحقول المطلوبة
+    console.log("🟡 handleEdit - procedure sent to form:", procedure);
     setSelectedProcedure(procedure);
     setIsModalOpen(true);
   };
@@ -171,7 +172,7 @@ const Procedures = () => {
               </ModalTitle>
             </ModalHeader>
             <ProcedureForm
-              procedure={selectedProcedure!}
+              procedure={selectedProcedure || undefined}
               onSuccess={handleFormSuccess}
               onCancel={() => setIsModalOpen(false)}
             />

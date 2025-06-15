@@ -59,6 +59,14 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
   // --- تعديل: راقب التحديث عند استدعاء النموذج أو تغيّر procedure
   useEffect(() => {
     if (procedure) {
+      console.log("🟣 [ProcedureForm] useEffect procedure prop value:", procedure);
+      // تأكد أن related_policies إذا كانت عبارة عن كود سياسة أو نص غير متوافق تتحول إلى ''
+      let rp = procedure.related_policies;
+      // إذا كانت ليست سلسلة من المعرفات، نتجاهلها (تحقق whether بها ارقام أو يفصلها فاصلة )
+      if (rp && typeof rp === "string" && !rp.includes(",") && rp.length > 0 && isNaN(Number(rp))) {
+        // غالبًا غير متوافق (نص وليس id): تجاهل
+        rp = '';
+      }
       setFormData({
         procedure_name: procedure.procedure_name || '',
         procedure_code: procedure.procedure_code || '',
@@ -73,10 +81,10 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
         business_rules: procedure.business_rules || '',
         execution_requirements: procedure.execution_requirements || '',
         related_services: procedure.related_services || '',
-        related_policies: procedure.related_policies || '',
+        related_policies: rp || '',
         notes: procedure.notes || '',
       });
-      console.log("🚩 [ProcedureForm] Editing, related_policies from procedure:", procedure.related_policies);
+      console.log("🚩 [ProcedureForm] Editing, related_policies after sanitize:", rp);
     }
   }, [procedure]);
 
@@ -340,7 +348,6 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
           />
         </div>
       </div>
-      {/* ... keep existing buttons ... */}
       <div className="flex justify-end space-x-2 space-x-reverse pt-4 border-t">
         <Button
           type="button"
