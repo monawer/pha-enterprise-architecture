@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Procedure } from '@/types/procedure';
+import { useProcedureTypesOptions } from '@/hooks/useProcedureTypesOptions';
+import { useAutomationLevelsOptions } from '@/hooks/useAutomationLevelsOptions';
 
 interface ProcedureBasicFieldsProps {
   formData: Procedure;
@@ -12,6 +14,9 @@ interface ProcedureBasicFieldsProps {
 }
 
 const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, setFormData }) => {
+  const { options: typeOptions, loading: loadingTypes } = useProcedureTypesOptions();
+  const { options: automationLevels, loading: loadingAutomation } = useAutomationLevelsOptions();
+
   return (
     <>
       <div className="md:col-span-2">
@@ -24,7 +29,6 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           required
         />
       </div>
-
       <div>
         <Label htmlFor="procedure_code">رمز الإجراء</Label>
         <Input
@@ -34,43 +38,40 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           placeholder="أدخل رمز الإجراء"
         />
       </div>
-
       <div>
         <Label htmlFor="procedure_type">نوع الإجراء</Label>
         <Select
           value={formData.procedure_type}
           onValueChange={(value) => setFormData({ ...formData, procedure_type: value })}
+          disabled={loadingTypes}
         >
           <SelectTrigger>
             <SelectValue placeholder="اختر نوع الإجراء" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="تشغيلي">تشغيلي</SelectItem>
-            <SelectItem value="إداري">إداري</SelectItem>
-            <SelectItem value="فني">فني</SelectItem>
-            <SelectItem value="مالي">مالي</SelectItem>
+            {typeOptions.map(opt => (
+              <SelectItem key={opt.code} value={opt.name}>{opt.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
-
       <div>
         <Label htmlFor="automation_level">مستوى الأتمتة</Label>
         <Select
           value={formData.automation_level}
           onValueChange={(value) => setFormData({ ...formData, automation_level: value })}
+          disabled={loadingAutomation}
         >
           <SelectTrigger>
             <SelectValue placeholder="اختر مستوى الأتمتة" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="يدوي">يدوي</SelectItem>
-            <SelectItem value="شبه آلي">شبه آلي</SelectItem>
-            <SelectItem value="آلي">آلي</SelectItem>
-            <SelectItem value="آلي بالكامل">آلي بالكامل</SelectItem>
+            {automationLevels.map(opt => (
+              <SelectItem key={opt.code} value={opt.name}>{opt.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
-
       <div>
         <Label htmlFor="importance">الأهمية</Label>
         <Select
@@ -87,7 +88,6 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           </SelectContent>
         </Select>
       </div>
-
       <div>
         <Label htmlFor="execution_duration">مدة التنفيذ</Label>
         <Input
@@ -97,7 +97,6 @@ const ProcedureBasicFields: React.FC<ProcedureBasicFieldsProps> = ({ formData, s
           placeholder="أدخل مدة التنفيذ"
         />
       </div>
-
       <div className="md:col-span-2">
         <Label htmlFor="procedure_description">وصف الإجراء</Label>
         <Textarea
