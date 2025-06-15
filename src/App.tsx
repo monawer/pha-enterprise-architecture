@@ -5,7 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
+import DashboardHome from "./pages/DashboardHome";
+import TogafNoraIntro from "./pages/TogafNoraIntro";
 import ArchitectureLayers from "./pages/ArchitectureLayers";
 import BusinessLayer from "./pages/architecture/BusinessLayer";
 import ApplicationsLayer from "./pages/architecture/ApplicationsLayer";
@@ -57,7 +58,12 @@ const App: React.FC = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={
             <MainLayout>
-              <Dashboard />
+              <DashboardHome />
+            </MainLayout>
+          } />
+          <Route path="/info/togaf-nora" element={
+            <MainLayout>
+              <TogafNoraIntro />
             </MainLayout>
           } />
           <Route path="/architecture/layers" element={

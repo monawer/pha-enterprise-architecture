@@ -27,9 +27,15 @@ interface SidebarNavigationProps {
 const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
   const menuItems = [
     {
-      title: "الصفحة الرئيسية",
-      icon: Home,
+      title: "لوحة القيادة",
+      icon: LayoutDashboard,
       path: "/",
+      show: true
+    },
+    {
+      title: "عن توجاف ونورة",
+      icon: Layers,
+      path: "/info/togaf-nora",
       show: true
     },
     {
