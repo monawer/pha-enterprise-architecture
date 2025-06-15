@@ -18,9 +18,18 @@ interface SidebarMenuItemProps {
   children?: MenuChild[];
   show?: boolean;
   level?: number;
+  rtl?: boolean;
 }
 
-const SidebarMenuItem = ({ title, icon: Icon, path, children, show, level = 0 }: SidebarMenuItemProps) => {
+const SidebarMenuItem = ({
+  title,
+  icon: Icon,
+  path,
+  children,
+  show,
+  level = 0,
+  rtl = false,
+}: SidebarMenuItemProps) => {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -31,14 +40,26 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show, level = 0 }:
   }
 
   const toggleExpanded = () => {
-    setIsExpanded(prev => !prev);
+    setIsExpanded((prev) => !prev);
   };
 
-  const marginClass = level === 0 ? "" : level === 1 ? "mr-6" : "mr-12";
+  const marginClass =
+    level === 0
+      ? ""
+      : level === 1
+      ? rtl
+        ? "ml-6"
+        : "mr-6"
+      : rtl
+      ? "ml-12"
+      : "mr-12";
+
+  const flexDirection = rtl ? "flex-row-reverse" : "flex-row";
+  const spaceClass = rtl ? "space-x-reverse space-x-3" : "space-x-3";
 
   if (children && children.length > 0) {
-    const visibleChildren = children.filter(child => child.show !== false);
-    
+    const visibleChildren = children.filter((child) => child.show !== false);
+
     if (visibleChildren.length === 0 && level > 0) {
       return null;
     }
@@ -47,11 +68,11 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show, level = 0 }:
       <div className={marginClass}>
         <button
           onClick={toggleExpanded}
-          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-green-700 transition-colors"
+          className={`w-full flex ${flexDirection} items-center justify-between p-3 rounded-lg hover:bg-green-700 transition-colors`}
         >
-          <div className="flex items-center space-x-3 space-x-reverse">
+          <div className={`flex ${flexDirection} ${spaceClass} items-center`}>
             <Icon className="w-5 h-5" />
-            <span className="font-medium">{title}</span>
+            <span className="font-medium text-base">{title}</span>
           </div>
           {isExpanded ? (
             <ChevronDown className="w-4 h-4" />
@@ -70,6 +91,7 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show, level = 0 }:
                 children={child.children}
                 show={child.show}
                 level={level + 1}
+                rtl={rtl}
               />
             ))}
           </div>
@@ -83,12 +105,12 @@ const SidebarMenuItem = ({ title, icon: Icon, path, children, show, level = 0 }:
       <div className={marginClass}>
         <Link
           to={path}
-          className={`flex items-center space-x-3 space-x-reverse p-3 rounded-lg hover:bg-green-700 transition-colors ${
+          className={`flex ${flexDirection} items-center ${spaceClass} p-3 rounded-lg hover:bg-green-700 transition-colors ${
             isActive(path) ? "bg-green-600" : ""
           }`}
         >
           <Icon className="w-5 h-5" />
-          <span className="font-medium">{title}</span>
+          <span className="font-medium text-base">{title}</span>
         </Link>
       </div>
     );

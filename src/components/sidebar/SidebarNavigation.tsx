@@ -86,6 +86,7 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
             icon={item.icon}
             path={item.path}
             show={item.show}
+            rtl={true}
           />
         ))}
       </div>
