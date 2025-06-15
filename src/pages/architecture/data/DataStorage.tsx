@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Table,
   TableBody,
@@ -43,6 +43,7 @@ const DataStorage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [storageToDelete, setStorageToDelete] = useState<DataStorage | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchStorages();
@@ -177,66 +178,118 @@ const DataStorage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم المخزن</TableHead>
-                  <TableHead>الرمز</TableHead>
-                  <TableHead>النوع</TableHead>
-                  <TableHead>الهيكل</TableHead>
-                  <TableHead>الوصف</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStorages.map((storage) => (
-                  <TableRow key={storage.id}>
-                    <TableCell className="font-medium">{storage.name}</TableCell>
-                    <TableCell>{storage.code || '-'}</TableCell>
-                    <TableCell>
-                      {storage.type && (
-                        <Badge variant="outline">{storage.type}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{storage.structure || '-'}</TableCell>
-                    <TableCell>
-                      {storage.description ? (
-                        <span className="text-sm text-gray-600">
-                          {storage.description.substring(0, 50)}...
-                        </span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(storage)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setStorageToDelete(storage);
-                            setIsDeleteModalOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredStorages.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              لا توجد مخازن بيانات متاحة
+          {isMobile ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredStorages.map((storage) => (
+                <div key={storage.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-green-800">{storage.name}</span>
+                    <span className="text-xs text-gray-500">{storage.code || '-'}</span>
+                  </div>
+                  {storage.type && (
+                    <span className="text-xs text-gray-600">النوع: {storage.type}</span>
+                  )}
+                  {storage.structure && (
+                    <span className="text-xs text-gray-600">الهيكل: {storage.structure}</span>
+                  )}
+                  {storage.description && (
+                    <div className="text-xs text-gray-500 truncate">{storage.description}</div>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEdit(storage)}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="ml-1">تعديل</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setStorageToDelete(storage);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1">حذف</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredStorages.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد مخازن بيانات متاحة
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>اسم المخزن</TableHead>
+                      <TableHead>الرمز</TableHead>
+                      <TableHead>النوع</TableHead>
+                      <TableHead>الهيكل</TableHead>
+                      <TableHead>الوصف</TableHead>
+                      <TableHead>الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStorages.map((storage) => (
+                      <TableRow key={storage.id}>
+                        <TableCell className="font-medium">{storage.name}</TableCell>
+                        <TableCell>{storage.code || '-'}</TableCell>
+                        <TableCell>
+                          {storage.type && (
+                            <Badge variant="outline">{storage.type}</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{storage.structure || '-'}</TableCell>
+                        <TableCell>
+                          {storage.description ? (
+                            <span className="text-sm text-gray-600">
+                              {storage.description.substring(0, 50)}...
+                            </span>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2 space-x-reverse">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEdit(storage)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setStorageToDelete(storage);
+                                setIsDeleteModalOpen(true);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {filteredStorages.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد مخازن بيانات متاحة
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

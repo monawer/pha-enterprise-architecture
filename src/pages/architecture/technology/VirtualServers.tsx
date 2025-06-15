@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Table,
   TableBody,
@@ -47,6 +47,7 @@ const VirtualServers = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchServers();
@@ -169,65 +170,116 @@ const VirtualServers = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم الخادم</TableHead>
-                  <TableHead>نظام التشغيل</TableHead>
-                  <TableHead>البيئة</TableHead>
-                  <TableHead>المعالج الافتراضي</TableHead>
-                  <TableHead>الذاكرة</TableHead>
-                  <TableHead>القرص</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredServers.map((server) => (
-                  <TableRow key={server.id}>
-                    <TableCell className="font-medium">{server.host_name}</TableCell>
-                    <TableCell>
-                      {server.os_type && server.os_version 
-                        ? `${server.os_type} ${server.os_version}`
-                        : server.os_type || '-'
-                      }
-                    </TableCell>
-                    <TableCell>{server.environment || '-'}</TableCell>
-                    <TableCell>{server.virtual_cpu || '-'}</TableCell>
-                    <TableCell>{server.virtual_ram || '-'}</TableCell>
-                    <TableCell>{server.virtual_disk || '-'}</TableCell>
-                    <TableCell>
-                      {server.status && (
-                        <Badge variant="secondary">{server.status}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(server)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDelete(server)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {isMobile ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredServers.map((server) => (
+                <div key={server.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-green-800">{server.host_name}</span>
+                    <span className="text-xs text-gray-500">{server.os_type || '-'}</span>
+                  </div>
+                  {server.os_version && (
+                    <span className="text-xs text-gray-500">الإصدار: {server.os_version}</span>
+                  )}
+                  {server.environment && (
+                    <span className="text-xs text-gray-600">البيئة: {server.environment}</span>
+                  )}
+                  {server.virtual_cpu && (
+                    <span className="text-xs text-gray-600">CPU: {server.virtual_cpu}</span>
+                  )}
+                  {server.virtual_ram && (
+                    <span className="text-xs text-gray-600">RAM: {server.virtual_ram}</span>
+                  )}
+                  {server.virtual_disk && (
+                    <span className="text-xs text-gray-600">القرص: {server.virtual_disk}</span>
+                  )}
+                  {server.status && (
+                    <span className="text-xs text-gray-600">الحالة: {server.status}</span>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEdit(server)}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="ml-1">تعديل</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleDelete(server)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1">حذف</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredServers.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد خوادم افتراضية متاحة
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>اسم الخادم</TableHead>
+                    <TableHead>نظام التشغيل</TableHead>
+                    <TableHead>البيئة</TableHead>
+                    <TableHead>المعالج الافتراضي</TableHead>
+                    <TableHead>الذاكرة</TableHead>
+                    <TableHead>القرص</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>الإجراءات</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredServers.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              لا توجد خوادم افتراضية متاحة
+                </TableHeader>
+                <TableBody>
+                  {filteredServers.map((server) => (
+                    <TableRow key={server.id}>
+                      <TableCell className="font-medium">{server.host_name}</TableCell>
+                      <TableCell>
+                        {server.os_type && server.os_version 
+                          ? `${server.os_type} ${server.os_version}`
+                          : server.os_type || '-'
+                        }
+                      </TableCell>
+                      <TableCell>{server.environment || '-'}</TableCell>
+                      <TableCell>{server.virtual_cpu || '-'}</TableCell>
+                      <TableCell>{server.virtual_ram || '-'}</TableCell>
+                      <TableCell>{server.virtual_disk || '-'}</TableCell>
+                      <TableCell>
+                        {server.status && (
+                          <Badge variant="secondary">{server.status}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2 space-x-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(server)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(server)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

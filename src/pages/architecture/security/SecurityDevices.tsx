@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Table,
   TableBody,
@@ -47,6 +47,7 @@ const SecurityDevices = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deviceToDelete, setDeviceToDelete] = useState<SecurityDevice | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchDevices();
@@ -181,61 +182,114 @@ const SecurityDevices = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم الجهاز</TableHead>
-                  <TableHead>الشركة المصنعة</TableHead>
-                  <TableHead>الطراز</TableHead>
-                  <TableHead>الوظيفة</TableHead>
-                  <TableHead>إصدار البرمجية</TableHead>
-                  <TableHead>حالة الدعم</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDevices.map((device) => (
-                  <TableRow key={device.id}>
-                    <TableCell className="font-medium">{device.host_name}</TableCell>
-                    <TableCell>{device.manufacturer || '-'}</TableCell>
-                    <TableCell>{device.model || '-'}</TableCell>
-                    <TableCell>{device.function || '-'}</TableCell>
-                    <TableCell>{device.firmware_version || '-'}</TableCell>
-                    <TableCell>
-                      {device.vendor_support_status && (
-                        <Badge variant="secondary">{device.vendor_support_status}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(device)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setDeviceToDelete(device);
-                            setIsDeleteModalOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {isMobile ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredDevices.map((device) => (
+                <div key={device.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-red-700">{device.host_name}</span>
+                    <span className="text-xs text-gray-500">{device.manufacturer || '-'}</span>
+                  </div>
+                  {device.model && (
+                    <span className="text-xs text-gray-600">الطراز: {device.model}</span>
+                  )}
+                  {device.function && (
+                    <span className="text-xs text-gray-600">الوظيفة: {device.function}</span>
+                  )}
+                  {device.firmware_version && (
+                    <span className="text-xs text-gray-600">الإصدار: {device.firmware_version}</span>
+                  )}
+                  {device.vendor_support_status && (
+                    <span className="text-xs text-gray-600">الدعم: {device.vendor_support_status}</span>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEdit(device)}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="ml-1">تعديل</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setDeviceToDelete(device);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1">حذف</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredDevices.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد أجهزة أمان متاحة
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>اسم الجهاز</TableHead>
+                    <TableHead>الشركة المصنعة</TableHead>
+                    <TableHead>الطراز</TableHead>
+                    <TableHead>الوظيفة</TableHead>
+                    <TableHead>إصدار البرمجية</TableHead>
+                    <TableHead>حالة الدعم</TableHead>
+                    <TableHead>الإجراءات</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredDevices.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              لا توجد أجهزة أمان متاحة
+                </TableHeader>
+                <TableBody>
+                  {filteredDevices.map((device) => (
+                    <TableRow key={device.id}>
+                      <TableCell className="font-medium">{device.host_name}</TableCell>
+                      <TableCell>{device.manufacturer || '-'}</TableCell>
+                      <TableCell>{device.model || '-'}</TableCell>
+                      <TableCell>{device.function || '-'}</TableCell>
+                      <TableCell>{device.firmware_version || '-'}</TableCell>
+                      <TableCell>
+                        {device.vendor_support_status && (
+                          <Badge variant="secondary">{device.vendor_support_status}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2 space-x-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(device)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setDeviceToDelete(device);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredDevices.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد أجهزة أمان متاحة
+                </div>
+              )}
             </div>
           )}
         </CardContent>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ProcedureForm from '@/components/forms/ProcedureForm';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Procedure {
   id: string;
@@ -45,6 +45,7 @@ const Procedures = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [procedureToDelete, setProcedureToDelete] = useState<Procedure | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchProcedures();
@@ -179,85 +180,136 @@ const Procedures = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم الإجراء</TableHead>
-                  <TableHead>الرمز</TableHead>
-                  <TableHead>النوع</TableHead>
-                  <TableHead>مستوى الأتمتة</TableHead>
-                  <TableHead>الأهمية</TableHead>
-                  <TableHead>مدة التنفيذ</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProcedures.map((procedure) => (
-                  <TableRow key={procedure.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <p className="font-semibold">{procedure.procedure_name}</p>
-                        {procedure.procedure_description && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {procedure.procedure_description.substring(0, 100)}...
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{procedure.procedure_code || '-'}</TableCell>
-                    <TableCell>
-                      {procedure.procedure_type && (
-                        <Badge variant="outline">{procedure.procedure_type}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {procedure.automation_level && (
-                        <Badge variant="secondary">{procedure.automation_level}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {procedure.importance && (
-                        <Badge 
-                          variant={
-                            procedure.importance === 'عالية' ? 'destructive' :
-                            procedure.importance === 'متوسطة' ? 'default' : 'outline'
-                          }
-                        >
-                          {procedure.importance}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{procedure.execution_duration || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(procedure)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setProcedureToDelete(procedure);
-                            setIsDeleteModalOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {isMobile ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredProcedures.map((procedure) => (
+                <div key={procedure.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-blue-700">{procedure.procedure_name}</span>
+                    <span className="text-xs text-gray-500">{procedure.procedure_code || '-'}</span>
+                  </div>
+                  {procedure.procedure_type && (
+                    <span className="text-xs text-gray-600">النوع: {procedure.procedure_type}</span>
+                  )}
+                  {procedure.automation_level && (
+                    <span className="text-xs text-gray-600">الأتمتة: {procedure.automation_level}</span>
+                  )}
+                  {procedure.importance && (
+                    <span className="text-xs text-gray-600">الأهمية: {procedure.importance}</span>
+                  )}
+                  <div className="text-xs text-gray-600">
+                    {procedure.execution_duration && <>المدة: {procedure.execution_duration}</>}
+                  </div>
+                  {procedure.procedure_description && (
+                    <div className="text-xs text-gray-500 truncate">{procedure.procedure_description}</div>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEdit(procedure)}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="ml-1">تعديل</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setProcedureToDelete(procedure);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1">حذف</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredProcedures.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد إجراءات متاحة
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>اسم الإجراء</TableHead>
+                    <TableHead>الرمز</TableHead>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>مستوى الأتمتة</TableHead>
+                    <TableHead>الأهمية</TableHead>
+                    <TableHead>مدة التنفيذ</TableHead>
+                    <TableHead>الإجراءات</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredProcedures.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              لا توجد إجراءات متاحة
+                </TableHeader>
+                <TableBody>
+                  {filteredProcedures.map((procedure) => (
+                    <TableRow key={procedure.id}>
+                      <TableCell className="font-medium">
+                        <div>
+                          <p className="font-semibold">{procedure.procedure_name}</p>
+                          {procedure.procedure_description && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              {procedure.procedure_description.substring(0, 100)}...
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{procedure.procedure_code || '-'}</TableCell>
+                      <TableCell>
+                        {procedure.procedure_type && (
+                          <Badge variant="outline">{procedure.procedure_type}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {procedure.automation_level && (
+                          <Badge variant="secondary">{procedure.automation_level}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {procedure.importance && (
+                          <Badge 
+                            variant={
+                              procedure.importance === 'عالية' ? 'destructive' :
+                              procedure.importance === 'متوسطة' ? 'default' : 'outline'
+                            }
+                          >
+                            {procedure.importance}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{procedure.execution_duration || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2 space-x-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(procedure)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setProcedureToDelete(procedure);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

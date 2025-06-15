@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import {
 import { Network, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import NetworkDeviceForm from '@/components/forms/NetworkDeviceForm';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NetworkDevice {
   id: string;
@@ -47,6 +47,7 @@ const NetworkDevices = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchDevices();
@@ -169,60 +170,110 @@ const NetworkDevices = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم الجهاز</TableHead>
-                  <TableHead>الشركة المصنعة</TableHead>
-                  <TableHead>الطراز</TableHead>
-                  <TableHead>النوع</TableHead>
-                  <TableHead>الوظيفة</TableHead>
-                  <TableHead>قطاع الشبكة</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDevices.map((device) => (
-                  <TableRow key={device.id}>
-                    <TableCell className="font-medium">{device.host_name}</TableCell>
-                    <TableCell>{device.manufacturer || '-'}</TableCell>
-                    <TableCell>{device.model || '-'}</TableCell>
-                    <TableCell>{device.type || '-'}</TableCell>
-                    <TableCell>{device.function || '-'}</TableCell>
-                    <TableCell>{device.network_segment || '-'}</TableCell>
-                    <TableCell>
-                      {device.device_status && (
-                        <Badge variant="secondary">{device.device_status}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 space-x-reverse">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(device)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDelete(device)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {isMobile ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredDevices.map((device) => (
+                <div key={device.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-2 bg-white">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-purple-800">{device.host_name}</span>
+                    <span className="text-xs text-gray-500">{device.manufacturer || '-'}</span>
+                  </div>
+                  {device.model && (
+                    <span className="text-xs text-gray-600">الطراز: {device.model}</span>
+                  )}
+                  {device.type && (
+                    <span className="text-xs text-gray-600">النوع: {device.type}</span>
+                  )}
+                  {device.function && (
+                    <span className="text-xs text-gray-600">الوظيفة: {device.function}</span>
+                  )}
+                  {device.device_status && (
+                    <span className="text-xs text-gray-600">الحالة: {device.device_status}</span>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEdit(device)}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="ml-1">تعديل</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleDelete(device)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1">حذف</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredDevices.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد أجهزة شبكة متاحة
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>اسم الجهاز</TableHead>
+                    <TableHead>الشركة المصنعة</TableHead>
+                    <TableHead>الطراز</TableHead>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>الوظيفة</TableHead>
+                    <TableHead>قطاع الشبكة</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>الإجراءات</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredDevices.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              لا توجد أجهزة شبكة متاحة
+                </TableHeader>
+                <TableBody>
+                  {filteredDevices.map((device) => (
+                    <TableRow key={device.id}>
+                      <TableCell className="font-medium">{device.host_name}</TableCell>
+                      <TableCell>{device.manufacturer || '-'}</TableCell>
+                      <TableCell>{device.model || '-'}</TableCell>
+                      <TableCell>{device.type || '-'}</TableCell>
+                      <TableCell>{device.function || '-'}</TableCell>
+                      <TableCell>{device.network_segment || '-'}</TableCell>
+                      <TableCell>
+                        {device.device_status && (
+                          <Badge variant="secondary">{device.device_status}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2 space-x-reverse">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(device)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(device)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredDevices.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  لا توجد أجهزة شبكة متاحة
+                </div>
+              )}
             </div>
           )}
         </CardContent>
