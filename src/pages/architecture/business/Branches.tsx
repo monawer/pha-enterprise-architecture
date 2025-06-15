@@ -60,7 +60,6 @@ const Branches = () => {
       if (error) throw error;
       setBranches(data || []);
     } catch (error) {
-      console.error('Error fetching branches:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في جلب بيانات الفروع",
@@ -117,7 +116,6 @@ const Branches = () => {
       setIsDeleteModalOpen(false);
       setBranchToDelete(null);
     } catch (error) {
-      console.error('Error deleting branch:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء حذف الفرع",
