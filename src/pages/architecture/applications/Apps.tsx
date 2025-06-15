@@ -1,142 +1,88 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Plus, Search, Monitor, Edit, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Monitor, Edit, Trash2 } from 'lucide-react';
+import { useModal } from '@/hooks/useModal';
+import { useApps } from '@/hooks/useApps';
+import EntityHeader from '@/components/common/EntityHeader';
+import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
 import ApplicationForm from '@/components/forms/ApplicationForm';
+import { usePagination } from '@/hooks/usePagination';
+import PaginationControls from '@/components/common/PaginationControls';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+interface Application {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  app_type?: string;
+  app_status?: string;
+  using_department?: string;
+  created_at: string;
+}
 
 const Apps = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingApp, setEditingApp] = useState<any>(null);
-  const { toast } = useToast();
+  const {
+    applications,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    refetch,
+    handleDelete
+  } = useApps();
 
-  const { data: applications, isLoading, refetch } = useQuery({
-    queryKey: ['applications'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('app_applications')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const {
+    isOpen: isModalOpen,
+    selectedItem: selectedApp,
+    isEditing,
+    openModal,
+    closeModal
+  } = useModal<Application>();
 
-      if (error) {
-        console.error('Error fetching applications:', error);
-        throw error;
-      }
-      return data || [];
-    },
-  });
-
-  const filteredApplications = applications?.filter(app =>
-    app.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
-  const handleDelete = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا التطبيق؟')) {
-      try {
-        const { error } = await supabase
-          .from('app_applications')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-
-        toast({
-          title: "تم حذف التطبيق بنجاح",
-          description: "تم حذف التطبيق من النظام",
-        });
-        
-        refetch();
-      } catch (error) {
-        console.error('Error deleting application:', error);
-        toast({
-          title: "خطأ في الحذف",
-          description: "حدث خطأ أثناء حذف التطبيق",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleEdit = (app: any) => {
-    setEditingApp(app);
-    setIsModalOpen(true);
-  };
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    hasNextPage,
+    hasPrevPage,
+    startIndex,
+    endIndex,
+    totalItems
+  } = usePagination({ data: applications, itemsPerPage: 9 });
 
   const handleFormSuccess = () => {
-    setIsModalOpen(false);
-    setEditingApp(null);
     refetch();
+    closeModal();
   };
 
-  const handleFormCancel = () => {
-    setIsModalOpen(false);
-    setEditingApp(null);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">جاري التحميل...</div>
-      </div>
-    );
+  if (loading) {
+    return <LoadingSpinner message="جاري تحميل التطبيقات..." />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">قائمة التطبيقات</h1>
-          <p className="text-gray-600 mt-2">
-            إدارة التطبيقات والأنظمة في المؤسسة
-          </p>
-        </div>
-        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <ModalTrigger asChild>
-            <Button onClick={() => setEditingApp(null)}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة تطبيق
-            </Button>
-          </ModalTrigger>
-          <ModalContent className="max-w-2xl">
-            <ModalHeader>
-              <ModalTitle>
-                {editingApp ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}
-              </ModalTitle>
-            </ModalHeader>
-            <div className="p-4">
-              <ApplicationForm
-                onSuccess={handleFormSuccess}
-                onCancel={handleFormCancel}
-                initialData={editingApp}
-                isEdit={!!editingApp}
-                applicationId={editingApp?.id}
-              />
-            </div>
-          </ModalContent>
-        </Modal>
-      </div>
+      <EntityHeader
+        title="قائمة التطبيقات"
+        description="إدارة التطبيقات والأنظمة في المؤسسة"
+        icon={<Monitor className="w-8 h-8 text-blue-500" />}
+        onAdd={() => openModal()}
+        addButtonText="إضافة تطبيق"
+      />
 
-      <div className="flex items-center space-x-4 space-x-reverse">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="البحث في التطبيقات..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10"
-          />
-        </div>
-      </div>
+      <SearchAndFilterCard
+        title="التطبيقات"
+        count={applications.length}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="البحث في التطبيقات..."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredApplications.length === 0 ? (
+        {paginatedData.length === 0 ? (
           <Card className="col-span-full">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Monitor className="w-12 h-12 text-gray-400 mb-4" />
@@ -149,8 +95,8 @@ const Apps = () => {
             </CardContent>
           </Card>
         ) : (
-          filteredApplications.map((app) => (
-            <Card key={app.id} className="hover:shadow-lg transition-shadow">
+          paginatedData.map((app) => (
+            <Card key={app.id} className="hover:shadow-lg transition-all duration-300 hover-scale animate-fade-in">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 space-x-reverse">
@@ -168,14 +114,16 @@ const Apps = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(app)}
+                      onClick={() => openModal(app)}
+                      className="hover-scale"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(app.id)}
+                      onClick={() => handleDelete(app)}
+                      className="hover-scale text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -211,6 +159,38 @@ const Apps = () => {
           ))
         )}
       </div>
+
+      {totalPages > 1 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+        />
+      )}
+
+      <Modal open={isModalOpen} onOpenChange={closeModal}>
+        <ModalContent className="max-w-2xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}
+            </ModalTitle>
+          </ModalHeader>
+          <div className="p-4">
+            <ApplicationForm
+              onSuccess={handleFormSuccess}
+              onCancel={closeModal}
+              initialData={selectedApp}
+              isEdit={isEditing}
+              applicationId={selectedApp?.id}
+            />
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

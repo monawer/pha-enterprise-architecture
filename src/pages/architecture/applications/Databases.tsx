@@ -1,142 +1,85 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Plus, Search, Database, Edit, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Database, Edit, Trash2 } from 'lucide-react';
+import { useModal } from '@/hooks/useModal';
+import { useDatabases } from '@/hooks/useDatabases';
+import EntityHeader from '@/components/common/EntityHeader';
+import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
 import DatabaseForm from '@/components/forms/DatabaseForm';
+import { usePagination } from '@/hooks/usePagination';
+import PaginationControls from '@/components/common/PaginationControls';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+interface DatabaseType {
+  id: string;
+  database_name: string;
+  application_name?: string;
+  database_environment_type?: string;
+  created_at: string;
+}
 
 const Databases = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDb, setEditingDb] = useState<any>(null);
-  const { toast } = useToast();
+  const {
+    databases,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    refetch,
+    handleDelete
+  } = useDatabases();
 
-  const { data: databases, isLoading, refetch } = useQuery({
-    queryKey: ['databases'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('app_databases')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const {
+    isOpen: isModalOpen,
+    selectedItem: selectedDb,
+    isEditing,
+    openModal,
+    closeModal
+  } = useModal<DatabaseType>();
 
-      if (error) {
-        console.error('Error fetching databases:', error);
-        throw error;
-      }
-      return data || [];
-    },
-  });
-
-  const filteredDatabases = databases?.filter(db =>
-    db.database_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    db.application_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
-  const handleDelete = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف قاعدة البيانات هذه؟')) {
-      try {
-        const { error } = await supabase
-          .from('app_databases')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-
-        toast({
-          title: "تم حذف قاعدة البيانات بنجاح",
-          description: "تم حذف قاعدة البيانات من النظام",
-        });
-        
-        refetch();
-      } catch (error) {
-        console.error('Error deleting database:', error);
-        toast({
-          title: "خطأ في الحذف",
-          description: "حدث خطأ أثناء حذف قاعدة البيانات",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleEdit = (db: any) => {
-    setEditingDb(db);
-    setIsModalOpen(true);
-  };
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    hasNextPage,
+    hasPrevPage,
+    startIndex,
+    endIndex,
+    totalItems
+  } = usePagination({ data: databases, itemsPerPage: 9 });
 
   const handleFormSuccess = () => {
-    setIsModalOpen(false);
-    setEditingDb(null);
     refetch();
+    closeModal();
   };
 
-  const handleFormCancel = () => {
-    setIsModalOpen(false);
-    setEditingDb(null);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">جاري التحميل...</div>
-      </div>
-    );
+  if (loading) {
+    return <LoadingSpinner message="جاري تحميل قواعد البيانات..." />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">قواعد بيانات التطبيقات</h1>
-          <p className="text-gray-600 mt-2">
-            إدارة قواعد البيانات ومحركاتها
-          </p>
-        </div>
-        <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <ModalTrigger asChild>
-            <Button onClick={() => setEditingDb(null)}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة قاعدة بيانات
-            </Button>
-          </ModalTrigger>
-          <ModalContent className="max-w-2xl">
-            <ModalHeader>
-              <ModalTitle>
-                {editingDb ? 'تعديل قاعدة البيانات' : 'إضافة قاعدة بيانات جديدة'}
-              </ModalTitle>
-            </ModalHeader>
-            <div className="p-4">
-              <DatabaseForm
-                onSuccess={handleFormSuccess}
-                onCancel={handleFormCancel}
-                initialData={editingDb}
-                isEdit={!!editingDb}
-                databaseId={editingDb?.id}
-              />
-            </div>
-          </ModalContent>
-        </Modal>
-      </div>
+      <EntityHeader
+        title="قواعد بيانات التطبيقات"
+        description="إدارة قواعد البيانات ومحركاتها"
+        icon={<Database className="w-8 h-8 text-green-500" />}
+        onAdd={() => openModal()}
+        addButtonText="إضافة قاعدة بيانات"
+      />
 
-      <div className="flex items-center space-x-4 space-x-reverse">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="البحث في قواعد البيانات..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10"
-          />
-        </div>
-      </div>
+      <SearchAndFilterCard
+        title="قواعد البيانات"
+        count={databases.length}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="البحث في قواعد البيانات..."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredDatabases.length === 0 ? (
+        {paginatedData.length === 0 ? (
           <Card className="col-span-full">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Database className="w-12 h-12 text-gray-400 mb-4" />
@@ -149,8 +92,8 @@ const Databases = () => {
             </CardContent>
           </Card>
         ) : (
-          filteredDatabases.map((db) => (
-            <Card key={db.id} className="hover:shadow-lg transition-shadow">
+          paginatedData.map((db) => (
+            <Card key={db.id} className="hover:shadow-lg transition-all duration-300 hover-scale animate-fade-in">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 space-x-reverse">
@@ -165,14 +108,16 @@ const Databases = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(db)}
+                      onClick={() => openModal(db)}
+                      className="hover-scale"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(db.id)}
+                      onClick={() => handleDelete(db)}
+                      className="hover-scale text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -199,6 +144,38 @@ const Databases = () => {
           ))
         )}
       </div>
+
+      {totalPages > 1 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+        />
+      )}
+
+      <Modal open={isModalOpen} onOpenChange={closeModal}>
+        <ModalContent className="max-w-2xl">
+          <ModalHeader>
+            <ModalTitle>
+              {isEditing ? 'تعديل قاعدة البيانات' : 'إضافة قاعدة بيانات جديدة'}
+            </ModalTitle>
+          </ModalHeader>
+          <div className="p-4">
+            <DatabaseForm
+              onSuccess={handleFormSuccess}
+              onCancel={closeModal}
+              initialData={selectedDb}
+              isEdit={isEditing}
+              databaseId={selectedDb?.id}
+            />
+          </div>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
