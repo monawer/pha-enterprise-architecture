@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Procedure } from '@/types/procedure';
 import { PolicyOption } from '@/hooks/usePoliciesOptions';
@@ -10,27 +9,44 @@ const IMPORTANCE_LEVELS = ["عالية", "متوسطة", "منخفضة"];
 
 function fixFieldsMapping(p: Partial<Procedure>): Partial<Procedure> {
   let updated = { ...p };
+  const originalAutomation = updated.automation_level;
+  const originalImportance = updated.importance;
 
-  // أحياناً القيم تأتي بين الحقلين بشكل خاطئ: نصلح ذلك تلقائيًا
-  // إذا كانت قيمة automation_level ليست من قائمة المستويات المسموحة، ننقلها إلى importance إذا كانت ضمن الاهمية والعكس
-  if (
-    updated.automation_level &&
-    !AUTOMATION_LEVELS.includes(updated.automation_level) &&
-    IMPORTANCE_LEVELS.includes(updated.automation_level)
-  ) {
-    // قيمة الأهمية في حقل مستوى الأتمتة! ننقلها للأهمية
-    updated.importance = updated.automation_level;
+  console.log("🔧 [fixFieldsMapping] Initial values:", { automation: originalAutomation, importance: originalImportance });
+
+  const automationIsActuallyImportance = originalAutomation &&
+    !AUTOMATION_LEVELS.includes(originalAutomation) &&
+    IMPORTANCE_LEVELS.some(level => originalAutomation.includes(level));
+    
+  const importanceIsActuallyAutomation = originalImportance &&
+    !IMPORTANCE_LEVELS.some(level => originalImportance.includes(level)) &&
+    AUTOMATION_LEVELS.includes(originalImportance);
+
+  if (automationIsActuallyImportance && importanceIsActuallyAutomation) {
+    // This is a swap
+    console.log("🔄 [fixFieldsMapping] Swapping automation_level and importance");
+    updated.automation_level = originalImportance;
+    updated.importance = originalAutomation;
+  } else if (automationIsActuallyImportance && !updated.importance) {
+    // Only automation is wrong, and importance is empty
+    console.log("➡️ [fixFieldsMapping] Moving automation_level to importance");
+    updated.importance = originalAutomation;
     updated.automation_level = '';
-  }
-  if (
-    updated.importance &&
-    !IMPORTANCE_LEVELS.includes(updated.importance) &&
-    AUTOMATION_LEVELS.includes(updated.importance)
-  ) {
-    // قيمة مستوى الأتمتة في حقل الأهمية! ننقلها لمستوى الأتمتة
-    updated.automation_level = updated.importance;
+  } else if (importanceIsActuallyAutomation && !updated.automation_level) {
+    // Only importance is wrong, and automation is empty
+    console.log("➡️ [fixFieldsMapping] Moving importance to automation_level");
+    updated.automation_level = originalImportance;
     updated.importance = '';
   }
+
+  // Normalize importance value to match select options
+  if (updated.importance?.includes("متوسط")) {
+      console.log(`[fixFieldsMapping] Normalizing importance from "${updated.importance}" to "متوسطة"`);
+      updated.importance = "متوسطة";
+  }
+  
+  console.log("🔧 [fixFieldsMapping] Final values:", { automation: updated.automation_level, importance: updated.importance });
+  
   return updated;
 }
 
