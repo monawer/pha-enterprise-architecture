@@ -440,7 +440,7 @@ export type Database = {
       }
       biz_business_owners: {
         Row: {
-          code: string | null
+          code: string
           component_id: string | null
           created_at: string | null
           id: string
@@ -450,7 +450,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          code?: string | null
+          code: string
           component_id?: string | null
           created_at?: string | null
           id?: string
@@ -460,7 +460,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          code?: string | null
+          code?: string
           component_id?: string | null
           created_at?: string | null
           id?: string

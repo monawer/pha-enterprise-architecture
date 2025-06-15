@@ -14,6 +14,7 @@ import PaginationControls from '@/components/common/PaginationControls';
 import { useSearchAndFilter } from '@/hooks/useSearchAndFilter';
 import { usePagination } from '@/hooks/usePagination';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BusinessOwner {
   id: string;
@@ -32,6 +33,7 @@ const BusinessOwners = () => {
   const [editingOwner, setEditingOwner] = useState<BusinessOwner | null>(null);
   const [deletingOwnerId, setDeletingOwnerId] = useState<string | null>(null);
   const { executeWithErrorHandling, isLoading: errorLoading } = useErrorHandler();
+  const isMobile = useIsMobile();
 
   const { data: businessOwners = [], isLoading } = useQuery({
     queryKey: ['businessOwners'],
@@ -40,7 +42,6 @@ const BusinessOwners = () => {
         .from('biz_business_owners')
         .select('*')
         .order('created_at', { ascending: false });
-      
       if (error) throw error;
       return data || [];
     },
@@ -57,7 +58,7 @@ const BusinessOwners = () => {
     }
   });
 
-  // تطبيق Pagination
+  // Pagination
   const pagination = usePagination({
     data: searchAndFilter.filteredData,
     itemsPerPage: 10
@@ -69,7 +70,6 @@ const BusinessOwners = () => {
         .from('biz_business_owners')
         .delete()
         .eq('id', id);
-      
       if (error) throw error;
     },
     onSuccess: () => {
@@ -125,7 +125,7 @@ const BusinessOwners = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center space-x-3 space-x-reverse">
           <UserCheck className="w-8 h-8 text-teal-600" />
           <div>
@@ -133,7 +133,7 @@ const BusinessOwners = () => {
             <p className="text-gray-600">إدارة ملاك الأعمال والمسؤوليات في المؤسسة</p>
           </div>
         </div>
-        <Button onClick={() => setIsFormOpen(true)} className="flex items-center space-x-2 space-x-reverse">
+        <Button onClick={() => setIsFormOpen(true)} className="flex items-center space-x-2 space-x-reverse px-4 py-2 md:px-4 md:py-2 text-base md:text-sm">
           <Plus className="w-4 h-4" />
           <span>إضافة مالك أعمال جديد</span>
         </Button>
@@ -157,7 +157,7 @@ const BusinessOwners = () => {
             totalResults={searchAndFilter.totalResults}
           />
 
-          {/* الجدول */}
+          {/* عرض مختلف حسب حجم الشاشة */}
           {pagination.paginatedData.length === 0 ? (
             <div className="text-center py-8">
               <UserCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -170,63 +170,123 @@ const BusinessOwners = () => {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>الكود</TableHead>
-                    <TableHead>المسمى الوظيفي</TableHead>
-                    <TableHead>الوصف الوظيفي</TableHead>
-                    <TableHead>الكود الأب</TableHead>
-                    <TableHead>تاريخ الإنشاء</TableHead>
-                    <TableHead>الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              {/* إذا كان موبايل... اعرض بطاقات */}
+              {isMobile ? (
+                <div className="grid grid-cols-1 gap-4">
                   {pagination.paginatedData.map((owner) => (
-                    <TableRow key={owner.id}>
-                      <TableCell>{owner.code || '-'}</TableCell>
-                      <TableCell className="font-medium">{owner.title}</TableCell>
-                      <TableCell>{owner.job_description || '-'}</TableCell>
-                      <TableCell>{owner.parent_code || '-'}</TableCell>
-                      <TableCell>
-                        {new Date(owner.created_at).toLocaleDateString('ar-SA')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2 space-x-reverse">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(owner)}
-                            disabled={errorLoading}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeletingOwnerId(owner.id)}
-                            disabled={errorLoading}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <div key={owner.id} className="rounded-lg border shadow-sm p-4 flex flex-col gap-3 bg-white">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-saudi-green-700">{owner.title}</span>
+                        <span className="text-xs text-gray-500">{owner.code || '-'}</span>
+                      </div>
+                      {owner.job_description && (
+                        <div className="text-gray-700 text-sm">{owner.job_description}</div>
+                      )}
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>الكود الأب: {owner.parent_code || '-'}</span>
+                        <span>تاريخ الإضافة: {new Date(owner.created_at).toLocaleDateString('ar-SA')}</span>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleEdit(owner)}
+                          disabled={errorLoading}
+                        >
+                          <Pencil className="w-4 h-4" />
+                          <span className="ml-1">تعديل</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => setDeletingOwnerId(owner.id)}
+                          disabled={errorLoading}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="ml-1">حذف</span>
+                        </Button>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              <PaginationControls
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
-                onPageChange={pagination.goToPage}
-                hasNextPage={pagination.hasNextPage}
-                hasPrevPage={pagination.hasPrevPage}
-                startIndex={pagination.startIndex}
-                endIndex={pagination.endIndex}
-                totalItems={pagination.totalItems}
-              />
+                </div>
+              ) : (
+                // الديسكتوب يبقى الجدول كما هو
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>الكود</TableHead>
+                        <TableHead>المسمى الوظيفي</TableHead>
+                        <TableHead>الوصف الوظيفي</TableHead>
+                        <TableHead>الكود الأب</TableHead>
+                        <TableHead>تاريخ الإنشاء</TableHead>
+                        <TableHead>الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pagination.paginatedData.map((owner) => (
+                        <TableRow key={owner.id}>
+                          <TableCell>{owner.code || '-'}</TableCell>
+                          <TableCell className="font-medium">{owner.title}</TableCell>
+                          <TableCell>{owner.job_description || '-'}</TableCell>
+                          <TableCell>{owner.parent_code || '-'}</TableCell>
+                          <TableCell>
+                            {new Date(owner.created_at).toLocaleDateString('ar-SA')}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2 space-x-reverse">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(owner)}
+                                disabled={errorLoading}
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setDeletingOwnerId(owner.id)}
+                                disabled={errorLoading}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {/* Pagination */}
+                  <PaginationControls
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={pagination.goToPage}
+                    hasNextPage={pagination.hasNextPage}
+                    hasPrevPage={pagination.hasPrevPage}
+                    startIndex={pagination.startIndex}
+                    endIndex={pagination.endIndex}
+                    totalItems={pagination.totalItems}
+                  />
+                </>
+              )}
+              {/* عرض التحكم بالتصفح (Pagination) أسفل البطاقات للموبايل */}
+              {isMobile && (
+                <div className="pt-4">
+                  <PaginationControls
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={pagination.goToPage}
+                    hasNextPage={pagination.hasNextPage}
+                    hasPrevPage={pagination.hasPrevPage}
+                    startIndex={pagination.startIndex}
+                    endIndex={pagination.endIndex}
+                    totalItems={pagination.totalItems}
+                  />
+                </div>
+              )}
             </>
           )}
         </CardContent>
@@ -234,22 +294,24 @@ const BusinessOwners = () => {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className={`max-w-2xl w-full px-0 md:px-8 ${isMobile ? 'min-h-[92vh] flex items-center' : ''}`}>
           <DialogHeader>
             <DialogTitle>
               {editingOwner ? 'تعديل مالك الأعمال' : 'إضافة مالك أعمال جديد'}
             </DialogTitle>
           </DialogHeader>
-          <BusinessOwnerForm
-            onSuccess={handleFormSuccess}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setEditingOwner(null);
-            }}
-            initialData={editingOwner}
-            isEdit={!!editingOwner}
-            ownerId={editingOwner?.id}
-          />
+          <div className={isMobile ? "w-full" : ""}>
+            <BusinessOwnerForm
+              onSuccess={handleFormSuccess}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setEditingOwner(null);
+              }}
+              initialData={editingOwner}
+              isEdit={!!editingOwner}
+              ownerId={editingOwner?.id}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -279,3 +341,5 @@ const BusinessOwners = () => {
 };
 
 export default BusinessOwners;
+
+// ... نهاية الملف
