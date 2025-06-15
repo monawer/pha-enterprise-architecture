@@ -81,7 +81,6 @@ export const useErrorHandler = () => {
     successMessage?: string
   ): Promise<T | null> => {
     try {
-      setIsLoading(true);
       if (context) clearError(context);
       
       const result = await asyncFunction();
@@ -97,8 +96,6 @@ export const useErrorHandler = () => {
     } catch (error) {
       handleError(error, context);
       return null;
-    } finally {
-      setIsLoading(false);
     }
   }, [handleError, clearError, toast]);
 

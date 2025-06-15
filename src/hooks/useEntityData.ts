@@ -24,24 +24,28 @@ export const useEntityData = <T extends { id: string }>({
   const fetchData = useCallback(async () => {
     await executeWithErrorHandling(
       async () => {
-        const { data: result, error } = await supabase
-          .from(tableName)
+        setLoading(true);
+        const query = supabase
+          .from(tableName as any)
           .select('*')
           .order(orderBy, { ascending });
 
+        const { data: result, error } = await query;
+
         if (error) throw error;
-        setData(result || []);
+        setData((result as T[]) || []);
       },
       `fetch-${tableName}`,
       undefined
     );
+    setLoading(false);
   }, [tableName, orderBy, ascending, executeWithErrorHandling]);
 
   const deleteItem = useCallback(async (id: string) => {
     return await executeWithErrorHandling(
       async () => {
         const { error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .delete()
           .eq('id', id);
 
