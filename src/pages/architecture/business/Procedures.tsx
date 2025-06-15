@@ -185,6 +185,7 @@ const Procedures = () => {
             </ModalTitle>
           </ModalHeader>
           <ProcedureForm
+            key={selectedProcedure?.id || 'new'}
             procedure={selectedProcedure || undefined}
             onSuccess={handleFormSuccess}
             onCancel={() => setIsModalOpen(false)}
