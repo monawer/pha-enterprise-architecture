@@ -33,7 +33,7 @@ export const useEntityData = <T extends { id: string }>({
         const { data: result, error } = await query;
 
         if (error) throw error;
-        setData((result as T[]) || []);
+        setData((result as unknown as T[]) || []);
       },
       `fetch-${tableName}`,
       undefined
