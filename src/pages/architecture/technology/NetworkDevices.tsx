@@ -68,7 +68,6 @@ const NetworkDevices = () => {
       if (error) throw error;
       setDevices(data || []);
     } catch (error) {
-      console.error('Error fetching network devices:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في جلب بيانات أجهزة الشبكة",
@@ -108,7 +107,6 @@ const NetworkDevices = () => {
 
         fetchDevices();
       } catch (error: any) {
-        console.error('Error deleting network device:', error);
         toast({
           title: "خطأ",
           description: error.message || "حدث خطأ أثناء حذف جهاز الشبكة",

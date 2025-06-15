@@ -68,7 +68,6 @@ const VirtualServers = () => {
       if (error) throw error;
       setServers(data || []);
     } catch (error) {
-      console.error('Error fetching virtual servers:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في جلب بيانات الخوادم الافتراضية",
@@ -108,7 +107,6 @@ const VirtualServers = () => {
 
         fetchServers();
       } catch (error: any) {
-        console.error('Error deleting virtual server:', error);
         toast({
           title: "خطأ",
           description: error.message || "حدث خطأ أثناء حذف الخادم الافتراضي",
