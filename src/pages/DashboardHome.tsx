@@ -1,12 +1,15 @@
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AreaChart, ListOrdered, Layers } from "lucide-react";
+import { AreaChart, ListOrdered, Layers, CalendarDays, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
+import QuickActions from "@/components/dashboard/QuickActions";
+import ActivityFeed from "@/components/dashboard/ActivityFeed";
+import LayerStatsCard from "@/components/layer/LayerStatsCard";
 
 // 1. تحديد نوع ثابت لأسماء الجداول المسموحة
 type LayerTable = 
@@ -41,6 +44,7 @@ const DashboardHome: React.FC = () => {
   const [stats, setStats] = useState<StatsState>({});
   const [loading, setLoading] = useState(true);
   const [selectedLayer, setSelectedLayer] = useState<string>("all");
+  const [timeFilter, setTimeFilter] = useState<string>("month");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -61,100 +65,152 @@ const DashboardHome: React.FC = () => {
     fetchStats();
   }, []);
 
+  const totalComponents = Object.values(stats).reduce((sum, count) => sum + count, 0);
+  const activeServices = stats.business ?? 0;
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-2">لوحة القيادة</h1>
-      <p className="mb-4 text-gray-600">ملخص ديناميكي حول أهم مكونات البنية المؤسسية مع إمكانية تصفية سريعة حسب الطبقات.</p>
-      <div className="flex flex-wrap gap-4 mb-8">
-        <Button 
-          onClick={() => setSelectedLayer("all")}
-          variant={selectedLayer === "all" ? "default" : "outline"}
-          className="min-w-[100px]"
-        >
-          الكل
-        </Button>
-        {layers.map((l) => (
-          <Button
-            key={l.key}
-            onClick={() => setSelectedLayer(l.key)}
-            variant={selectedLayer === l.key ? "default" : "outline"}
-            className="min-w-[100px]"
-          >
-            {l.label}
-          </Button>
-        ))}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-white shadow-sm border-b border-gray-200 mb-8">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">لوحة القيادة</h1>
+              <p className="text-gray-600">نظرة شاملة على البنية المؤسسية ومكوناتها الأساسية</p>
+            </div>
+            <div className="flex items-center gap-3 mt-4 md:mt-0">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                تصفية
+              </Button>
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4" />
+                {timeFilter === "month" ? "هذا الشهر" : "هذا الأسبوع"}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {layers
-            .filter((l) => selectedLayer === "all" || selectedLayer === l.key)
-            .map((l) => (
-            <Card key={l.key} className={cn("shadow-lg border-l-4", l.color)}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Layers className="w-6 h-6" />
-                  {l.label}
+
+      <div className="max-w-7xl mx-auto px-4 space-y-8">
+        {/* Metrics Section */}
+        <DashboardMetrics 
+          totalComponents={totalComponents}
+          activeServices={activeServices}
+          monthlyGrowth="+8.3%"
+        />
+
+        {/* Filter Buttons */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex flex-wrap gap-3">
+            <Button 
+              onClick={() => setSelectedLayer("all")}
+              variant={selectedLayer === "all" ? "default" : "outline"}
+              size="sm"
+              className="min-w-[100px]"
+            >
+              الكل
+            </Button>
+            {layers.map((l) => (
+              <Button
+                key={l.key}
+                onClick={() => setSelectedLayer(l.key)}
+                variant={selectedLayer === l.key ? "default" : "outline"}
+                size="sm"
+                className="min-w-[100px]"
+              >
+                {l.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Layer Stats - Takes 2 columns */}
+          <div className="lg:col-span-2">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">إحصائيات الطبقات</h2>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {layers
+                    .filter((l) => selectedLayer === "all" || selectedLayer === l.key)
+                    .map((l) => (
+                    <LayerStatsCard
+                      key={l.key}
+                      icon={<Layers className="w-6 h-6" />}
+                      label={l.label}
+                      count={stats[l.key] ?? 0}
+                      color={l.color}
+                      trend={{ value: '+5.2%', direction: 'up' }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Most Active Tables */}
+            <Card className="bg-white shadow-md border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <AreaChart className="w-5 h-5 text-blue-600" />
+                  أكثر الطبقات نشاطًا
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center">
-                  <span className="text-4xl font-bold mr-2">{stats[l.key] ?? 0}</span>
-                  <span className="text-gray-500">عنصر</span>
+                <div className="space-y-4">
+                  {Object.entries(stats)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 4)
+                    .map(([key, count], index) => {
+                      const layerDef = layers.find((l) => l.key === key);
+                      if (!layerDef) return null;
+                      return (
+                        <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-3 h-3 rounded-full ${layerDef.color}`}></div>
+                            <span className="font-medium text-gray-900">{layerDef.label}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-bold text-gray-900">{count}</span>
+                            <span className="text-sm text-gray-500">عنصر</span>
+                          </div>
+                        </div>
+                      );
+                  })}
                 </div>
-                <Link to={`/architecture/${l.key}`}>
-                  <Button variant="link" className="mt-3 p-0">عرض التفاصيل &rarr;</Button>
-                </Link>
               </CardContent>
             </Card>
-          ))}
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            <ActivityFeed />
+            <QuickActions />
+          </div>
         </div>
-      )}
-      <div className="mt-8">
-        <Card>
+
+        {/* Summary Section */}
+        <Card className="bg-gradient-to-r from-saudi-green-50 to-green-50 border border-saudi-green-100 shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AreaChart className="w-5 h-5 text-blue-600" />
-              أكثر الجداول نشاطًا
+            <CardTitle className="flex items-center gap-2 text-lg text-saudi-green-800">
+              <ListOrdered className="w-5 h-5" />
+              ملخص الإحصائيات العامة
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="list-decimal pl-6">
-              {Object.entries(stats)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 3)
-                .map(([key, count]) => {
-                  const layerDef = layers.find((l) => l.key === key);
-                  if (!layerDef) return null;
-                  return (
-                    <li key={key} className="mb-2">
-                      <span className="font-semibold">{layerDef.label}:</span>{" "}
-                      <span className="text-blue-700">{count}</span> عنصر
-                    </li>
-                  );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="mt-10">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListOrdered className="w-5 h-5 text-green-600" />
-              لمحة عن الإحصائيات العامة
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-gray-700 font-semibold">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {layers.map((l) => (
-                <li key={l.key}>
-                  <span className="mr-2 text-sm">{l.label}:</span>
-                  <span className="text-green-600">{stats[l.key] ?? 0}</span>
-                </li>
+                <div key={l.key} className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <div className="text-2xl font-bold text-saudi-green-700">{stats[l.key] ?? 0}</div>
+                  <div className="text-sm text-gray-600 mt-1">{l.label}</div>
+                </div>
               ))}
-            </ul>
+            </div>
           </CardContent>
         </Card>
       </div>
