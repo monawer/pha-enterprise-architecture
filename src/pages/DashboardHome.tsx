@@ -35,6 +35,20 @@ const layers: LayerDef[] = [
       { name: "القدرات", table: "biz_capabilities", count: 0 }
     ]
   },
+    { 
+    key: "technology", 
+    label: "طبقة التقنية", 
+    color: "bg-teal-500", 
+    icon: <Server className="w-8 h-8" />,
+    path: "/architecture/technology",
+    components: [
+      { name: "الخوادم المادية", table: "tech_physical_servers", count: 0 },
+      { name: "الخوادم الافتراضية", table: "tech_virtual_servers", count: 0 },
+      { name: "أجهزة الشبكة", table: "tech_network_devices", count: 0 },
+      { name: "مراكز البيانات", table: "tech_data_centers", count: 0 },
+      { name: "التراخيص", table: "tech_licenses", count: 0 }
+    ]
+  },
   { 
     key: "applications", 
     label: "طبقة التطبيقات", 
@@ -58,20 +72,7 @@ const layers: LayerDef[] = [
       { name: "مخازن البيانات", table: "data_storage", count: 0 }
     ]
   },
-  { 
-    key: "technology", 
-    label: "طبقة التقنية", 
-    color: "bg-teal-500", 
-    icon: <Server className="w-8 h-8" />,
-    path: "/architecture/technology",
-    components: [
-      { name: "الخوادم المادية", table: "tech_physical_servers", count: 0 },
-      { name: "الخوادم الافتراضية", table: "tech_virtual_servers", count: 0 },
-      { name: "أجهزة الشبكة", table: "tech_network_devices", count: 0 },
-      { name: "مراكز البيانات", table: "tech_data_centers", count: 0 },
-      { name: "التراخيص", table: "tech_licenses", count: 0 }
-    ]
-  },
+
   { 
     key: "security", 
     label: "طبقة الأمان", 
