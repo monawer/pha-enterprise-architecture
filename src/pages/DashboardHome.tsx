@@ -1,15 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AreaChart, ListOrdered, Layers, CalendarDays, Filter } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Building, Monitor, Database, Server, Shield, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
-import QuickActions from "@/components/dashboard/QuickActions";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import LayerStatsCard from "@/components/layer/LayerStatsCard";
 
 // 1. تحديد نوع ثابت لأسماء الجداول المسموحة
 type LayerTable = 
@@ -25,15 +19,59 @@ interface LayerDef {
   label: string;
   color: string;
   table: LayerTable;
+  icon: React.ReactNode;
+  path: string;
 }
 
 const layers: LayerDef[] = [
-  { key: "business", label: "طبقة الأعمال", color: "bg-green-500", table: "biz_services" },
-  { key: "applications", label: "طبقة التطبيقات", color: "bg-orange-500", table: "app_applications" },
-  { key: "data", label: "طبقة البيانات", color: "bg-blue-500", table: "data_entities" },
-  { key: "technology", label: "طبقة التقنية", color: "bg-teal-500", table: "tech_physical_servers" },
-  { key: "security", label: "طبقة الأمان", color: "bg-red-500", table: "sec_devices" },
-  { key: "ux", label: "طبقة تجربة المستخدم", color: "bg-pink-500", table: "ux_beneficiaries" },
+  { 
+    key: "business", 
+    label: "طبقة الأعمال", 
+    color: "bg-green-500", 
+    table: "biz_services",
+    icon: <Building className="w-8 h-8" />,
+    path: "/architecture/business"
+  },
+  { 
+    key: "applications", 
+    label: "طبقة التطبيقات", 
+    color: "bg-orange-500", 
+    table: "app_applications",
+    icon: <Monitor className="w-8 h-8" />,
+    path: "/architecture/applications"
+  },
+  { 
+    key: "data", 
+    label: "طبقة البيانات", 
+    color: "bg-blue-500", 
+    table: "data_entities",
+    icon: <Database className="w-8 h-8" />,
+    path: "/architecture/data"
+  },
+  { 
+    key: "technology", 
+    label: "طبقة التقنية", 
+    color: "bg-teal-500", 
+    table: "tech_physical_servers",
+    icon: <Server className="w-8 h-8" />,
+    path: "/architecture/technology"
+  },
+  { 
+    key: "security", 
+    label: "طبقة الأمان", 
+    color: "bg-red-500", 
+    table: "sec_devices",
+    icon: <Shield className="w-8 h-8" />,
+    path: "/architecture/security"
+  },
+  { 
+    key: "ux", 
+    label: "طبقة تجربة المستخدم", 
+    color: "bg-pink-500", 
+    table: "ux_beneficiaries",
+    icon: <Eye className="w-8 h-8" />,
+    path: "/architecture/ux"
+  },
 ];
 
 interface StatsState {
@@ -43,8 +81,6 @@ interface StatsState {
 const DashboardHome: React.FC = () => {
   const [stats, setStats] = useState<StatsState>({});
   const [loading, setLoading] = useState(true);
-  const [selectedLayer, setSelectedLayer] = useState<string>("all");
-  const [timeFilter, setTimeFilter] = useState<string>("month");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -65,154 +101,86 @@ const DashboardHome: React.FC = () => {
     fetchStats();
   }, []);
 
-  const totalComponents = Object.values(stats).reduce((sum, count) => sum + count, 0);
-  const activeServices = stats.business ?? 0;
+  const colorClasses = {
+    'bg-green-500': 'from-green-400 to-green-600 shadow-green-200',
+    'bg-orange-500': 'from-orange-400 to-orange-600 shadow-orange-200',
+    'bg-blue-500': 'from-blue-400 to-blue-600 shadow-blue-200',
+    'bg-teal-500': 'from-teal-400 to-teal-600 shadow-teal-200',
+    'bg-red-500': 'from-red-400 to-red-600 shadow-red-200',
+    'bg-pink-500': 'from-pink-400 to-pink-600 shadow-pink-200',
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <div className="bg-white shadow-sm border-b border-gray-200 mb-8">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">لوحة القيادة</h1>
-              <p className="text-gray-600">نظرة شاملة على البنية المؤسسية ومكوناتها الأساسية</p>
-            </div>
-            <div className="flex items-center gap-3 mt-4 md:mt-0">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                تصفية
-              </Button>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <CalendarDays className="w-4 h-4" />
-                {timeFilter === "month" ? "هذا الشهر" : "هذا الأسبوع"}
-              </Button>
-            </div>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">لوحة القيادة</h1>
+            <p className="text-gray-600">نظرة شاملة على البنية المؤسسية ومكوناتها الأساسية</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
-        {/* Metrics Section */}
-        <DashboardMetrics 
-          totalComponents={totalComponents}
-          activeServices={activeServices}
-          monthlyGrowth="+8.3%"
-        />
-
-        {/* Filter Buttons */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-wrap gap-3">
-            <Button 
-              onClick={() => setSelectedLayer("all")}
-              variant={selectedLayer === "all" ? "default" : "outline"}
-              size="sm"
-              className="min-w-[100px]"
-            >
-              الكل
-            </Button>
-            {layers.map((l) => (
-              <Button
-                key={l.key}
-                onClick={() => setSelectedLayer(l.key)}
-                variant={selectedLayer === l.key ? "default" : "outline"}
-                size="sm"
-                className="min-w-[100px]"
-              >
-                {l.label}
-              </Button>
-            ))}
+      <div className="max-w-7xl mx-auto px-4">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <LoadingSpinner />
           </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Layer Stats - Takes 2 columns */}
-          <div className="lg:col-span-2">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">إحصائيات الطبقات</h2>
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <LoadingSpinner />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {layers
-                    .filter((l) => selectedLayer === "all" || selectedLayer === l.key)
-                    .map((l) => (
-                    <LayerStatsCard
-                      key={l.key}
-                      icon={<Layers className="w-6 h-6" />}
-                      label={l.label}
-                      count={stats[l.key] ?? 0}
-                      color={l.color}
-                      trend={{ value: '+5.2%', direction: 'up' }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Most Active Tables */}
-            <Card className="bg-white shadow-md border-0">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <AreaChart className="w-5 h-5 text-blue-600" />
-                  أكثر الطبقات نشاطًا
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(stats)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 4)
-                    .map(([key, count], index) => {
-                      const layerDef = layers.find((l) => l.key === key);
-                      if (!layerDef) return null;
-                      return (
-                        <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${layerDef.color}`}></div>
-                            <span className="font-medium text-gray-900">{layerDef.label}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-gray-900">{count}</span>
-                            <span className="text-sm text-gray-500">عنصر</span>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {layers.map((layer) => {
+              const gradientClass = colorClasses[layer.color as keyof typeof colorClasses] || 'from-gray-400 to-gray-600 shadow-gray-200';
+              
+              return (
+                <Link 
+                  key={layer.key} 
+                  to={layer.path}
+                  className="block group hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border-0 shadow-lg hover:-translate-y-1 rounded-lg overflow-hidden"
+                >
+                  <div className={`bg-gradient-to-br ${gradientClass} p-6 relative overflow-hidden`}>
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white transform translate-x-8 -translate-y-8"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white transform -translate-x-4 translate-y-4"></div>
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                          <div className="text-white">
+                            {layer.icon}
                           </div>
                         </div>
-                      );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      </div>
+                      
+                      <div className="text-white text-center">
+                        <div className="text-4xl font-bold mb-2">{stats[layer.key] ?? 0}</div>
+                        <div className="text-white/90 text-lg font-medium">{layer.label}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-white">
+                    <div className="text-center">
+                      <span className="text-sm text-gray-600">عنصر نشط</span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mt-3">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`bg-gradient-to-r ${gradientClass.split(' ')[0]} ${gradientClass.split(' ')[1]} h-2 rounded-full transition-all duration-500`}
+                          style={{ width: `${Math.min((stats[layer.key] ?? 0) / 10 * 100, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-
-          {/* Right Sidebar */}
-          <div className="space-y-6">
-            <ActivityFeed />
-            <QuickActions />
-          </div>
-        </div>
-
-        {/* Summary Section */}
-        <Card className="bg-gradient-to-r from-saudi-green-50 to-green-50 border border-saudi-green-100 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-saudi-green-800">
-              <ListOrdered className="w-5 h-5" />
-              ملخص الإحصائيات العامة
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {layers.map((l) => (
-                <div key={l.key} className="text-center p-4 bg-white rounded-lg shadow-sm">
-                  <div className="text-2xl font-bold text-saudi-green-700">{stats[l.key] ?? 0}</div>
-                  <div className="text-sm text-gray-600 mt-1">{l.label}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        )}
       </div>
     </div>
   );
