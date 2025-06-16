@@ -36,6 +36,7 @@ import Systems from "./pages/architecture/technology/Systems";
 import SecurityDevices from "./pages/architecture/security/SecurityDevices";
 import Users from "./pages/admin/Users";
 import References from "./pages/admin/References";
+import Settings from "./pages/Settings";
 import MainLayout from "./components/layout/MainLayout";
 import NotFound from "./pages/NotFound";
 
@@ -209,6 +210,11 @@ const App: React.FC = () => (
           <Route path="/admin/references" element={
             <MainLayout>
               <References />
+            </MainLayout>
+          } />
+          <Route path="/settings" element={
+            <MainLayout>
+              <Settings />
             </MainLayout>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

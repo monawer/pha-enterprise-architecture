@@ -94,7 +94,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
     {
       title: "الإعدادات",
       icon: Settings,
-      path: "/admin/users",
+      path: "/settings",
       show: true
     }
   ];
