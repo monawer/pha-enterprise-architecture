@@ -13,16 +13,16 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const uxComponents = [
   {
-    title: 'واجهات المستخدم',
-    description: 'إدارة واجهات المستخدم والتفاعل',
+    title: 'المستفيدون',
+    description: 'حصر المستفيدين ',
     icon: <Eye className="w-6 h-6" />,
     path: '/architecture/ux/interfaces',
     color: 'bg-blue-500',
-    stats: 'واجهة مستخدم',
+    stats: 'المستفيديون',
     table: 'ux_beneficiaries'
   },
   {
-    title: 'تجربة المستخدم',
+    title: 'الشخصية',
     description: 'إدارة عناصر تجربة المستخدم',
     icon: <Users className="w-6 h-6" />,
     path: '/architecture/ux/experience',
@@ -31,12 +31,12 @@ const uxComponents = [
     table: 'ux_personas'
   },
   {
-    title: 'التطبيقات المحمولة',
-    description: 'إدارة التطبيقات المحمولة والذكية',
+    title: 'المراحل',
+    description: 'إدارة االمراحل',
     icon: <Smartphone className="w-6 h-6" />,
     path: '/architecture/ux/mobile-apps',
     color: 'bg-purple-500',
-    stats: 'تطبيق محمول',
+    stats: 'المراحل',
     table: 'ux_stages'
   }
 ];
