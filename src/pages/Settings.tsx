@@ -15,7 +15,11 @@ import {
   Network,
   HardDrive,
   Briefcase,
-  Tags
+  Tags,
+  Cog,
+  Building2,
+  Globe,
+  Lock
 } from 'lucide-react';
 
 interface SettingsCard {
@@ -124,7 +128,7 @@ const Settings: React.FC = () => {
     {
       title: 'مستويات الأتمتة',
       description: 'إدارة مستويات الأتمتة',
-      icon: <SettingsIcon className="w-6 h-6" />,
+      icon: <Cog className="w-6 h-6" />,
       path: '/admin/references/automation-levels',
       color: 'bg-slate-500'
     },
@@ -138,14 +142,14 @@ const Settings: React.FC = () => {
     {
       title: 'الشركات المصنعة',
       description: 'إدارة بيانات الشركات المصنعة',
-      icon: <Building className="w-6 h-6" />,
+      icon: <Building2 className="w-6 h-6" />,
       path: '/admin/references/manufacturers',
       color: 'bg-lime-500'
     },
     {
       title: 'وظائف الأمان',
       description: 'إدارة وظائف الأمان المختلفة',
-      icon: <Shield className="w-6 h-6" />,
+      icon: <Lock className="w-6 h-6" />,
       path: '/admin/references/security-functions',
       color: 'bg-fuchsia-500'
     }
