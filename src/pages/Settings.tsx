@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Users, 
   Database, 
-  Settings, 
+  Settings as SettingsIcon, 
   Building, 
   Monitor, 
   Server, 
@@ -54,7 +54,7 @@ const Settings: React.FC = () => {
     {
       title: 'حالات التطبيقات',
       description: 'إدارة حالات التطبيقات المختلفة',
-      icon: <Settings className="w-6 h-6" />,
+      icon: <SettingsIcon className="w-6 h-6" />,
       path: '/admin/references/app-status',
       color: 'bg-purple-500'
     },
@@ -124,7 +124,7 @@ const Settings: React.FC = () => {
     {
       title: 'مستويات الأتمتة',
       description: 'إدارة مستويات الأتمتة',
-      icon: <Settings className="w-6 h-6" />,
+      icon: <SettingsIcon className="w-6 h-6" />,
       path: '/admin/references/automation-levels',
       color: 'bg-slate-500'
     },
