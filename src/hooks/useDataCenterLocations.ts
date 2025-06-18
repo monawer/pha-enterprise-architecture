@@ -49,9 +49,14 @@ export const useDataCenterLocations = () => {
 
   const createLocation = useCallback(async (locationData: Partial<DataCenterLocation>) => {
     try {
+      // التأكد من وجود الحقول المطلوبة
+      if (!locationData.name) {
+        throw new Error('اسم المركز مطلوب');
+      }
+
       const { error } = await supabase
         .from('tech_data_center_locations')
-        .insert([locationData]);
+        .insert(locationData);
 
       if (error) throw error;
       

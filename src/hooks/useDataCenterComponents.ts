@@ -51,10 +51,19 @@ export const useDataCenterComponents = (locationId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setComponents(data || []);
+      
+      // تحويل البيانات للنوع المطلوب مع التحقق من component_type
+      const typedData = (data || []).map(item => ({
+        ...item,
+        component_type: item.component_type as DataCenterComponent['component_type']
+      })).filter(item => 
+        ['physical_server', 'virtual_server', 'network_device', 'security_device'].includes(item.component_type)
+      );
+      
+      setComponents(typedData);
 
       // Calculate stats
-      const newStats = (data || []).reduce((acc, component) => {
+      const newStats = typedData.reduce((acc, component) => {
         acc[component.component_type]++;
         acc.total++;
         return acc;
@@ -89,13 +98,13 @@ export const useDataCenterComponents = (locationId?: string) => {
     try {
       const { error } = await supabase
         .from('tech_center_components')
-        .insert([{
+        .insert({
           data_center_location_id: locationId,
           component_type: componentType,
           component_id: componentId,
           component_name: componentName,
           ...additionalData
-        }]);
+        });
 
       if (error) throw error;
       
