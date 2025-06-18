@@ -45,7 +45,7 @@ const layers: LayerDef[] = [
       { name: "الخوادم المادية", table: "tech_physical_servers", count: 0 },
       { name: "الخوادم الافتراضية", table: "tech_virtual_servers", count: 0 },
       { name: "أجهزة الشبكة", table: "tech_network_devices", count: 0 },
-      { name: "مراكز البيانات", table: "tech_data_centers", count: 0 },
+      { name: "مراكز البيانات", table: "tech_data_center_locations", count: 0 },
       { name: "التراخيص", table: "tech_licenses", count: 0 }
     ]
   },
