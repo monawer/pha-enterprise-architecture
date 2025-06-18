@@ -1593,6 +1593,7 @@ export type Database = {
           code: string | null
           component_id: string | null
           created_at: string | null
+          data_center_location_id: string | null
           firmware_version: string | null
           function: string | null
           function_ref: string | null
@@ -1614,6 +1615,7 @@ export type Database = {
           code?: string | null
           component_id?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           firmware_version?: string | null
           function?: string | null
           function_ref?: string | null
@@ -1635,6 +1637,7 @@ export type Database = {
           code?: string | null
           component_id?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           firmware_version?: string | null
           function?: string | null
           function_ref?: string | null
@@ -1658,6 +1661,13 @@ export type Database = {
             columns: ["component_id"]
             isOneToOne: false
             referencedRelation: "architecture_components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sec_devices_data_center_location_id_fkey"
+            columns: ["data_center_location_id"]
+            isOneToOne: false
+            referencedRelation: "tech_data_center_locations"
             referencedColumns: ["id"]
           },
           {
@@ -1825,6 +1835,104 @@ export type Database = {
           },
         ]
       }
+      tech_center_components: {
+        Row: {
+          component_id: string
+          component_name: string
+          component_type: string
+          created_at: string | null
+          data_center_location_id: string
+          id: string
+          installation_date: string | null
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          component_id: string
+          component_name: string
+          component_type: string
+          created_at?: string | null
+          data_center_location_id: string
+          id?: string
+          installation_date?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          component_id?: string
+          component_name?: string
+          component_type?: string
+          created_at?: string | null
+          data_center_location_id?: string
+          id?: string
+          installation_date?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tech_center_components_data_center_location_id_fkey"
+            columns: ["data_center_location_id"]
+            isOneToOne: false
+            referencedRelation: "tech_data_center_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tech_data_center_locations: {
+        Row: {
+          address: string | null
+          city: string | null
+          code: string | null
+          coordinates: string | null
+          created_at: string | null
+          description: string | null
+          establishment_date: string | null
+          id: string
+          manager_contact: string | null
+          manager_name: string | null
+          name: string
+          operational_status: string | null
+          total_area: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          coordinates?: string | null
+          created_at?: string | null
+          description?: string | null
+          establishment_date?: string | null
+          id?: string
+          manager_contact?: string | null
+          manager_name?: string | null
+          name: string
+          operational_status?: string | null
+          total_area?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          coordinates?: string | null
+          created_at?: string | null
+          description?: string | null
+          establishment_date?: string | null
+          id?: string
+          manager_contact?: string | null
+          manager_name?: string | null
+          name?: string
+          operational_status?: string | null
+          total_area?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tech_data_centers: {
         Row: {
           center_role: string | null
@@ -1833,6 +1941,7 @@ export type Database = {
           component_id: string | null
           cost: number | null
           created_at: string | null
+          data_center_location_id: string | null
           environment: string | null
           id: string
           location: string | null
@@ -1848,6 +1957,7 @@ export type Database = {
           component_id?: string | null
           cost?: number | null
           created_at?: string | null
+          data_center_location_id?: string | null
           environment?: string | null
           id?: string
           location?: string | null
@@ -1863,6 +1973,7 @@ export type Database = {
           component_id?: string | null
           cost?: number | null
           created_at?: string | null
+          data_center_location_id?: string | null
           environment?: string | null
           id?: string
           location?: string | null
@@ -1877,6 +1988,13 @@ export type Database = {
             columns: ["component_id"]
             isOneToOne: false
             referencedRelation: "architecture_components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tech_data_centers_data_center_location_id_fkey"
+            columns: ["data_center_location_id"]
+            isOneToOne: false
+            referencedRelation: "tech_data_center_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -1941,6 +2059,7 @@ export type Database = {
           component_id: string | null
           cpu: string | null
           created_at: string | null
+          data_center_location_id: string | null
           device_status: string | null
           firmware_version: string | null
           function: string | null
@@ -1972,6 +2091,7 @@ export type Database = {
           component_id?: string | null
           cpu?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           device_status?: string | null
           firmware_version?: string | null
           function?: string | null
@@ -2003,6 +2123,7 @@ export type Database = {
           component_id?: string | null
           cpu?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           device_status?: string | null
           firmware_version?: string | null
           function?: string | null
@@ -2034,6 +2155,13 @@ export type Database = {
             columns: ["component_id"]
             isOneToOne: false
             referencedRelation: "architecture_components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tech_network_devices_data_center_location_id_fkey"
+            columns: ["data_center_location_id"]
+            isOneToOne: false
+            referencedRelation: "tech_data_center_locations"
             referencedColumns: ["id"]
           },
           {
@@ -2104,6 +2232,7 @@ export type Database = {
           cluster_id: string | null
           component_id: string | null
           created_at: string | null
+          data_center_location_id: string | null
           host_name: string
           id: string
           initial_cost: number | null
@@ -2128,6 +2257,7 @@ export type Database = {
           cluster_id?: string | null
           component_id?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           host_name: string
           id?: string
           initial_cost?: number | null
@@ -2152,6 +2282,7 @@ export type Database = {
           cluster_id?: string | null
           component_id?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           host_name?: string
           id?: string
           initial_cost?: number | null
@@ -2178,6 +2309,13 @@ export type Database = {
             columns: ["component_id"]
             isOneToOne: false
             referencedRelation: "architecture_components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tech_physical_servers_data_center_location_id_fkey"
+            columns: ["data_center_location_id"]
+            isOneToOne: false
+            referencedRelation: "tech_data_center_locations"
             referencedColumns: ["id"]
           },
           {
@@ -2252,6 +2390,7 @@ export type Database = {
           cluster_id: string | null
           component_id: string | null
           created_at: string | null
+          data_center_location_id: string | null
           disaster_recovery: string | null
           environment: string | null
           host_name: string
@@ -2274,6 +2413,7 @@ export type Database = {
           cluster_id?: string | null
           component_id?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           disaster_recovery?: string | null
           environment?: string | null
           host_name: string
@@ -2296,6 +2436,7 @@ export type Database = {
           cluster_id?: string | null
           component_id?: string | null
           created_at?: string | null
+          data_center_location_id?: string | null
           disaster_recovery?: string | null
           environment?: string | null
           host_name?: string
@@ -2319,6 +2460,13 @@ export type Database = {
             columns: ["component_id"]
             isOneToOne: false
             referencedRelation: "architecture_components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tech_virtual_servers_data_center_location_id_fkey"
+            columns: ["data_center_location_id"]
+            isOneToOne: false
+            referencedRelation: "tech_data_center_locations"
             referencedColumns: ["id"]
           },
           {
