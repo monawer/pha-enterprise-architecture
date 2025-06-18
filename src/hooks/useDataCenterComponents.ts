@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface DataCenterComponent {
   id: string;
   data_center_location_id: string;
-  component_type: 'physical_server' | 'virtual_server' | 'network_device' | 'security_device';
+  component_type: 'physical_server' | 'virtual_server' | 'network_device' | 'security_device' | 'data_center';
   component_id: string;
   component_name: string;
   installation_date?: string;
@@ -21,6 +21,7 @@ export interface ComponentStats {
   virtual_servers: number;
   network_devices: number;
   security_devices: number;
+  data_centers: number;
   total: number;
 }
 
@@ -31,6 +32,7 @@ export const useDataCenterComponents = (locationId?: string) => {
     virtual_servers: 0,
     network_devices: 0,
     security_devices: 0,
+    data_centers: 0,
     total: 0
   });
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export const useDataCenterComponents = (locationId?: string) => {
         ...item,
         component_type: item.component_type as DataCenterComponent['component_type']
       })).filter(item => 
-        ['physical_server', 'virtual_server', 'network_device', 'security_device'].includes(item.component_type)
+        ['physical_server', 'virtual_server', 'network_device', 'security_device', 'data_center'].includes(item.component_type)
       );
       
       setComponents(typedData);
@@ -72,6 +74,7 @@ export const useDataCenterComponents = (locationId?: string) => {
         virtual_servers: 0,
         network_devices: 0,
         security_devices: 0,
+        data_centers: 0,
         total: 0
       });
 

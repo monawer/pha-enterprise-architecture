@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -158,7 +157,7 @@ const TechnologyLayer = () => {
           <h3 className="text-lg font-semibold text-orange-800 font-saudi">إحصائيات مراكز البيانات</h3>
           <Building2 className="w-6 h-6 text-orange-600" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{dataCenterStats.physical_servers}</div>
             <div className="text-sm text-blue-600 font-saudi">خوادم فيزيائية</div>
@@ -174,6 +173,10 @@ const TechnologyLayer = () => {
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600">{dataCenterStats.security_devices}</div>
             <div className="text-sm text-red-600 font-saudi">أجهزة أمنية</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-orange-600">{dataCenterStats.data_centers}</div>
+            <div className="text-sm text-orange-600 font-saudi">مراكز بيانات</div>
           </div>
         </div>
       </div>

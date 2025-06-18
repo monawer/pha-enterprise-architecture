@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Server, HardDrive, Wifi, Shield, Plus, Trash2 } from 'lucide-react';
+import { Server, HardDrive, Wifi, Shield, Building2, Plus, Trash2 } from 'lucide-react';
 import { useDataCenterComponents, DataCenterComponent } from '@/hooks/useDataCenterComponents';
 
 interface DataCenterComponentsListProps {
@@ -15,14 +15,16 @@ const componentIcons = {
   physical_server: <Server className="w-4 h-4" />,
   virtual_server: <HardDrive className="w-4 h-4" />,
   network_device: <Wifi className="w-4 h-4" />,
-  security_device: <Shield className="w-4 h-4" />
+  security_device: <Shield className="w-4 h-4" />,
+  data_center: <Building2 className="w-4 h-4" />
 };
 
 const componentLabels = {
   physical_server: 'خادم فيزيائي',
   virtual_server: 'خادم افتراضي',
   network_device: 'جهاز شبكة',
-  security_device: 'جهاز أمني'
+  security_device: 'جهاز أمني',
+  data_center: 'مركز بيانات'
 };
 
 const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
@@ -49,7 +51,7 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 font-saudi mb-4">مكونات {locationName}</h2>
         
         {/* إحصائيات سريعة */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-blue-50 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-blue-600">{stats.physical_servers}</div>
             <div className="text-sm text-blue-600 font-saudi">خوادم فيزيائية</div>
@@ -65,6 +67,10 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
           <div className="bg-red-50 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-red-600">{stats.security_devices}</div>
             <div className="text-sm text-red-600 font-saudi">أجهزة أمنية</div>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-orange-600">{stats.data_centers}</div>
+            <div className="text-sm text-orange-600 font-saudi">مراكز بيانات</div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-gray-600">{stats.total}</div>
@@ -126,7 +132,7 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
 
       {components.length === 0 && (
         <div className="text-center py-12">
-          <Server className="mx-auto h-12 w-12 text-gray-400" />
+          <Building2 className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900 font-saudi">لا توجد مكونات</h3>
           <p className="mt-1 text-sm text-gray-500 font-saudi">لم يتم إضافة أي مكونات لهذا المركز بعد</p>
         </div>
