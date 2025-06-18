@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building2, Plus, Edit, Trash2, MapPin, Users, Settings } from 'lucide-react';
-import { useDataCenterLocations, DataCenterLocation } from '@/hooks/useDataCenterLocations';
+import { useDataCenterLocations, DataCenterLocation, CreateDataCenterLocation } from '@/hooks/useDataCenterLocations';
 import { useDataCenterComponents } from '@/hooks/useDataCenterComponents';
 import DataCenterLocationForm from '@/components/forms/DataCenterLocationForm';
 import DataCenterComponentsList from '@/components/datacenter/DataCenterComponentsList';
@@ -15,7 +14,7 @@ const DataCenters = () => {
   const [editingLocation, setEditingLocation] = useState<DataCenterLocation | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<DataCenterLocation | null>(null);
 
-  const handleSubmit = async (data: Partial<DataCenterLocation>) => {
+  const handleSubmit = async (data: CreateDataCenterLocation) => {
     if (editingLocation) {
       return await updateLocation(editingLocation.id, data);
     } else {

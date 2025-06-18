@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DataCenterLocation } from '@/hooks/useDataCenterLocations';
+import { DataCenterLocation, CreateDataCenterLocation } from '@/hooks/useDataCenterLocations';
 
 interface DataCenterLocationFormProps {
   location?: DataCenterLocation | null;
-  onSubmit: (data: Partial<DataCenterLocation>) => Promise<boolean>;
+  onSubmit: (data: CreateDataCenterLocation) => Promise<boolean>;
   onCancel: () => void;
 }
 
@@ -39,10 +38,18 @@ const DataCenterLocationForm: React.FC<DataCenterLocationFormProps> = ({
     e.preventDefault();
     setLoading(true);
 
-    const dataToSubmit = {
-      ...formData,
-      total_area: formData.total_area ? parseFloat(formData.total_area) : null,
-      establishment_date: formData.establishment_date || null
+    const dataToSubmit: CreateDataCenterLocation = {
+      name: formData.name,
+      code: formData.code || undefined,
+      description: formData.description || undefined,
+      address: formData.address || undefined,
+      city: formData.city || undefined,
+      coordinates: formData.coordinates || undefined,
+      manager_name: formData.manager_name || undefined,
+      manager_contact: formData.manager_contact || undefined,
+      operational_status: formData.operational_status,
+      establishment_date: formData.establishment_date || undefined,
+      total_area: formData.total_area ? parseFloat(formData.total_area) : undefined
     };
 
     const success = await onSubmit(dataToSubmit);

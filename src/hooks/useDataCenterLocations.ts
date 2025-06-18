@@ -20,6 +20,21 @@ export interface DataCenterLocation {
   updated_at: string;
 }
 
+// Type for creating/updating locations - name is required for creation
+export interface CreateDataCenterLocation {
+  name: string;
+  code?: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  coordinates?: string;
+  manager_name?: string;
+  manager_contact?: string;
+  operational_status?: string;
+  establishment_date?: string;
+  total_area?: number;
+}
+
 export const useDataCenterLocations = () => {
   const [locations, setLocations] = useState<DataCenterLocation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,13 +62,8 @@ export const useDataCenterLocations = () => {
     }
   }, [toast]);
 
-  const createLocation = useCallback(async (locationData: Partial<DataCenterLocation>) => {
+  const createLocation = useCallback(async (locationData: CreateDataCenterLocation) => {
     try {
-      // التأكد من وجود الحقول المطلوبة
-      if (!locationData.name) {
-        throw new Error('اسم المركز مطلوب');
-      }
-
       const { error } = await supabase
         .from('tech_data_center_locations')
         .insert(locationData);
