@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Server, HardDrive, Wifi, Shield, Building2, Plus, Trash2 } from 'lucide-react';
 import { useDataCenterComponents, DataCenterComponent } from '@/hooks/useDataCenterComponents';
+import AddComponentDialog from './AddComponentDialog';
 
 interface DataCenterComponentsListProps {
   locationId: string;
@@ -39,12 +39,16 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
   locationId,
   locationName
 }) => {
-  const { components, stats, loading, removeComponentFromCenter } = useDataCenterComponents(locationId);
+  const { components, stats, loading, removeComponentFromCenter, refetch } = useDataCenterComponents(locationId);
 
   const handleRemoveComponent = async (componentId: string) => {
     if (confirm('هل أنت متأكد من إزالة هذا المكون من مركز البيانات؟')) {
       await removeComponentFromCenter(componentId);
     }
+  };
+
+  const handleComponentAdded = () => {
+    refetch();
   };
 
   if (loading) {
@@ -72,7 +76,13 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg p-6 shadow-saudi-sm border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-900 font-saudi mb-4">مكونات {locationName}</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 font-saudi">مكونات {locationName}</h2>
+          <AddComponentDialog 
+            locationId={locationId} 
+            onComponentAdded={handleComponentAdded}
+          />
+        </div>
         
         {/* إحصائيات ديناميكية */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
