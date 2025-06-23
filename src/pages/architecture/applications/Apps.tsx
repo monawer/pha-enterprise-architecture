@@ -14,6 +14,7 @@ import SearchAndFilterCard from '@/components/common/SearchAndFilterCard';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import EntityHeader from '@/components/common/EntityHeader';
 import ApplicationList from '@/components/applications/ApplicationList';
+import ApplicationsSummary from '@/components/applications/ApplicationsSummary';
 
 const Apps = () => {
   const [selectedApp, setSelectedApp] = useState<any>(null);
@@ -70,6 +71,8 @@ const Apps = () => {
         addButtonText="إضافة تطبيق جديد"
         addButtonIcon={<Plus className="w-4 h-4" />}
       />
+
+      <ApplicationsSummary applications={filteredApps} />
 
       <SearchAndFilterCard
         searchTerm={searchTerm}
