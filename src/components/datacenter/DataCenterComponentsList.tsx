@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Server, HardDrive, Wifi, Shield, Building2, Plus, Trash2 } from 'lucide-react';
+import { Server, HardDrive, Wifi, Shield, Building2, Plus, Trash2, Edit } from 'lucide-react';
 import { useDataCenterComponents, DataCenterComponent } from '@/hooks/useDataCenterComponents';
 import AddComponentDialog from './AddComponentDialog';
+import EditComponentDialog from './EditComponentDialog';
 
 interface DataCenterComponentsListProps {
   locationId: string;
@@ -40,6 +41,7 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
   locationName
 }) => {
   const { components, stats, loading, removeComponentFromCenter, refetch } = useDataCenterComponents(locationId);
+  const [editingComponent, setEditingComponent] = useState<DataCenterComponent | null>(null);
 
   const handleRemoveComponent = async (componentId: string) => {
     if (confirm('هل أنت متأكد من إزالة هذا المكون من مركز البيانات؟')) {
@@ -48,6 +50,15 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
   };
 
   const handleComponentAdded = () => {
+    refetch();
+  };
+
+  const handleEditComponent = (component: DataCenterComponent) => {
+    setEditingComponent(component);
+  };
+
+  const handleEditSubmit = () => {
+    setEditingComponent(null);
     refetch();
   };
 
@@ -124,14 +135,26 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
                     </Badge>
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleRemoveComponent(component.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex space-x-1 space-x-reverse">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditComponent(component)}
+                    className="h-8 w-8 p-0"
+                    title="تعديل المكون"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleRemoveComponent(component.id)}
+                    className="h-8 w-8 p-0"
+                    title="حذف المكون"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -164,6 +187,15 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
           <h3 className="mt-2 text-sm font-medium text-gray-900 font-saudi">لا توجد مكونات</h3>
           <p className="mt-1 text-sm text-gray-500 font-saudi">لم يتم إضافة أي مكونات لهذا المركز بعد</p>
         </div>
+      )}
+
+      {/* Edit Component Dialog */}
+      {editingComponent && (
+        <EditComponentDialog
+          component={editingComponent}
+          onClose={() => setEditingComponent(null)}
+          onSubmit={handleEditSubmit}
+        />
       )}
     </div>
   );
