@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,8 @@ const DataCenterLocationForm: React.FC<DataCenterLocationFormProps> = ({
     manager_contact: location?.manager_contact || '',
     operational_status: location?.operational_status || 'active',
     establishment_date: location?.establishment_date || '',
-    total_area: location?.total_area?.toString() || ''
+    total_area: location?.total_area?.toString() || '',
+    center_type: location?.center_type || 'data_center'
   });
 
   const [loading, setLoading] = useState(false);
@@ -49,7 +51,8 @@ const DataCenterLocationForm: React.FC<DataCenterLocationFormProps> = ({
       manager_contact: formData.manager_contact || undefined,
       operational_status: formData.operational_status,
       establishment_date: formData.establishment_date || undefined,
-      total_area: formData.total_area ? parseFloat(formData.total_area) : undefined
+      total_area: formData.total_area ? parseFloat(formData.total_area) : undefined,
+      center_type: formData.center_type
     };
 
     const success = await onSubmit(dataToSubmit);
@@ -87,6 +90,32 @@ const DataCenterLocationForm: React.FC<DataCenterLocationFormProps> = ({
                 onChange={(e) => setFormData({...formData, code: e.target.value})}
                 className="font-saudi"
               />
+            </div>
+            <div>
+              <Label htmlFor="center_type" className="font-saudi">نوع المركز</Label>
+              <Select value={formData.center_type} onValueChange={(value) => setFormData({...formData, center_type: value})}>
+                <SelectTrigger className="font-saudi">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="data_center">مركز بيانات</SelectItem>
+                  <SelectItem value="communication_room">غرفة اتصال</SelectItem>
+                  <SelectItem value="distribution_room">غرفة توزيع</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="operational_status" className="font-saudi">حالة التشغيل</Label>
+              <Select value={formData.operational_status} onValueChange={(value) => setFormData({...formData, operational_status: value})}>
+                <SelectTrigger className="font-saudi">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">نشط</SelectItem>
+                  <SelectItem value="inactive">غير نشط</SelectItem>
+                  <SelectItem value="maintenance">تحت الصيانة</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="description" className="font-saudi">الوصف</Label>
@@ -142,19 +171,6 @@ const DataCenterLocationForm: React.FC<DataCenterLocationFormProps> = ({
                 onChange={(e) => setFormData({...formData, manager_contact: e.target.value})}
                 className="font-saudi"
               />
-            </div>
-            <div>
-              <Label htmlFor="operational_status" className="font-saudi">حالة التشغيل</Label>
-              <Select value={formData.operational_status} onValueChange={(value) => setFormData({...formData, operational_status: value})}>
-                <SelectTrigger className="font-saudi">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">نشط</SelectItem>
-                  <SelectItem value="inactive">غير نشط</SelectItem>
-                  <SelectItem value="maintenance">تحت الصيانة</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <Label htmlFor="establishment_date" className="font-saudi">تاريخ التأسيس</Label>

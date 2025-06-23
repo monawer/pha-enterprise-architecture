@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,19 @@ const DataCenters = () => {
 
   const showComponents = (location: DataCenterLocation) => {
     setSelectedLocation(location);
+  };
+
+  const getCenterTypeLabel = (centerType?: string) => {
+    switch (centerType) {
+      case 'data_center':
+        return 'مركز بيانات';
+      case 'communication_room':
+        return 'غرفة اتصال';
+      case 'distribution_room':
+        return 'غرفة توزيع';
+      default:
+        return 'مركز بيانات';
+    }
   };
 
   if (loading) {
@@ -192,6 +206,10 @@ const DataCenters = () => {
                   <span className="text-sm font-saudi">{location.code}</span>
                 </div>
               )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 font-saudi">النوع:</span>
+                <span className="text-sm font-saudi">{getCenterTypeLabel(location.center_type)}</span>
+              </div>
               {location.city && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 font-saudi">المدينة:</span>

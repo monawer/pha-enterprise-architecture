@@ -16,6 +16,7 @@ export interface DataCenterLocation {
   operational_status: string;
   establishment_date?: string;
   total_area?: number;
+  center_type?: string;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ export interface CreateDataCenterLocation {
   operational_status?: string;
   establishment_date?: string;
   total_area?: number;
+  center_type?: string;
 }
 
 export const useDataCenterLocations = () => {

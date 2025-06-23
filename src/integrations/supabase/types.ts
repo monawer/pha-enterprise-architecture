@@ -1885,6 +1885,7 @@ export type Database = {
       tech_data_center_locations: {
         Row: {
           address: string | null
+          center_type: string | null
           city: string | null
           code: string | null
           coordinates: string | null
@@ -1901,6 +1902,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          center_type?: string | null
           city?: string | null
           code?: string | null
           coordinates?: string | null
@@ -1917,6 +1919,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          center_type?: string | null
           city?: string | null
           code?: string | null
           coordinates?: string | null
