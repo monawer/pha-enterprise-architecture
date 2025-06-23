@@ -9,9 +9,49 @@ interface Application {
   version?: string;
   code?: string;
   app_type?: string;
+  app_type_ref?: string;
   app_status?: string;
+  status?: string;
+  status_ref?: string;
+  layer?: string;
+  component_id?: string;
+  
+  // Technical Details
+  development_technology?: string;
+  technology_ref?: string;
+  development_type?: string;
+  development_type_ref?: string;
+  architecture_pattern?: string;
+  authentication_type?: string;
+  hosting_server?: string;
+  app_link?: string;
+  
+  // Business Information
   using_department?: string;
+  using_department_ref?: string;
+  owning_department?: string;
+  owning_department_ref?: string;
+  technical_owner?: string;
+  end_user?: string;
+  user_count?: number;
+  importance?: string;
+  
+  // Development Information
+  developer_entity?: string;
+  source_type?: string;
+  launch_date?: string;
+  
+  // Financial Information
+  initial_cost?: number;
+  operational_cost?: number;
+  capital_cost?: number;
+  
+  // Operations
+  operation_type?: string;
+  operation_type_ref?: string;
+  
   created_at: string;
+  updated_at?: string;
 }
 
 export const useApps = () => {
@@ -35,7 +75,8 @@ export const useApps = () => {
     return applications.filter(app =>
       app.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.code?.toLowerCase().includes(searchTerm.toLowerCase())
+      app.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.developer_entity?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [applications, searchTerm]);
 

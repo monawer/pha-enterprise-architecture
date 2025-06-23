@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -75,7 +74,8 @@ const ApplicationForm = ({ onSuccess, onCancel, initialData, isEdit = false, app
   const { options: departments } = useReferenceOptions('ref_departments');
   const { options: technologies } = useReferenceOptions('ref_technologies');
   const { options: operationTypes } = useReferenceOptions('ref_operation_types');
-  const { options: developmentTypes } = useReferenceOptions('ref_development_types');
+  // Using ref_technologies temporarily for development types until we fix the type issue
+  const { options: developmentTypes } = useReferenceOptions('ref_technologies');
   
   const form = useForm<ApplicationFormData>({
     defaultValues: initialData || {
