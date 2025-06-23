@@ -27,6 +27,14 @@ const componentLabels = {
   data_center: 'مركز بيانات'
 };
 
+const componentColors = {
+  physical_server: 'bg-blue-50 text-blue-600',
+  virtual_server: 'bg-green-50 text-green-600',
+  network_device: 'bg-purple-50 text-purple-600',
+  security_device: 'bg-red-50 text-red-600',
+  data_center: 'bg-orange-50 text-orange-600'
+};
+
 const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
   locationId,
   locationName
@@ -45,36 +53,46 @@ const DataCenterComponentsList: React.FC<DataCenterComponentsListProps> = ({
     </div>;
   }
 
+  // إنشاء إحصائيات ديناميكية بناء على المكونات الموجودة فعلياً
+  const getComponentTypesWithCounts = () => {
+    const typeCounts: { [key: string]: number } = {};
+    components.forEach(component => {
+      typeCounts[component.component_type] = (typeCounts[component.component_type] || 0) + 1;
+    });
+    return Object.entries(typeCounts).map(([type, count]) => ({
+      type: type as keyof typeof componentLabels,
+      count,
+      label: componentLabels[type as keyof typeof componentLabels],
+      color: componentColors[type as keyof typeof componentColors]
+    }));
+  };
+
+  const componentTypesWithCounts = getComponentTypesWithCounts();
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg p-6 shadow-saudi-sm border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-900 font-saudi mb-4">مكونات {locationName}</h2>
         
-        {/* إحصائيات سريعة */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.physical_servers}</div>
-            <div className="text-sm text-blue-600 font-saudi">خوادم فيزيائية</div>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.virtual_servers}</div>
-            <div className="text-sm text-green-600 font-saudi">خوادم افتراضية</div>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.network_devices}</div>
-            <div className="text-sm text-purple-600 font-saudi">أجهزة شبكة</div>
-          </div>
-          <div className="bg-red-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-red-600">{stats.security_devices}</div>
-            <div className="text-sm text-red-600 font-saudi">أجهزة أمنية</div>
-          </div>
-          <div className="bg-orange-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-orange-600">{stats.data_centers}</div>
-            <div className="text-sm text-orange-600 font-saudi">مراكز بيانات</div>
-          </div>
+        {/* إحصائيات ديناميكية */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+          {componentTypesWithCounts.map(({ type, count, label, color }) => (
+            <div key={type} className={`p-4 rounded-lg text-center ${color}`}>
+              <div className="text-2xl font-bold">{count}</div>
+              <div className="text-sm font-saudi">{label}</div>
+            </div>
+          ))}
+          
+          {/* إجمالي المكونات */}
           <div className="bg-gray-50 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-gray-600">{stats.total}</div>
             <div className="text-sm text-gray-600 font-saudi">إجمالي المكونات</div>
+          </div>
+          
+          {/* عدد الأنواع */}
+          <div className="bg-indigo-50 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-indigo-600">{componentTypesWithCounts.length}</div>
+            <div className="text-sm text-indigo-600 font-saudi">أنواع المكونات</div>
           </div>
         </div>
       </div>
