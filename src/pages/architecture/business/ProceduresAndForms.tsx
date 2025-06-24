@@ -15,16 +15,18 @@ const ProceduresAndForms = () => {
           <FileText className="w-7 h-7 text-saudi-green-800" />
           إدارة الإجراءات والنماذج
         </h1>
+      </div>
+      
+      <Tabs value={tab} onValueChange={setTab} className="mt-3">
         <TabsList className="bg-white border rounded-xl shadow py-1 px-2 flex gap-2">
-          <TabsTrigger value="procedures" className={tab === "procedures" ? "!bg-saudi-green-700 !text-white" : ""} onClick={() => setTab("procedures")}>
+          <TabsTrigger value="procedures" className={tab === "procedures" ? "!bg-saudi-green-700 !text-white" : ""}>
             <FileText className="w-4 h-4 mr-1" /> الإجراءات
           </TabsTrigger>
-          <TabsTrigger value="forms" className={tab === "forms" ? "!bg-orange-600 !text-white" : ""} onClick={() => setTab("forms")}>
+          <TabsTrigger value="forms" className={tab === "forms" ? "!bg-orange-600 !text-white" : ""}>
             <ClipboardList className="w-4 h-4 mr-1" /> النماذج
           </TabsTrigger>
         </TabsList>
-      </div>
-      <Tabs value={tab} onValueChange={setTab} className="mt-3">
+        
         <TabsContent value="procedures">
           <Procedures />
         </TabsContent>
