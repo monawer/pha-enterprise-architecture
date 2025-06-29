@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+import AuthRequired from '@/components/common/AuthRequired';
 
 interface BusinessOwnerFormData {
   code?: string;
@@ -24,6 +26,8 @@ interface BusinessOwnerFormProps {
 
 const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, ownerId }: BusinessOwnerFormProps) => {
   const { executeWithErrorHandling, isLoading } = useErrorHandler();
+  const { isAuthenticated, loading: authLoading } = useAuthCheck();
+  
   const form = useForm<BusinessOwnerFormData>({
     defaultValues: initialData || {
       code: '',
@@ -32,6 +36,16 @@ const BusinessOwnerForm = ({ onSuccess, onCancel, initialData, isEdit = false, o
       parent_code: ''
     },
   });
+
+  // عرض رسالة التحميل أثناء التحقق من المصادقة
+  if (authLoading) {
+    return <div className="text-center p-4">جاري التحقق من المصادقة...</div>;
+  }
+
+  // عرض رسالة المصادقة المطلوبة إذا لم يكن المستخدم مسجل دخول
+  if (!isAuthenticated) {
+    return <AuthRequired action="إدارة مالكي الأعمال" />;
+  }
 
   const onSubmit = async (data: BusinessOwnerFormData) => {
     const result = await executeWithErrorHandling(

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useReferenceOptions } from '@/hooks/useReferenceOptions';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+import AuthRequired from '@/components/common/AuthRequired';
 
 interface Policy {
   id?: string;
@@ -38,6 +39,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
   onSuccess,
   onCancel
 }) => {
+  const { isAuthenticated, loading: authLoading } = useAuthCheck();
   const [formData, setFormData] = useState<Policy>({
     policy_name: '',
     policy_description: '',
@@ -64,6 +66,16 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       setFormData(policy);
     }
   }, [policy]);
+
+  // عرض رسالة التحميل أثناء التحقق من المصادقة
+  if (authLoading) {
+    return <div className="text-center p-4">جاري التحقق من المصادقة...</div>;
+  }
+
+  // عرض رسالة المصادقة المطلوبة إذا لم يكن المستخدم مسجل دخول
+  if (!isAuthenticated) {
+    return <AuthRequired action="إدارة السياسات" />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

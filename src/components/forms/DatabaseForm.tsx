@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+import AuthRequired from '@/components/common/AuthRequired';
 
 interface DatabaseFormData {
   database_name: string;
@@ -23,6 +24,8 @@ interface DatabaseFormProps {
 
 const DatabaseForm = ({ onSuccess, onCancel, initialData, isEdit = false, databaseId }: DatabaseFormProps) => {
   const { toast } = useToast();
+  const { isAuthenticated, loading: authLoading } = useAuthCheck();
+  
   const form = useForm<DatabaseFormData>({
     defaultValues: initialData || {
       database_name: '',
@@ -30,6 +33,16 @@ const DatabaseForm = ({ onSuccess, onCancel, initialData, isEdit = false, databa
       database_environment_type: ''
     },
   });
+
+  // عرض رسالة التحميل أثناء التحقق من المصادقة
+  if (authLoading) {
+    return <div className="text-center p-4">جاري التحقق من المصادقة...</div>;
+  }
+
+  // عرض رسالة المصادقة المطلوبة إذا لم يكن المستخدم مسجل دخول
+  if (!isAuthenticated) {
+    return <AuthRequired action="إدارة قواعد البيانات" />;
+  }
 
   const onSubmit = async (data: DatabaseFormData) => {
     try {

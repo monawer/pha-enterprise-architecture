@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+import AuthRequired from '@/components/common/AuthRequired';
 
 interface Branch {
   id?: string;
@@ -22,6 +24,7 @@ interface BranchFormProps {
 }
 
 const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess, onCancel }) => {
+  const { isAuthenticated, loading: authLoading } = useAuthCheck();
   const [formData, setFormData] = useState<Branch>({
     branch_name: '',
     branch_code: '',
@@ -39,6 +42,16 @@ const BranchForm: React.FC<BranchFormProps> = ({ branch, onSuccess, onCancel }) 
       });
     }
   }, [branch]);
+
+  // عرض رسالة التحميل أثناء التحقق من المصادقة
+  if (authLoading) {
+    return <div className="text-center p-4">جاري التحقق من المصادقة...</div>;
+  }
+
+  // عرض رسالة المصادقة المطلوبة إذا لم يكن المستخدم مسجل دخول
+  if (!isAuthenticated) {
+    return <AuthRequired action="إدارة الفروع" />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

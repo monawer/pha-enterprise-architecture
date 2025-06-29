@@ -4,12 +4,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useProcedureForm } from '@/hooks/useProcedureForm';
 import { ProcedureFormProps } from '@/types/procedure';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+import AuthRequired from '@/components/common/AuthRequired';
 import ProcedureBasicFields from './procedure/ProcedureBasicFields';
 import ProcedureDetailsFields from './procedure/ProcedureDetailsFields';
 import ProcedurePoliciesField from './procedure/ProcedurePoliciesField';
 import ProcedureFormActions from './procedure/ProcedureFormActions';
 
 const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onCancel }) => {
+  const { isAuthenticated, loading: authLoading } = useAuthCheck();
+  
   useEffect(() => {
     console.log("🟡 [ProcedureForm] Component mounted/updated");
     console.log("🟡 [ProcedureForm] Received procedure prop:", procedure);
@@ -49,6 +53,16 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ procedure, onSuccess, onC
       procedure_description: formData.procedure_description
     });
   }, [formData]);
+
+  // عرض رسالة التحميل أثناء التحقق من المصادقة
+  if (authLoading) {
+    return <div className="text-center p-4">جاري التحقق من المصادقة...</div>;
+  }
+
+  // عرض رسالة المصادقة المطلوبة إذا لم يكن المستخدم مسجل دخول
+  if (!isAuthenticated) {
+    return <AuthRequired action="إضافة أو تعديل الإجراءات" />;
+  }
 
   return (
     <form onSubmit={(e) => handleSubmit(e, onSuccess)} className="space-y-6 max-h-[70vh] overflow-y-auto">
