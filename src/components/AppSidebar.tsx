@@ -57,7 +57,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       show: true
     },
     {
-      title: "المناظر المؤسسية",
+      title: "المناظير المؤسسية",
       icon: Workflow,
       path: "/architecture/views",
       show: true
