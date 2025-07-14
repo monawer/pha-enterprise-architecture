@@ -8,17 +8,18 @@ interface FlowData {
 
 // ArchiMate layout algorithms
 const calculateLayerPosition = (layer: string, index: number, total: number) => {
-  const layerHeight = 150;
-  const layerOrder = {
-    'business': 0,
-    'application': 1,
-    'technology': 2,
-    'data': 3,
-    'security': 4
+  const layerHeight = 180;
+  const layerOrder: Record<string, number> = {
+    'BIZ': 0,
+    'APP': 1,
+    'TECH': 2,
+    'DATA': 3,
+    'SEC': 4,
+    'UX': 5
   };
   
-  const y = (layerOrder[layer as keyof typeof layerOrder] || 5) * layerHeight;
-  const x = (index * 200) - ((total - 1) * 100);
+  const y = (layerOrder[layer] || 6) * layerHeight;
+  const x = (index * 250) - ((total - 1) * 125);
   
   return { x, y };
 };
@@ -32,9 +33,20 @@ const filterComponentsByView = (
 ) => {
   let filtered = components;
 
-  // Filter by view type (layer)
+  // Filter by view type (layer) - map the view types to layer codes
   if (viewType !== 'integrated') {
-    filtered = filtered.filter(comp => comp.layer?.code === viewType);
+    const layerMapping: Record<string, string> = {
+      'business': 'BIZ',
+      'application': 'APP', 
+      'technology': 'TECH',
+      'data': 'DATA',
+      'security': 'SEC'
+    };
+    
+    const layerCode = layerMapping[viewType];
+    if (layerCode) {
+      filtered = filtered.filter(comp => comp.layer?.code === layerCode);
+    }
   }
 
   // Filter by search query
@@ -143,31 +155,34 @@ export const transformToFlowData = (
 
 // Determine component type based on layer and data
 const determineComponentType = (component: any, layer: string): string => {
+  const name = component.name?.toLowerCase() || '';
+  
   switch (layer) {
-    case 'business':
-      if (component.name.includes('خدمة') || component.name.includes('Service')) return 'service';
-      if (component.name.includes('إجراء') || component.name.includes('Procedure')) return 'procedure';
-      if (component.name.includes('سياسة') || component.name.includes('Policy')) return 'policy';
-      if (component.name.includes('قدرة') || component.name.includes('Capability')) return 'capability';
+    case 'BIZ':
+      if (name.includes('خدمة') || name.includes('service')) return 'service';
+      if (name.includes('إجراء') || name.includes('procedure')) return 'procedure';
+      if (name.includes('سياسة') || name.includes('policy')) return 'policy';
+      if (name.includes('قدرة') || name.includes('capability')) return 'capability';
       return 'business-function';
     
-    case 'application':
-      if (component.name.includes('تطبيق') || component.name.includes('Application')) return 'application';
-      if (component.name.includes('قاعدة') || component.name.includes('Database')) return 'database';
+    case 'APP':
+      if (name.includes('تطبيق') || name.includes('application')) return 'application';
+      if (name.includes('قاعدة') || name.includes('database')) return 'database';
+      if (name.includes('رابط') || name.includes('link')) return 'technical-link';
       return 'application-component';
     
-    case 'technology':
-      if (component.name.includes('خادم') || component.name.includes('Server')) return 'server';
-      if (component.name.includes('شبكة') || component.name.includes('Network')) return 'network';
-      if (component.name.includes('جهاز') || component.name.includes('Device')) return 'device';
+    case 'TECH':
+      if (name.includes('خادم') || name.includes('server')) return 'server';
+      if (name.includes('شبكة') || name.includes('network')) return 'network';
+      if (name.includes('جهاز') || name.includes('device')) return 'device';
       return 'technology-component';
     
-    case 'data':
-      if (component.name.includes('كيان') || component.name.includes('Entity')) return 'data-entity';
-      if (component.name.includes('تخزين') || component.name.includes('Storage')) return 'storage';
+    case 'DATA':
+      if (name.includes('كيان') || name.includes('entity')) return 'data-entity';
+      if (name.includes('تخزين') || name.includes('storage')) return 'storage';
       return 'data-object';
     
-    case 'security':
+    case 'SEC':
       return 'security-component';
     
     default:

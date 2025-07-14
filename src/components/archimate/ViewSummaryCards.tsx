@@ -11,57 +11,66 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useArchitectureData } from '@/hooks/useArchitectureData';
 
-const summaryData = [
-  {
-    title: 'طبقة الأعمال',
-    icon: Building2,
-    count: 156,
-    status: 'healthy',
-    color: 'bg-yellow-50 border-yellow-200',
-    iconColor: 'text-yellow-600'
-  },
-  {
-    title: 'طبقة التطبيقات',
-    icon: Monitor,
-    count: 89,
-    status: 'warning',
-    color: 'bg-blue-50 border-blue-200',
-    iconColor: 'text-blue-600'
-  },
-  {
-    title: 'طبقة التقنية',
-    icon: Server,
-    count: 134,
-    status: 'healthy',
-    color: 'bg-green-50 border-green-200',
-    iconColor: 'text-green-600'
-  },
-  {
-    title: 'طبقة البيانات',
-    icon: Database,
-    count: 67,
-    status: 'critical',
-    color: 'bg-orange-50 border-orange-200',
-    iconColor: 'text-orange-600'
-  },
-  {
-    title: 'طبقة الأمان',
-    icon: Shield,
-    count: 43,
-    status: 'healthy',
-    color: 'bg-red-50 border-red-200',
-    iconColor: 'text-red-600'
-  },
-  {
-    title: 'إجمالي العلاقات',
-    icon: TrendingUp,
-    count: 298,
-    status: 'healthy',
-    color: 'bg-purple-50 border-purple-200',
-    iconColor: 'text-purple-600'
-  }
-];
+export const ViewSummaryCards: React.FC = () => {
+  const { data: architectureData } = useArchitectureData('integrated');
+  
+  // Calculate real counts from data
+  const layerCounts = architectureData?.layerCounts || {};
+  const totalComponents = architectureData?.components?.length || 0;
+  const totalRelationships = architectureData?.relationships?.length || 0;
+
+  const summaryData = [
+    {
+      title: 'طبقة الأعمال',
+      icon: Building2,
+      count: layerCounts['BIZ'] || 0,
+      status: 'healthy',
+      color: 'bg-yellow-50 border-yellow-200',
+      iconColor: 'text-yellow-600'
+    },
+    {
+      title: 'طبقة التطبيقات',
+      icon: Monitor,
+      count: layerCounts['APP'] || 0,
+      status: 'healthy',
+      color: 'bg-blue-50 border-blue-200',
+      iconColor: 'text-blue-600'
+    },
+    {
+      title: 'طبقة التقنية',
+      icon: Server,
+      count: layerCounts['TECH'] || 0,
+      status: 'healthy',
+      color: 'bg-green-50 border-green-200',
+      iconColor: 'text-green-600'
+    },
+    {
+      title: 'طبقة البيانات',
+      icon: Database,
+      count: layerCounts['DATA'] || 0,
+      status: 'healthy',
+      color: 'bg-orange-50 border-orange-200',
+      iconColor: 'text-orange-600'
+    },
+    {
+      title: 'طبقة الأمان',
+      icon: Shield,
+      count: layerCounts['SEC'] || 0,
+      status: 'healthy',
+      color: 'bg-red-50 border-red-200',
+      iconColor: 'text-red-600'
+    },
+    {
+      title: 'إجمالي المكونات',
+      icon: TrendingUp,
+      count: totalComponents,
+      status: 'healthy',
+      color: 'bg-purple-50 border-purple-200',
+      iconColor: 'text-purple-600'
+    }
+  ];
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -89,7 +98,6 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-export const ViewSummaryCards: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {summaryData.map((item, index) => (

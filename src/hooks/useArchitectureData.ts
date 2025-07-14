@@ -37,7 +37,7 @@ const fetchArchitectureData = async (viewType: string): Promise<ArchitectureData
       description,
       layer_id,
       status,
-      layer:architecture_layers(code, name)
+      layer:architecture_layers!inner(code, name)
     `)
     .order('name');
 
