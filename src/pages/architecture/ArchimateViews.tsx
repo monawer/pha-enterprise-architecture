@@ -71,11 +71,11 @@ const ArchimateViews: React.FC = () => {
   const [selectedView, setSelectedView] = useState('business');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const exportRef = useRef<HTMLDivElement>(null);
+  const diagramExportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const handleExport = async (format: 'pdf' | 'png') => {
-    if (!exportRef.current) {
+    if (!diagramExportRef.current) {
       toast({
         title: "خطأ في التصدير",
         description: "لا يمكن العثور على المحتوى للتصدير",
@@ -91,9 +91,9 @@ const ArchimateViews: React.FC = () => {
       });
 
       if (format === 'pdf') {
-        await exportToPDF(exportRef.current, `المناظر_المؤسسية_${selectedView}_${new Date().toISOString().split('T')[0]}`);
+        await exportToPDF(diagramExportRef.current, `المناظر_المؤسسية_${selectedView}_${new Date().toISOString().split('T')[0]}`);
       } else {
-        await exportToPNG(exportRef.current, `المناظر_المؤسسية_${selectedView}_${new Date().toISOString().split('T')[0]}`);
+        await exportToPNG(diagramExportRef.current, `المناظر_المؤسسية_${selectedView}_${new Date().toISOString().split('T')[0]}`);
       }
 
       toast({
@@ -111,7 +111,7 @@ const ArchimateViews: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6" dir="rtl" ref={exportRef}>
+    <div className="min-h-screen bg-background p-6" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
@@ -196,6 +196,7 @@ const ArchimateViews: React.FC = () => {
                     viewType={view.id}
                     searchQuery={searchQuery}
                     filterType={filterType}
+                    exportRef={diagramExportRef}
                   />
                 </CardContent>
               </Card>

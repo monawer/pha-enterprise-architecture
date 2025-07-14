@@ -28,12 +28,14 @@ interface ArchiMateFlowDiagramProps {
   viewType: string;
   searchQuery: string;
   filterType: string;
+  exportRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const ArchiMateFlowDiagram: React.FC<ArchiMateFlowDiagramProps> = ({
   viewType,
   searchQuery,
-  filterType
+  filterType,
+  exportRef
 }) => {
   const { data: architectureData, isLoading, error } = useArchitectureData(viewType);
   const { positions, savePosition } = useNodePositions(viewType);
@@ -112,7 +114,7 @@ export const ArchiMateFlowDiagram: React.FC<ArchiMateFlowDiagramProps> = ({
   }
 
   return (
-    <div className="h-[600px] bg-background border rounded-lg overflow-hidden">
+    <div ref={exportRef} className="h-[600px] bg-background border rounded-lg overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
