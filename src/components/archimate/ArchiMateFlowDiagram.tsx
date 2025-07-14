@@ -42,6 +42,8 @@ export const ArchiMateFlowDiagram: React.FC<ArchiMateFlowDiagramProps> = ({
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const defaultRef = useRef<HTMLDivElement>(null);
+  const containerRef = exportRef || defaultRef;
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -114,7 +116,7 @@ export const ArchiMateFlowDiagram: React.FC<ArchiMateFlowDiagramProps> = ({
   }
 
   return (
-    <div ref={exportRef} className="h-[600px] bg-background border rounded-lg overflow-hidden">
+    <div ref={containerRef} className="h-[600px] bg-background border rounded-lg overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
