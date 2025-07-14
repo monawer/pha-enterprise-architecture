@@ -17,7 +17,8 @@ import {
   Shield,
   Eye,
   Settings,
-  LogOut
+  LogOut,
+  Workflow
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
       title: "الصفحة الرئيسية",
       icon: Home,
       path: "/",
+      show: true
+    },
+    {
+      title: "المناظر المعمارية",
+      icon: Workflow,
+      path: "/architecture/views",
       show: true
     },
     {
