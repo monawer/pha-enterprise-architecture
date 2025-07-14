@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { ArchiMateFlowDiagram } from '@/components/archimate/ArchiMateFlowDiagram';
 import { ViewSummaryCards } from '@/components/archimate/ViewSummaryCards';
+import { useToast } from '@/hooks/use-toast';
+import { exportToPDF, exportToPNG } from '@/utils/exportUtils';
 
 const viewTypes = [
   { 
@@ -69,14 +71,47 @@ const ArchimateViews: React.FC = () => {
   const [selectedView, setSelectedView] = useState('business');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const exportRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
-  const handleExport = (format: 'pdf' | 'png' | 'svg') => {
-    console.log(`Exporting as ${format}`);
-    // Export functionality will be implemented later
+  const handleExport = async (format: 'pdf' | 'png') => {
+    if (!exportRef.current) {
+      toast({
+        title: "خطأ في التصدير",
+        description: "لا يمكن العثور على المحتوى للتصدير",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "جاري التصدير...",
+        description: `يتم تحضير ملف ${format.toUpperCase()}`,
+      });
+
+      if (format === 'pdf') {
+        await exportToPDF(exportRef.current, `المناظر_المؤسسية_${selectedView}_${new Date().toISOString().split('T')[0]}`);
+      } else {
+        await exportToPNG(exportRef.current, `المناظر_المؤسسية_${selectedView}_${new Date().toISOString().split('T')[0]}`);
+      }
+
+      toast({
+        title: "تم التصدير بنجاح",
+        description: `تم حفظ الملف بصيغة ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "حدث خطأ أثناء تصدير المحتوى",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background p-6" dir="rtl">
+    <div className="min-h-screen bg-background p-6" dir="rtl" ref={exportRef}>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
