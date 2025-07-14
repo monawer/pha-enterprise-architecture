@@ -82,7 +82,7 @@ const ArchimateViews: React.FC = () => {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              المناظر ووجهات النظر المعمارية
+              المناظر العامة والمناظر الخاصة
             </h1>
             <p className="text-muted-foreground">
               تصور شامل للبنية المؤسسية وفقاً لمعايير ArchiMate
