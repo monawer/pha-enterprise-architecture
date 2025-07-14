@@ -324,6 +324,39 @@ export type Database = {
           },
         ]
       }
+      archimate_node_positions: {
+        Row: {
+          component_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string | null
+          view_type: string
+          x_position: number
+          y_position: number
+        }
+        Insert: {
+          component_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+          view_type: string
+          x_position: number
+          y_position: number
+        }
+        Update: {
+          component_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+          view_type?: string
+          x_position?: number
+          y_position?: number
+        }
+        Relationships: []
+      }
       architecture_components: {
         Row: {
           created_at: string | null

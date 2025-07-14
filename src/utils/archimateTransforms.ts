@@ -1,6 +1,12 @@
 import { Node, Edge } from '@xyflow/react';
 import { ArchitectureData } from '@/hooks/useArchitectureData';
 
+interface NodePosition {
+  component_id: string;
+  x_position: number;
+  y_position: number;
+}
+
 interface FlowData {
   nodes: Node[];
   edges: Edge[];
@@ -82,7 +88,8 @@ export const transformToFlowData = (
   data: ArchitectureData,
   viewType: string,
   searchQuery: string = '',
-  filterType: string = 'all'
+  filterType: string = 'all',
+  savedPositions: NodePosition[] = []
 ): FlowData => {
   const filteredComponents = filterComponentsByView(
     data.components, 
@@ -103,7 +110,13 @@ export const transformToFlowData = (
   const nodes: Node[] = [];
   Object.entries(componentsByLayer).forEach(([layerCode, components]) => {
     (components as any[]).forEach((comp, index) => {
-      const position = calculateLayerPosition(layerCode, index, (components as any[]).length);
+      // Check if there's a saved position for this component
+      const savedPosition = savedPositions.find(pos => pos.component_id === comp.id);
+      
+      // Use saved position if available, otherwise calculate default position
+      const position = savedPosition 
+        ? { x: Number(savedPosition.x_position), y: Number(savedPosition.y_position) }
+        : calculateLayerPosition(layerCode, index, (components as any[]).length);
       
       nodes.push({
         id: comp.id,

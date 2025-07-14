@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -10,11 +10,13 @@ import {
   Connection,
   Edge,
   Node,
+  NodeChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useArchitectureData } from '@/hooks/useArchitectureData';
+import { useNodePositions } from '@/hooks/useNodePositions';
 import { ArchiMateNode } from './ArchiMateNode';
 import { transformToFlowData } from '@/utils/archimateTransforms';
 
@@ -34,26 +36,58 @@ export const ArchiMateFlowDiagram: React.FC<ArchiMateFlowDiagramProps> = ({
   filterType
 }) => {
   const { data: architectureData, isLoading, error } = useArchitectureData(viewType);
+  const { positions, savePosition } = useNodePositions(viewType);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges],
   );
 
+  // Handle node changes with position saving
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    onNodesChange(changes);
+    
+    // Save positions when nodes are moved
+    changes.forEach((change) => {
+      if (change.type === 'position' && change.position && change.dragging === false) {
+        // Clear any existing timeout
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        
+        // Debounce the save operation
+        saveTimeoutRef.current = setTimeout(() => {
+          savePosition(change.id, change.position!.x, change.position!.y);
+        }, 1000); // Save after 1 second of no movement
+      }
+    });
+  }, [onNodesChange, savePosition]);
+
   useEffect(() => {
-    if (architectureData) {
+    if (architectureData && positions) {
       const { nodes: flowNodes, edges: flowEdges } = transformToFlowData(
         architectureData,
         viewType,
         searchQuery,
-        filterType
+        filterType,
+        positions
       );
       setNodes(flowNodes);
       setEdges(flowEdges);
     }
-  }, [architectureData, viewType, searchQuery, filterType, setNodes, setEdges]);
+  }, [architectureData, viewType, searchQuery, filterType, positions, setNodes, setEdges]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -82,7 +116,7 @@ export const ArchiMateFlowDiagram: React.FC<ArchiMateFlowDiagramProps> = ({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
