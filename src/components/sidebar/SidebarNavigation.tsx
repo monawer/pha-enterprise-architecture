@@ -34,6 +34,12 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       show: true
     },
     {
+      title: "المناظر المعمارية",
+      icon: Workflow,
+      path: "/architecture/views",
+      show: true
+    },
+    {
       title: "عن توجاف ونورة",
       icon: Layers,
       path: "/info/togaf-nora",
@@ -73,12 +79,6 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       title: "طبقة تجربة المستخدم",
       icon: Eye,
       path: "/architecture/ux",
-      show: true
-    },
-    {
-      title: "المناظر المعمارية",
-      icon: Workflow,
-      path: "/architecture/views",
       show: true
     },
     {
