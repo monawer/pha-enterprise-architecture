@@ -15,7 +15,8 @@ import {
   HardDrive,
   Eye,
   UserCheck,
-  Home
+  Home,
+  Workflow
 } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import SidebarMenuItem from "./SidebarMenuItem";
@@ -72,6 +73,12 @@ const SidebarNavigation = ({ user }: SidebarNavigationProps) => {
       title: "طبقة تجربة المستخدم",
       icon: Eye,
       path: "/architecture/ux",
+      show: true
+    },
+    {
+      title: "المناظر المعمارية",
+      icon: Workflow,
+      path: "/architecture/views",
       show: true
     },
     {
