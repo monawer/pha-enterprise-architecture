@@ -100,7 +100,7 @@ const Auth = () => {
           <p className="text-green-600">نظام البنية المؤسسية - هيئة الصحة العامة</p>
         </CardHeader>
         <CardContent>
-          {/* زر للمستخدم الوهمي */}
+          {/* زر للمستخدم الوهمي
           {isLogin && (
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-600 mb-2">للتجربة السريعة:</p>
@@ -114,7 +114,7 @@ const Auth = () => {
                 استخدام حساب المدير التجريبي
               </Button>
             </div>
-          )}
+          )} */}
 
           <form onSubmit={handleAuth} className="space-y-4">
             {!isLogin && (
