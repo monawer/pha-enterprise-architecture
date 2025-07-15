@@ -1,15 +1,81 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowDown, ArrowUpDown } from 'lucide-react';
+import React, { useCallback, useMemo } from 'react';
+import { 
+  ReactFlow, 
+  Controls, 
+  Background, 
+  useNodesState, 
+  useEdgesState,
+  Node,
+  Edge
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import { MetamodelData } from '@/hooks/useMetamodel';
+import { LayerNode } from './LayerNode';
+
+const nodeTypes = {
+  layer: LayerNode,
+};
 
 interface MetamodelDiagramProps {
   data?: MetamodelData;
 }
 
 export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
-  if (!data || !data.layers) {
+  const { initialNodes, initialEdges } = useMemo(() => {
+    if (!data || !data.layers) {
+      return { initialNodes: [], initialEdges: [] };
+    }
+
+    const sortedLayers = [...data.layers].sort((a, b) => a.order_num - b.order_num);
+    const spacing = 200;
+    const centerX = 300;
+
+    // Create nodes for each layer
+    const nodes: Node[] = sortedLayers.map((layer, index) => ({
+      id: layer.id,
+      type: 'layer',
+      position: { 
+        x: centerX - 150, 
+        y: index * spacing + 50 
+      },
+      data: {
+        name: layer.name,
+        description: layer.description,
+        code: layer.code,
+        componentCount: layer.componentCount,
+        layerType: layer.code.toLowerCase()
+      },
+      draggable: true,
+    }));
+
+    // Create edges between consecutive layers
+    const edges: Edge[] = [];
+    for (let i = 0; i < sortedLayers.length - 1; i++) {
+      edges.push({
+        id: `edge-${sortedLayers[i].id}-${sortedLayers[i + 1].id}`,
+        source: sortedLayers[i].id,
+        target: sortedLayers[i + 1].id,
+        type: 'smoothstep',
+        animated: true,
+        style: { 
+          stroke: 'hsl(var(--primary))', 
+          strokeWidth: 2 
+        },
+        label: 'يعتمد على',
+        labelStyle: { 
+          fill: 'hsl(var(--muted-foreground))', 
+          fontSize: 12 
+        }
+      });
+    }
+
+    return { initialNodes: nodes, initialEdges: edges };
+  }, [data]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  if (!data || !data.layers || data.layers.length === 0) {
     return (
       <div className="h-96 bg-muted/20 rounded-lg flex items-center justify-center">
         <p className="text-muted-foreground">لا توجد بيانات لعرضها</p>
@@ -17,60 +83,21 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
     );
   }
 
-  const sortedLayers = [...data.layers].sort((a, b) => a.order_num - b.order_num);
-
   return (
-    <div className="space-y-4 p-4">
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">طبقات البنية المؤسسية</h3>
-        <p className="text-sm text-muted-foreground">
-          مرتبة حسب التسلسل الهرمي من الأعلى إلى الأسفل
-        </p>
-      </div>
-
-      <div className="flex flex-col items-center space-y-4">
-        {sortedLayers.map((layer, index) => (
-          <React.Fragment key={layer.id}>
-            {/* Layer Card */}
-            <Card className="w-full max-w-md p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-              <div className="text-center space-y-2">
-                <h4 className="font-semibold text-lg">{layer.name}</h4>
-                <p className="text-sm text-muted-foreground">{layer.description}</p>
-                <div className="flex justify-center gap-2">
-                  <Badge variant="secondary">
-                    {layer.componentCount} مكون
-                  </Badge>
-                  <Badge variant="outline">
-                    {layer.code}
-                  </Badge>
-                </div>
-              </div>
-            </Card>
-
-            {/* Arrow between layers (except for the last one) */}
-            {index < sortedLayers.length - 1 && (
-              <div className="flex flex-col items-center text-muted-foreground">
-                <ArrowDown className="w-6 h-6" />
-                <div className="text-xs">يؤثر على</div>
-              </div>
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* Relationships Summary */}
-      <div className="mt-8 p-4 bg-muted/20 rounded-lg">
-        <div className="flex items-center justify-center gap-4 text-sm">
-          <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-          <span>
-            <strong>{data.totalRelationships}</strong> علاقة إجمالية بين المكونات
-          </span>
-          <span className="text-muted-foreground">|</span>
-          <span>
-            <strong>{data.relationshipTypes.length}</strong> نوع علاقة مختلف
-          </span>
-        </div>
-      </div>
+    <div className="h-[600px] bg-background border rounded-lg overflow-hidden">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        attributionPosition="bottom-left"
+      >
+        <Controls />
+        <Background color="hsl(var(--muted))" gap={16} />
+      </ReactFlow>
     </div>
   );
 };
