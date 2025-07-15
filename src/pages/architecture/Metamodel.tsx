@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,13 @@ import { MetamodelStats } from '@/components/metamodel/MetamodelStats';
 
 const Metamodel: React.FC = () => {
   const { data: metamodel, isLoading, error } = useMetamodel();
+  const diagramExportRef = useRef<{ exportToSvg: () => void }>(null);
+
+  const handleExportSvg = () => {
+    if (diagramExportRef.current) {
+      diagramExportRef.current.exportToSvg();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -58,6 +65,10 @@ const Metamodel: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportSvg}>
+            <Download className="w-4 h-4 mr-2" />
+            تصدير SVG
+          </Button>
           <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
             تصدير التعريفات
@@ -136,7 +147,7 @@ const Metamodel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MetamodelDiagram data={metamodel} />
+          <MetamodelDiagram data={metamodel} exportRef={diagramExportRef} />
         </CardContent>
       </Card>
 

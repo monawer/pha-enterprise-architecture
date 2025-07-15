@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { 
   ReactFlow, 
   Controls, 
@@ -7,7 +7,8 @@ import {
   useEdgesState,
   Node,
   Edge,
-  MarkerType
+  MarkerType,
+  ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { MetamodelData } from '@/hooks/useMetamodel';
@@ -21,9 +22,12 @@ const nodeTypes = {
 
 interface MetamodelDiagramProps {
   data?: MetamodelData;
+  exportRef?: React.RefObject<{ exportToSvg: () => void }>;
 }
 
-export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
+const MetamodelDiagramInner: React.FC<MetamodelDiagramProps> = ({ data, exportRef }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   const { initialNodes, initialEdges } = useMemo(() => {
     if (!data || !data.layers || !data.components) {
       return { initialNodes: [], initialEdges: [] };
@@ -173,6 +177,55 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  const downloadImage = useCallback((dataUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = dataUrl;
+    link.click();
+  }, []);
+
+  const exportToSvg = useCallback(() => {
+    const reactFlowElement = containerRef.current?.querySelector('.react-flow');
+    if (!reactFlowElement) {
+      console.warn('React Flow element not found');
+      return;
+    }
+
+    // Get the SVG element from React Flow
+    const svgElement = reactFlowElement.querySelector('.react-flow__renderer svg') as SVGElement;
+    if (!svgElement) {
+      console.warn('SVG element not found');
+      return;
+    }
+
+    try {
+      // Clone the SVG to avoid modifying the original
+      const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+      
+      // Set proper dimensions and viewBox
+      const rect = reactFlowElement.getBoundingClientRect();
+      clonedSvg.setAttribute('width', '1200');
+      clonedSvg.setAttribute('height', '800');
+      clonedSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+      // Convert to string and create blob
+      const svgString = new XMLSerializer().serializeToString(clonedSvg);
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      
+      downloadImage(url, 'metamodel-diagram.svg');
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting SVG:', error);
+    }
+  }, [downloadImage]);
+
+  // Expose export function to parent
+  React.useImperativeHandle(exportRef, () => ({
+    exportToSvg
+  }), [exportToSvg]);
+
   if (!data || !data.layers || data.layers.length === 0) {
     return (
       <div className="h-96 bg-muted/20 rounded-lg flex items-center justify-center animate-fade-in">
@@ -187,7 +240,7 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
   }
 
   return (
-    <div className="h-[900px] bg-background border rounded-lg overflow-hidden animate-fade-in">
+    <div ref={containerRef} className="h-[900px] bg-background border rounded-lg overflow-hidden animate-fade-in">
       <div className="absolute top-4 left-4 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-sm">
         <div className="space-y-1 text-xs">
           <div className="flex items-center gap-2">
@@ -231,5 +284,13 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
         />
       </ReactFlow>
     </div>
+  );
+};
+
+export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data, exportRef }) => {
+  return (
+    <ReactFlowProvider>
+      <MetamodelDiagramInner data={data} exportRef={exportRef} />
+    </ReactFlowProvider>
   );
 };
