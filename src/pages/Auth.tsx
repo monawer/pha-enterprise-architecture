@@ -86,7 +86,7 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-green-200">
         <CardHeader className="text-center space-y-4">
-        <div class="flex items-center justify-center rounded-xl bg-white shadow-saudi p-2"><img src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" alt="شعار هيئة الصحة العامة" class="h-8 w-auto object-contain"></div>
+        <div <img src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" alt="شعار هيئة الصحة العامة" class="h-auto w-auto object-contain"></div>
           <CardTitle className="text-2xl font-bold text-green-800">
             {isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد"}
           </CardTitle>
