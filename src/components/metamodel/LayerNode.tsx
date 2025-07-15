@@ -100,55 +100,37 @@ export const LayerNode: React.FC<LayerNodeProps> = memo(({ data }) => {
 
   return (
     <div className={`
-      min-w-[300px] p-4 rounded-lg border-2 shadow-lg 
+      w-[320px] p-4 rounded-xl border-2 shadow-lg 
       ${colors.bg} ${colors.border}
-      transition-all duration-200 hover:shadow-xl
+      transition-all duration-300 hover:shadow-xl hover:scale-[1.02]
+      animate-fade-in
     `}>
-      {/* Top Handle */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="w-3 h-3 border-2 border-white shadow-md"
-      />
-
       {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 ${colors.icon}`}>
+      <div className="flex items-center gap-3 mb-2">
+        <div className={`p-3 rounded-xl bg-white/90 dark:bg-gray-800/90 shadow-sm ${colors.icon}`}>
           {icon}
         </div>
         <div className="flex-1">
-          <h3 className={`font-bold text-lg leading-tight ${colors.text}`}>
+          <h3 className={`font-bold text-xl leading-tight ${colors.text}`}>
             {data.name}
           </h3>
-          <Badge variant="outline" className="text-xs mt-1">
-            {data.code}
-          </Badge>
+          <div className="flex items-center gap-2 mt-1">
+            <Badge variant="secondary" className="text-xs font-medium">
+              {data.code}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {data.componentCount} مكون
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* Description */}
       {data.description && (
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           {data.description}
         </p>
       )}
-
-      {/* Component Count */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          المكونات المسجلة:
-        </span>
-        <Badge variant="secondary" className="font-semibold">
-          {data.componentCount}
-        </Badge>
-      </div>
-
-      {/* Bottom Handle */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="w-3 h-3 border-2 border-white shadow-md"
-      />
     </div>
   );
 });

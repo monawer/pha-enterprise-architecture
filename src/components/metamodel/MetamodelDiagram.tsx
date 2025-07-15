@@ -6,7 +6,8 @@ import {
   useNodesState, 
   useEdgesState,
   Node,
-  Edge
+  Edge,
+  MarkerType
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { MetamodelData } from '@/hooks/useMetamodel';
@@ -29,39 +30,31 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
     }
 
     const sortedLayers = [...data.layers].sort((a, b) => a.order_num - b.order_num);
-    const layerSpacing = 350;
-    const componentSpacing = 220;
-    const centerX = 400;
-
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
-    // Create layer group nodes and component nodes
+    // Configuration for clean layout
+    const layerWidth = 1000;
+    const layerSpacing = 300;
+    const componentSpacing = 240;
+    const startX = 100;
+    const startY = 50;
+
+    // Create organized layers with components
     sortedLayers.forEach((layer, layerIndex) => {
-      const layerY = layerIndex * layerSpacing + 50;
+      const layerY = startY + (layerIndex * layerSpacing);
       const layerComponents = data.components.filter(comp => comp.layer_id === layer.id);
       
-      // Create layer group node
-      nodes.push({
-        id: `layer-${layer.id}`,
-        type: 'group',
-        position: { x: centerX - 200, y: layerY },
-        style: {
-          width: 800,
-          height: Math.max(150, Math.ceil(layerComponents.length / 3) * 120 + 80),
-          backgroundColor: 'hsl(var(--muted))',
-          border: '2px solid hsl(var(--border))',
-          borderRadius: '8px',
-        },
-        data: { label: layer.name },
-        draggable: false,
-      });
+      // Calculate layer height based on components
+      const componentsPerRow = 4;
+      const componentRows = Math.ceil(layerComponents.length / componentsPerRow);
+      const layerHeight = Math.max(120, 60 + (componentRows * 110));
 
-      // Create layer header node
+      // Create layer header node (no group background for cleaner look)
       nodes.push({
-        id: layer.id,
+        id: `layer-header-${layer.id}`,
         type: 'layer',
-        position: { x: 20, y: 20 },
+        position: { x: startX, y: layerY },
         data: {
           name: layer.name,
           description: layer.description,
@@ -69,14 +62,14 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
           componentCount: layer.componentCount,
           layerType: layer.code.toLowerCase()
         },
-        parentId: `layer-${layer.id}`,
-        extent: 'parent',
-        draggable: true,
+        draggable: false,
+        style: {
+          zIndex: 1000
+        }
       });
 
-      // Create component nodes within the layer
+      // Create component nodes in organized grid
       layerComponents.forEach((component, compIndex) => {
-        const componentsPerRow = 3;
         const row = Math.floor(compIndex / componentsPerRow);
         const col = compIndex % componentsPerRow;
         
@@ -84,39 +77,92 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
           id: component.id,
           type: 'component',
           position: { 
-            x: 350 + (col * componentSpacing), 
-            y: 70 + (row * 120) 
+            x: startX + 350 + (col * componentSpacing), 
+            y: layerY + 20 + (row * 110)
           },
           data: {
             ...component,
             layerType: layer.code.toLowerCase()
           },
-          parentId: `layer-${layer.id}`,
-          extent: 'parent',
           draggable: true,
         });
       });
+
+      // Add layer separator line (visual element)
+      if (layerIndex < sortedLayers.length - 1) {
+        nodes.push({
+          id: `separator-${layer.id}`,
+          type: 'default',
+          position: { x: startX + 50, y: layerY + layerHeight + 20 },
+          data: { label: '' },
+          style: {
+            width: layerWidth - 100,
+            height: 2,
+            background: 'hsl(var(--border))',
+            border: 'none',
+            borderRadius: 0,
+            opacity: 0.3
+          },
+          draggable: false,
+          selectable: false,
+        });
+      }
     });
 
-    // Create edges between components based on relationships
-    data.relationships.forEach(relationship => {
+    // Create clean edges for relationships
+    const crossLayerRelationships = data.relationships.filter(rel => 
+      rel.source_component.layer_code !== rel.target_component.layer_code
+    );
+
+    const sameLayerRelationships = data.relationships.filter(rel => 
+      rel.source_component.layer_code === rel.target_component.layer_code
+    );
+
+    // Cross-layer relationships (more prominent)
+    crossLayerRelationships.forEach((relationship, index) => {
       edges.push({
-        id: relationship.id,
+        id: `cross-${relationship.id}`,
         source: relationship.source_component_id,
         target: relationship.target_component_id,
         type: 'smoothstep',
-        animated: relationship.source_component.layer_code !== relationship.target_component.layer_code,
+        animated: true,
         style: { 
-          stroke: relationship.source_component.layer_code !== relationship.target_component.layer_code 
-            ? 'hsl(var(--primary))' 
-            : 'hsl(var(--muted-foreground))', 
-          strokeWidth: 2 
+          stroke: 'hsl(var(--primary))', 
+          strokeWidth: 3,
+          strokeOpacity: 0.8
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: 'hsl(var(--primary))',
         },
         label: relationship.relationship_type,
         labelStyle: { 
           fill: 'hsl(var(--foreground))', 
-          fontSize: 10,
-          fontWeight: 500
+          fontSize: 11,
+          fontWeight: 600,
+          backgroundColor: 'hsl(var(--background))',
+          padding: '2px 6px',
+          borderRadius: '4px'
+        }
+      });
+    });
+
+    // Same-layer relationships (subtle)
+    sameLayerRelationships.forEach((relationship, index) => {
+      edges.push({
+        id: `same-${relationship.id}`,
+        source: relationship.source_component_id,
+        target: relationship.target_component_id,
+        type: 'straight',
+        style: { 
+          stroke: 'hsl(var(--muted-foreground))', 
+          strokeWidth: 2,
+          strokeOpacity: 0.4,
+          strokeDasharray: '5,5'
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: 'hsl(var(--muted-foreground))',
         }
       });
     });
@@ -129,14 +175,32 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
 
   if (!data || !data.layers || data.layers.length === 0) {
     return (
-      <div className="h-96 bg-muted/20 rounded-lg flex items-center justify-center">
-        <p className="text-muted-foreground">لا توجد بيانات لعرضها</p>
+      <div className="h-96 bg-muted/20 rounded-lg flex items-center justify-center animate-fade-in">
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-muted-foreground">لا توجد بيانات لعرضها</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-[800px] bg-background border rounded-lg overflow-hidden">
+    <div className="h-[900px] bg-background border rounded-lg overflow-hidden animate-fade-in">
+      <div className="absolute top-4 left-4 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-sm">
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-0.5 bg-primary rounded" />
+            <span>علاقات عبر الطبقات</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-0.5 bg-muted-foreground rounded opacity-40" style={{background: 'repeating-linear-gradient(to right, hsl(var(--muted-foreground)) 0, hsl(var(--muted-foreground)) 3px, transparent 3px, transparent 6px)'}} />
+            <span>علاقات داخل الطبقة</span>
+          </div>
+        </div>
+      </div>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -144,13 +208,27 @@ export const MetamodelDiagram: React.FC<MetamodelDiagramProps> = ({ data }) => {
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.1 }}
+        fitViewOptions={{ 
+          padding: 0.15,
+          minZoom: 0.3,
+          maxZoom: 1.2
+        }}
         attributionPosition="bottom-left"
         minZoom={0.2}
         maxZoom={1.5}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
       >
-        <Controls />
-        <Background color="hsl(var(--muted))" gap={16} />
+        <Controls 
+          showZoom={true}
+          showFitView={true}
+          showInteractive={false}
+          position="top-right"
+        />
+        <Background 
+          color="hsl(var(--muted))" 
+          gap={20} 
+          size={1}
+        />
       </ReactFlow>
     </div>
   );

@@ -104,52 +104,66 @@ export const ComponentNode: React.FC<ComponentNodeProps> = memo(({ data }) => {
 
   return (
     <div className={`
-      min-w-[200px] max-w-[250px] p-3 rounded-md border-2 shadow-md 
+      w-[200px] p-3 rounded-lg border shadow-md 
       ${colors.bg} ${colors.border}
       transition-all duration-200 hover:shadow-lg hover:scale-105
+      animate-fade-in
     `}>
-      {/* Handles */}
+      {/* Handles - positioned more precisely */}
       <Handle
         type="target"
         position={Position.Top}
-        className="w-2 h-2 border border-white"
+        className="w-2 h-2 !border-2 !border-white !bg-primary"
+        style={{ top: -4 }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="w-2 h-2 border border-white"
+        className="w-2 h-2 !border-2 !border-white !bg-primary"
+        style={{ bottom: -4 }}
       />
       <Handle
         type="target"
         position={Position.Left}
-        className="w-2 h-2 border border-white"
+        className="w-2 h-2 !border-2 !border-white !bg-primary"
+        style={{ left: -4 }}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="w-2 h-2 border border-white"
+        className="w-2 h-2 !border-2 !border-white !bg-primary"
+        style={{ right: -4 }}
       />
 
       {/* Content */}
-      <div className="flex items-start gap-2">
-        <div className={`p-1.5 rounded ${colors.text} bg-white/80 dark:bg-gray-800/80`}>
-          {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className={`font-semibold text-sm leading-tight ${colors.text} truncate`}>
-            {data.name}
-          </h4>
-          {data.description && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              {data.description}
-            </p>
-          )}
-          <div className="flex items-center gap-1 mt-2">
-            <div className={`w-2 h-2 rounded-full ${getStatusColor(data.status)}`} />
-            <Badge variant="outline" className="text-xs">
-              {data.layer_code}
-            </Badge>
+      <div className="space-y-2">
+        <div className="flex items-start gap-2">
+          <div className={`p-1.5 rounded-md ${colors.text} bg-white/90 dark:bg-gray-800/90 shadow-sm`}>
+            {icon}
           </div>
+          <div className="flex-1 min-w-0">
+            <h4 className={`font-semibold text-sm leading-tight ${colors.text} truncate`}>
+              {data.name}
+            </h4>
+          </div>
+        </div>
+        
+        {data.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {data.description}
+          </p>
+        )}
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(data.status)}`} />
+            <span className="text-xs text-muted-foreground capitalize">
+              {data.status}
+            </span>
+          </div>
+          <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+            {data.layer_code}
+          </Badge>
         </div>
       </div>
     </div>
