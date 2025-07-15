@@ -167,12 +167,12 @@ const Auth = () => {
             </Button>
           </form>
           <div className="mt-4 text-center">
-            <button
+           {/*  <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-green-600 hover:text-green-800 text-sm"
             >
               {isLogin ? "ليس لديك حساب؟ أنشئ حساباً جديداً" : "لديك حساب؟ سجل دخولك"}
-            </button>
+            </button>*/}
           </div>
         </CardContent>
       </Card>
