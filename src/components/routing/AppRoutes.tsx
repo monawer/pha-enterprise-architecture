@@ -12,6 +12,7 @@ import DataLayer from "../../pages/architecture/DataLayer";
 import SecurityLayer from "../../pages/architecture/SecurityLayer";
 import UXLayer from "../../pages/architecture/UXLayer";
 import ArchimateViews from "../../pages/architecture/ArchimateViews";
+import Metamodel from "../../pages/architecture/Metamodel";
 import Services from "../../pages/architecture/business/Services";
 import Procedures from "../../pages/architecture/business/Procedures";
 import Policies from "../../pages/architecture/business/Policies";
@@ -192,6 +193,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/architecture/views" element={
         <MainLayout>
           <ArchimateViews />
+        </MainLayout>
+      } />
+      <Route path="/architecture/metamodel" element={
+        <MainLayout>
+          <Metamodel />
         </MainLayout>
       } />
       <Route path="/admin/users" element={
