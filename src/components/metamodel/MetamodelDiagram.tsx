@@ -8,7 +8,8 @@ import {
   Node,
   Edge,
   MarkerType,
-  ReactFlowProvider
+  ReactFlowProvider,
+  useReactFlow
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { MetamodelData } from '@/hooks/useMetamodel';
@@ -27,6 +28,7 @@ interface MetamodelDiagramProps {
 
 const MetamodelDiagramInner: React.FC<MetamodelDiagramProps> = ({ data, exportRef }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { getNodes, getEdges, getViewport } = useReactFlow();
   
   const { initialNodes, initialEdges } = useMemo(() => {
     if (!data || !data.layers || !data.components) {
@@ -185,75 +187,154 @@ const MetamodelDiagramInner: React.FC<MetamodelDiagramProps> = ({ data, exportRe
   }, []);
 
   const exportToSvg = useCallback(() => {
-    const reactFlowElement = containerRef.current?.querySelector('.react-flow__viewport');
-    if (!reactFlowElement) {
-      console.warn('React Flow viewport not found');
-      return;
-    }
-
     try {
-      // Create a new SVG element
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      const bbox = reactFlowElement.getBoundingClientRect();
+      const currentNodes = getNodes();
+      const currentEdges = getEdges();
+      const viewport = getViewport();
       
-      // Set SVG dimensions and viewBox
-      svg.setAttribute('width', '1200');
-      svg.setAttribute('height', '800');
-      svg.setAttribute('viewBox', `0 0 ${bbox.width} ${bbox.height}`);
+      if (currentNodes.length === 0) {
+        console.warn('No nodes to export');
+        return;
+      }
+
+      // Calculate bounds of all nodes
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      
+      currentNodes.forEach(node => {
+        const nodeWidth = node.width || 200;
+        const nodeHeight = node.height || 100;
+        
+        minX = Math.min(minX, node.position.x);
+        minY = Math.min(minY, node.position.y);
+        maxX = Math.max(maxX, node.position.x + nodeWidth);
+        maxY = Math.max(maxY, node.position.y + nodeHeight);
+      });
+
+      const padding = 50;
+      const width = maxX - minX + (padding * 2);
+      const height = maxY - minY + (padding * 2);
+      
+      // Create SVG
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', width.toString());
+      svg.setAttribute('height', height.toString());
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
       svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       
-      // Create a group to hold all content
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      // Add background
+      const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      background.setAttribute('width', '100%');
+      background.setAttribute('height', '100%');
+      background.setAttribute('fill', '#ffffff');
+      svg.appendChild(background);
       
-      // Clone all elements from the viewport
-      const elementsToClone = reactFlowElement.querySelectorAll('.react-flow__node, .react-flow__edge');
+      // Add styles
+      const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      style.textContent = `
+        .layer-node { fill: #f1f5f9; stroke: #e2e8f0; stroke-width: 2; }
+        .component-node { fill: #ffffff; stroke: #d1d5db; stroke-width: 1; }
+        .node-text { font-family: Arial, sans-serif; font-size: 12px; fill: #374151; }
+        .layer-text { font-size: 14px; font-weight: bold; fill: #1f2937; }
+        .edge-line { stroke: #6366f1; stroke-width: 2; fill: none; }
+        .edge-dashed { stroke: #9ca3af; stroke-width: 1; stroke-dasharray: 5,5; fill: none; }
+      `;
+      svg.appendChild(style);
       
-      elementsToClone.forEach((element) => {
-        const clonedElement = element.cloneNode(true) as Element;
+      // Draw edges first (so they appear behind nodes)
+      currentEdges.forEach(edge => {
+        const sourceNode = currentNodes.find(n => n.id === edge.source);
+        const targetNode = currentNodes.find(n => n.id === edge.target);
         
-        // Convert HTML elements to SVG
-        const rect = element.getBoundingClientRect();
-        const viewportRect = reactFlowElement.getBoundingClientRect();
-        
-        if (element.classList.contains('react-flow__node')) {
-          // Create SVG foreign object for nodes
-          const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-          foreignObject.setAttribute('x', (rect.left - viewportRect.left).toString());
-          foreignObject.setAttribute('y', (rect.top - viewportRect.top).toString());
-          foreignObject.setAttribute('width', rect.width.toString());
-          foreignObject.setAttribute('height', rect.height.toString());
+        if (sourceNode && targetNode) {
+          const sourceX = sourceNode.position.x - minX + padding + (sourceNode.width || 200) / 2;
+          const sourceY = sourceNode.position.y - minY + padding + (sourceNode.height || 100) / 2;
+          const targetX = targetNode.position.x - minX + padding + (targetNode.width || 200) / 2;
+          const targetY = targetNode.position.y - minY + padding + (targetNode.height || 100) / 2;
           
-          // Create a div wrapper with the node content
-          const div = document.createElement('div');
-          div.style.width = '100%';
-          div.style.height = '100%';
-          div.innerHTML = element.innerHTML;
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const d = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
+          path.setAttribute('d', d);
           
-          foreignObject.appendChild(div);
-          g.appendChild(foreignObject);
-        } else if (element.classList.contains('react-flow__edge')) {
-          // Handle edges - copy SVG paths directly
-          const svgElements = element.querySelectorAll('svg, path, text');
-          svgElements.forEach(svgEl => {
-            const clonedSvgEl = svgEl.cloneNode(true);
-            g.appendChild(clonedSvgEl);
-          });
+          if (edge.type === 'straight' && edge.style?.strokeDasharray) {
+            path.setAttribute('class', 'edge-dashed');
+          } else {
+            path.setAttribute('class', 'edge-line');
+          }
+          
+          svg.appendChild(path);
+          
+          // Add arrow marker
+          const marker = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+          const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+          arrowMarker.setAttribute('id', `arrow-${edge.id}`);
+          arrowMarker.setAttribute('viewBox', '0 0 10 10');
+          arrowMarker.setAttribute('refX', '8');
+          arrowMarker.setAttribute('refY', '3');
+          arrowMarker.setAttribute('markerWidth', '6');
+          arrowMarker.setAttribute('markerHeight', '6');
+          arrowMarker.setAttribute('orient', 'auto');
+          
+          const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          arrowPath.setAttribute('d', 'M 0 0 L 10 3 L 0 6 Z');
+          arrowPath.setAttribute('fill', edge.style?.strokeDasharray ? '#9ca3af' : '#6366f1');
+          
+          arrowMarker.appendChild(arrowPath);
+          marker.appendChild(arrowMarker);
+          svg.appendChild(marker);
+          
+          path.setAttribute('marker-end', `url(#arrow-${edge.id})`);
         }
       });
       
-      svg.appendChild(g);
+      // Draw nodes
+      currentNodes.forEach(node => {
+        if (node.id.startsWith('separator-')) return; // Skip separator nodes
+        
+        const x = node.position.x - minX + padding;
+        const y = node.position.y - minY + padding;
+        const nodeWidth = node.width || 200;
+        const nodeHeight = node.height || 100;
+        
+        // Node background
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x.toString());
+        rect.setAttribute('y', y.toString());
+        rect.setAttribute('width', nodeWidth.toString());
+        rect.setAttribute('height', nodeHeight.toString());
+        rect.setAttribute('rx', '8');
+        
+        if (node.type === 'layer') {
+          rect.setAttribute('class', 'layer-node');
+        } else {
+          rect.setAttribute('class', 'component-node');
+        }
+        
+        svg.appendChild(rect);
+        
+        // Node text
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', (x + nodeWidth / 2).toString());
+        text.setAttribute('y', (y + nodeHeight / 2).toString());
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('class', node.type === 'layer' ? 'layer-text' : 'node-text');
+        text.textContent = (node.data.name || node.data.label || '') as string;
+        
+        svg.appendChild(text);
+      });
       
-      // Convert to string and download
+      // Export
       const svgString = new XMLSerializer().serializeToString(svg);
       const blob = new Blob([svgString], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       
       downloadImage(url, 'metamodel-diagram.svg');
       URL.revokeObjectURL(url);
+      
     } catch (error) {
       console.error('Error exporting SVG:', error);
     }
-  }, [downloadImage]);
+  }, [getNodes, getEdges, getViewport, downloadImage]);
 
   // Expose export function to parent
   React.useImperativeHandle(exportRef, () => ({
