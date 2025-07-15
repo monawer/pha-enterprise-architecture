@@ -185,32 +185,66 @@ const MetamodelDiagramInner: React.FC<MetamodelDiagramProps> = ({ data, exportRe
   }, []);
 
   const exportToSvg = useCallback(() => {
-    const reactFlowElement = containerRef.current?.querySelector('.react-flow');
+    const reactFlowElement = containerRef.current?.querySelector('.react-flow__viewport');
     if (!reactFlowElement) {
-      console.warn('React Flow element not found');
-      return;
-    }
-
-    // Get the SVG element from React Flow
-    const svgElement = reactFlowElement.querySelector('.react-flow__renderer svg') as SVGElement;
-    if (!svgElement) {
-      console.warn('SVG element not found');
+      console.warn('React Flow viewport not found');
       return;
     }
 
     try {
-      // Clone the SVG to avoid modifying the original
-      const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+      // Create a new SVG element
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const bbox = reactFlowElement.getBoundingClientRect();
       
-      // Set proper dimensions and viewBox
-      const rect = reactFlowElement.getBoundingClientRect();
-      clonedSvg.setAttribute('width', '1200');
-      clonedSvg.setAttribute('height', '800');
-      clonedSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
-      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
-      // Convert to string and create blob
-      const svgString = new XMLSerializer().serializeToString(clonedSvg);
+      // Set SVG dimensions and viewBox
+      svg.setAttribute('width', '1200');
+      svg.setAttribute('height', '800');
+      svg.setAttribute('viewBox', `0 0 ${bbox.width} ${bbox.height}`);
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      
+      // Create a group to hold all content
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      
+      // Clone all elements from the viewport
+      const elementsToClone = reactFlowElement.querySelectorAll('.react-flow__node, .react-flow__edge');
+      
+      elementsToClone.forEach((element) => {
+        const clonedElement = element.cloneNode(true) as Element;
+        
+        // Convert HTML elements to SVG
+        const rect = element.getBoundingClientRect();
+        const viewportRect = reactFlowElement.getBoundingClientRect();
+        
+        if (element.classList.contains('react-flow__node')) {
+          // Create SVG foreign object for nodes
+          const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+          foreignObject.setAttribute('x', (rect.left - viewportRect.left).toString());
+          foreignObject.setAttribute('y', (rect.top - viewportRect.top).toString());
+          foreignObject.setAttribute('width', rect.width.toString());
+          foreignObject.setAttribute('height', rect.height.toString());
+          
+          // Create a div wrapper with the node content
+          const div = document.createElement('div');
+          div.style.width = '100%';
+          div.style.height = '100%';
+          div.innerHTML = element.innerHTML;
+          
+          foreignObject.appendChild(div);
+          g.appendChild(foreignObject);
+        } else if (element.classList.contains('react-flow__edge')) {
+          // Handle edges - copy SVG paths directly
+          const svgElements = element.querySelectorAll('svg, path, text');
+          svgElements.forEach(svgEl => {
+            const clonedSvgEl = svgEl.cloneNode(true);
+            g.appendChild(clonedSvgEl);
+          });
+        }
+      });
+      
+      svg.appendChild(g);
+      
+      // Convert to string and download
+      const svgString = new XMLSerializer().serializeToString(svg);
       const blob = new Blob([svgString], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       
