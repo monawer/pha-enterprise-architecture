@@ -62,6 +62,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
       path: "/architecture/views",
       show: true
     },
+        {
+      title: "النموذج الوصفي",
+      icon: Workflow,
+      path: "/architecture/metamodel",
+      show: true
+    },
     {
       title: "طبقة الأعمال",
       icon: Building,
