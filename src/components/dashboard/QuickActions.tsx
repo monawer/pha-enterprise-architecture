@@ -40,31 +40,32 @@ const QuickActions: React.FC = () => {
   ];
 
   return (
-    <Card className="bg-white shadow-md border-0">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-bold text-gray-900">الإجراءات السريعة</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="bg-white border border-gray-200 shadow-sm rounded-lg">
+      <div className="border-b border-gray-200 p-4">
+        <h3 className="text-lg font-bold text-gray-900">الإجراءات السريعة</h3>
+      </div>
+      <nav className="p-6">
+        <div className="flex flex-wrap gap-4 justify-center">
           {actions.map((action, index) => (
             <Button
               key={index}
               variant="outline"
-              className="h-auto p-4 flex items-start space-x-3 space-x-reverse hover:shadow-md transition-all duration-200"
+              size="lg"
+              className="flex items-center gap-3 px-6 py-3 hover:shadow-md transition-all duration-200 min-w-[200px]"
               onClick={() => navigate(action.path)}
             >
               <div className={`p-2 rounded-lg text-white ${action.color}`}>
                 {action.icon}
               </div>
-              <div className="text-right flex-1">
+              <div className="text-right">
                 <div className="font-medium text-gray-900">{action.title}</div>
-                <div className="text-sm text-gray-500 mt-1">{action.description}</div>
+                <div className="text-xs text-gray-500">{action.description}</div>
               </div>
             </Button>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </nav>
+    </div>
   );
 };
 

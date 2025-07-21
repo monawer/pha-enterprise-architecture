@@ -6,9 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import DashboardCharts from '@/components/dashboard/DashboardCharts';
-import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import QuickActions from '@/components/dashboard/QuickActions';
-import SystemHealth from '@/components/dashboard/SystemHealth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DashboardStats {
@@ -158,6 +156,11 @@ const DashboardHome: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 space-y-8">
+        {/* Quick Actions Navbar */}
+        <div className="mb-8">
+          <QuickActions />
+        </div>
+
         {/* KPI Metrics */}
         <DashboardMetrics
           totalComponents={stats.totalApps + stats.totalServices + stats.totalDevices + stats.totalProcedures}
@@ -169,17 +172,6 @@ const DashboardHome: React.FC = () => {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">التحليلات والرسوم البيانية</h2>
           <DashboardCharts />
-        </div>
-
-        {/* Activity and Actions Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <ActivityFeed />
-          <QuickActions />
-        </div>
-
-        {/* System Health */}
-        <div className="mb-8">
-          <SystemHealth />
         </div>
 
         {/* Enhanced Architecture Layers */}
