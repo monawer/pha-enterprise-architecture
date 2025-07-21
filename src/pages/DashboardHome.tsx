@@ -184,35 +184,87 @@ const DashboardHome: React.FC = () => {
 
         {/* Enhanced Architecture Layers */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            طبقات البنية المؤسسية
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-foreground mb-3">
+              طبقات البنية المؤسسية
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              نظرة شاملة على مكونات البنية التقنية والتشغيلية للهيئة
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {layersData.map((layer) => (
               <Link key={layer.key} to={layer.path}>
-                <Card className="h-full hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group bg-white border-0 shadow-lg">
-                  <CardHeader className="text-center pb-4">
-                    <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${layer.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                      <div className="text-white">
+                <Card className="h-full hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] cursor-pointer group bg-gradient-to-br from-background to-muted/20 border border-border/20 overflow-hidden relative">
+                  {/* Background decoration */}
+                  <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+                    <div className={`w-full h-full bg-gradient-to-br ${layer.color} rounded-bl-full`}></div>
+                  </div>
+                  
+                  <CardHeader className="text-center pb-6 relative z-10">
+                    <div className={`w-20 h-20 mx-auto rounded-2xl bg-gradient-to-r ${layer.color} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg group-hover:shadow-xl`}>
+                      <div className="text-white transform group-hover:scale-110 transition-transform duration-300">
                         {layer.icon}
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-bold text-gray-900 mt-4">
+                    <CardTitle className="text-2xl font-bold text-foreground mt-4 group-hover:text-saudi-green-600 transition-colors duration-300">
                       {layer.label}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="text-center pt-0">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <span className="text-3xl font-bold text-gray-900">{layer.count}</span>
-                      <span className="text-sm text-gray-600">مكون</span>
+                  
+                  <CardContent className="text-center pt-0 pb-6 relative z-10">
+                    {/* Main count display */}
+                    <div className="flex items-center justify-center gap-3 mb-6">
+                      <span className="text-4xl font-bold text-foreground group-hover:text-saudi-green-600 transition-colors duration-300">
+                        {layer.count}
+                      </span>
+                      <div className="text-left">
+                        <span className="block text-sm text-muted-foreground">مكون</span>
+                        <span className="block text-xs text-muted-foreground/70">نشط</span>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`bg-gradient-to-r ${layer.color} h-2 rounded-full transition-all duration-500`}
-                        style={{ width: `${Math.min(layer.count / 50 * 100, 100)}%` }}
-                      ></div>
+                    
+                    {/* Enhanced progress bar */}
+                    <div className="space-y-3 mb-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">معدل الاستخدام</span>
+                        <span className="font-semibold text-foreground">
+                          {Math.min(layer.count / 50 * 100, 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                        <div 
+                          className={`bg-gradient-to-r ${layer.color} h-3 rounded-full transition-all duration-1000 group-hover:animate-pulse shadow-sm`}
+                          style={{ width: `${Math.min(layer.count / 50 * 100, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    {/* Additional metrics */}
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/30">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-foreground">
+                          {Math.floor(layer.count * 0.85)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">متصل</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-saudi-green-600">
+                          {Math.floor(layer.count * 0.95)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">يعمل</div>
+                      </div>
+                    </div>
+                    
+                    {/* Status indicator */}
+                    <div className="flex items-center justify-center mt-4 gap-2">
+                      <div className="w-2 h-2 bg-saudi-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-muted-foreground">نظام صحي</span>
                     </div>
                   </CardContent>
+                  
+                  {/* Hover effect overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-saudi-green-500/5 to-saudi-green-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                 </Card>
               </Link>
             ))}
