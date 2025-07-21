@@ -17,25 +17,28 @@ interface LayerData {
   count: number;
 }
 
-interface ServiceData {
-  service_type: string;
+interface ServiceByBeneficiaryData {
+  beneficiary_type: string;
   count: number;
-  total_beneficiaries: number;
 }
 
-interface MonthlyData {
-  month: string;
-  applications: number;
-  services: number;
-  procedures: number;
+interface ServiceByOwnerData {
+  owning_department: string;
+  count: number;
+}
+
+interface ServerData {
+  type: string;
+  count: number;
 }
 
 const DashboardCharts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [applicationTypes, setApplicationTypes] = useState<ApplicationTypeData[]>([]);
   const [layersData, setLayersData] = useState<LayerData[]>([]);
-  const [servicesData, setServicesData] = useState<ServiceData[]>([]);
-  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
+  const [servicesByBeneficiary, setServicesByBeneficiary] = useState<ServiceByBeneficiaryData[]>([]);
+  const [servicesByOwner, setServicesByOwner] = useState<ServiceByOwnerData[]>([]);
+  const [serversData, setServersData] = useState<ServerData[]>([]);
 
   useEffect(() => {
     const fetchChartsData = async () => {
@@ -81,77 +84,60 @@ const DashboardCharts: React.FC = () => {
 
         setLayersData(layersResults);
 
-        // Fetch real services data by type
-        const { data: services } = await supabase
+        // Fetch services by beneficiary type
+        const { data: servicesBeneficiary } = await supabase
           .from('biz_services')
-          .select('service_type, annual_beneficiaries');
+          .select('beneficiary_type');
 
-        // Group services by type and calculate totals
-        const servicesByType = services?.reduce((acc: any, service) => {
-          const type = service.service_type || 'غير محدد';
-          if (!acc[type]) {
-            acc[type] = { count: 0, total_beneficiaries: 0 };
-          }
-          acc[type].count += 1;
-          acc[type].total_beneficiaries += service.annual_beneficiaries || 0;
+        const beneficiaryGroups = servicesBeneficiary?.reduce((acc: any, service) => {
+          const type = service.beneficiary_type || 'غير محدد';
+          acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {});
 
-        const servicesTypeData = Object.entries(servicesByType || {}).map(([type, data]: [string, any]) => ({
-          service_type: type,
-          count: data.count,
-          total_beneficiaries: data.total_beneficiaries
+        const servicesByBeneficiaryData = Object.entries(beneficiaryGroups || {}).map(([type, count]) => ({
+          beneficiary_type: type,
+          count: count as number
         }));
 
-        setServicesData(servicesTypeData);
+        setServicesByBeneficiary(servicesByBeneficiaryData);
 
-        // Fetch real monthly data from database
-        const { data: monthlyApps } = await supabase
-          .from('app_applications')
-          .select('created_at');
-        
-        const { data: monthlyServices } = await supabase
+        // Fetch services by owning department
+        const { data: servicesOwner } = await supabase
           .from('biz_services')
-          .select('created_at');
-          
-        const { data: monthlyProcedures } = await supabase
-          .from('biz_procedures')
-          .select('created_at');
+          .select('owning_department');
 
-        // Process data to get monthly counts for the last 6 months
-        const last6Months = [];
-        const now = new Date();
-        for (let i = 5; i >= 0; i--) {
-          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const monthName = date.toLocaleDateString('ar-SA', { month: 'long' });
-          
-          const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-          const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-          
-          const appsCount = monthlyApps?.filter(app => {
-            const appDate = new Date(app.created_at);
-            return appDate >= monthStart && appDate <= monthEnd;
-          }).length || 0;
-          
-          const servicesCount = monthlyServices?.filter(service => {
-            const serviceDate = new Date(service.created_at);
-            return serviceDate >= monthStart && serviceDate <= monthEnd;
-          }).length || 0;
-          
-          const proceduresCount = monthlyProcedures?.filter(procedure => {
-            const procedureDate = new Date(procedure.created_at);
-            return procedureDate >= monthStart && procedureDate <= monthEnd;
-          }).length || 0;
+        const ownerGroups = servicesOwner?.reduce((acc: any, service) => {
+          const dept = service.owning_department || 'غير محدد';
+          acc[dept] = (acc[dept] || 0) + 1;
+          return acc;
+        }, {});
 
-          last6Months.push({
-            month: monthName,
-            applications: appsCount,
-            services: servicesCount,
-            procedures: proceduresCount
-          });
-        }
+        const servicesByOwnerData = Object.entries(ownerGroups || {})
+          .map(([dept, count]) => ({
+            owning_department: dept,
+            count: count as number
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 8); // أهم 8 أقسام
 
-        setMonthlyData(last6Months);
+        setServicesByOwner(servicesByOwnerData);
+
+        // Fetch servers data
+        const [
+          { count: physicalServers },
+          { count: virtualServers }
+        ] = await Promise.all([
+          supabase.from('tech_physical_servers').select('*', { count: 'exact', head: true }),
+          supabase.from('tech_virtual_servers').select('*', { count: 'exact', head: true })
+        ]);
+
+        const serversChartData = [
+          { type: 'السيرفرات الفيزيائية', count: physicalServers || 0 },
+          { type: 'السيرفرات الافتراضية', count: virtualServers || 0 }
+        ];
+
+        setServersData(serversChartData);
       } catch (error) {
         console.error('Error fetching charts data:', error);
       } finally {
@@ -171,8 +157,8 @@ const DashboardCharts: React.FC = () => {
       label: "الخدمات",
       color: "hsl(var(--saudi-green-500))",
     },
-    procedures: {
-      label: "الإجراءات", 
+    servers: {
+      label: "السيرفرات", 
       color: "hsl(var(--saudi-green-400))",
     },
   };
@@ -192,7 +178,7 @@ const DashboardCharts: React.FC = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
       {/* Applications Distribution Pie Chart */}
-      <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300">
+      <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300">{/* Applications Distribution Pie Chart */}
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <div className="w-2 h-6 bg-gradient-to-b from-saudi-green-500 to-saudi-green-600 rounded-full"></div>
@@ -316,31 +302,101 @@ const DashboardCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Services by Type and Beneficiaries Chart */}
-      <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300 xl:col-span-1 lg:col-span-2">
+      {/* Services by Beneficiary Type Chart */}
+      <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <div className="w-2 h-6 bg-gradient-to-b from-saudi-green-500 to-saudi-green-600 rounded-full"></div>
-            أهم أنواع الخدمات
+            توزيع الخدمات حسب المستفيد
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={servicesData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <PieChart>
+                <Pie
+                  data={servicesByBeneficiary}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={90}
+                  innerRadius={40}
+                  dataKey="count"
+                  label={({ beneficiary_type, count, percent }) => `${(percent * 100).toFixed(0)}%`}
+                  animationBegin={0}
+                  animationDuration={1000}
+                >
+                  {servicesByBeneficiary.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={['#059669', '#0891b2', '#7c3aed', '#dc2626', '#ea580c'][index % 5]} 
+                      stroke="white" 
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <ChartTooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
+                          <p className="font-semibold text-foreground">{data.beneficiary_type}</p>
+                          <p className="text-muted-foreground">عدد الخدمات: {data.count}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          <div className="mt-4 space-y-2">
+            {servicesByBeneficiary.slice(0, 4).map((item, index) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: ['#059669', '#0891b2', '#7c3aed', '#dc2626'][index % 4] }}
+                  ></div>
+                  <span className="text-muted-foreground">{item.beneficiary_type}</span>
+                </div>
+                <span className="font-semibold text-foreground">{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Services by Owner Department Chart */}
+      <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+            <div className="w-2 h-6 bg-gradient-to-b from-saudi-green-500 to-saudi-green-600 rounded-full"></div>
+            توزيع الخدمات حسب المالك
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={servicesByOwner} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <defs>
-                  <linearGradient id="servicesBarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="ownerBarGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--saudi-green-500))" stopOpacity={1}/>
                     <stop offset="100%" stopColor="hsl(var(--saudi-green-600))" stopOpacity={0.8}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.3} />
                 <XAxis 
-                  dataKey="service_type" 
+                  dataKey="owning_department" 
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
                 />
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"
@@ -351,14 +407,10 @@ const DashboardCharts: React.FC = () => {
                 <ChartTooltip 
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
-                      const data = payload[0].payload;
                       return (
                         <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
-                          <p className="font-semibold text-foreground mb-2">{label}</p>
-                          <div className="space-y-1">
-                            <p className="text-muted-foreground">عدد الخدمات: {data.count}</p>
-                            <p className="text-muted-foreground">إجمالي المستفيدين: {data.total_beneficiaries?.toLocaleString()}</p>
-                          </div>
+                          <p className="font-semibold text-foreground">{label}</p>
+                          <p className="text-muted-foreground">عدد الخدمات: {payload[0].value}</p>
                         </div>
                       );
                     }
@@ -367,7 +419,7 @@ const DashboardCharts: React.FC = () => {
                 />
                 <Bar 
                   dataKey="count" 
-                  fill="url(#servicesBarGradient)" 
+                  fill="url(#ownerBarGradient)" 
                   radius={[4, 4, 0, 0]}
                   animationDuration={1000}
                   animationBegin={200}
@@ -378,90 +430,83 @@ const DashboardCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Monthly Growth Line Chart */}
+      {/* Servers Distribution Chart */}
       <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300 lg:col-span-2 xl:col-span-2">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <div className="w-2 h-6 bg-gradient-to-b from-saudi-green-500 to-saudi-green-600 rounded-full"></div>
-            الإضافات الشهرية (آخر 6 أشهر)
+            توزيع السيرفرات
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.3} />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <ChartTooltip 
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
-                          <p className="font-semibold text-foreground mb-2">{label}</p>
-                          {payload.map((entry, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                              <div 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ backgroundColor: entry.color }}
-                              ></div>
-                              <span className="text-muted-foreground">
-                                {entry.dataKey === 'applications' ? 'التطبيقات' : 
-                                 entry.dataKey === 'services' ? 'الخدمات' : 'الإجراءات'}: 
-                              </span>
-                              <span className="font-semibold text-foreground">{entry.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="applications"
-                  stroke="hsl(var(--saudi-green-600))"
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--saudi-green-600))", strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: "hsl(var(--saudi-green-600))", strokeWidth: 2 }}
-                  animationDuration={1500}
-                  animationBegin={400}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="services"
-                  stroke="hsl(var(--saudi-green-500))"
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--saudi-green-500))", strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: "hsl(var(--saudi-green-500))", strokeWidth: 2 }}
-                  animationDuration={1500}
-                  animationBegin={600}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="procedures"
-                  stroke="hsl(var(--saudi-green-400))"
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--saudi-green-400))", strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: "hsl(var(--saudi-green-400))", strokeWidth: 2 }}
-                  animationDuration={1500}
-                  animationBegin={800}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          <div className="grid grid-cols-2 gap-8">
+            <ChartContainer config={chartConfig} className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={serversData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    innerRadius={45}
+                    dataKey="count"
+                    label={({ type, count, percent }) => `${(percent * 100).toFixed(0)}%`}
+                    animationBegin={0}
+                    animationDuration={1000}
+                  >
+                    {serversData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={index === 0 ? '#059669' : '#0891b2'} 
+                        stroke="white" 
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <ChartTooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
+                            <p className="font-semibold text-foreground">{data.type}</p>
+                            <p className="text-muted-foreground">العدد: {data.count}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+            <div className="flex flex-col justify-center space-y-6">
+              {serversData.map((server, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: index === 0 ? '#059669' : '#0891b2' }}
+                    ></div>
+                    <span className="font-medium text-foreground">{server.type}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-foreground">{server.count}</div>
+                    <div className="text-sm text-muted-foreground">سيرفر</div>
+                  </div>
+                </div>
+              ))}
+              <div className="p-4 bg-gradient-to-r from-saudi-green-500/20 to-saudi-green-600/20 rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {serversData.reduce((total, server) => total + server.count, 0)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">إجمالي السيرفرات</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
