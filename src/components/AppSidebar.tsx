@@ -122,7 +122,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
             <img 
               src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" 
               alt="شعار هيئة الصحة العامة" 
-              className="h-8 w-auto object-contain"
+              className="h-auto w-auto object-contain"
             />
           </div>
         </div>
