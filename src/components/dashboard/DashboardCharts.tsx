@@ -17,17 +17,25 @@ interface LayerData {
   count: number;
 }
 
-interface GrowthData {
+interface ServiceData {
+  service_type: string;
+  count: number;
+  total_beneficiaries: number;
+}
+
+interface MonthlyData {
   month: string;
+  applications: number;
   services: number;
-  beneficiaries: number;
+  procedures: number;
 }
 
 const DashboardCharts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [applicationTypes, setApplicationTypes] = useState<ApplicationTypeData[]>([]);
   const [layersData, setLayersData] = useState<LayerData[]>([]);
-  const [growthData, setGrowthData] = useState<GrowthData[]>([]);
+  const [servicesData, setServicesData] = useState<ServiceData[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
 
   useEffect(() => {
     const fetchChartsData = async () => {
@@ -73,17 +81,77 @@ const DashboardCharts: React.FC = () => {
 
         setLayersData(layersResults);
 
-        // Mock growth data (in real app, this would come from historical data)
-        const mockGrowthData = [
-          { month: 'يناير', services: 85, beneficiaries: 12000 },
-          { month: 'فبراير', services: 88, beneficiaries: 13500 },
-          { month: 'مارس', services: 92, beneficiaries: 15000 },
-          { month: 'أبريل', services: 95, beneficiaries: 16200 },
-          { month: 'مايو', services: 98, beneficiaries: 17800 },
-          { month: 'يونيو', services: 102, beneficiaries: 18500 }
-        ];
+        // Fetch real services data by type
+        const { data: services } = await supabase
+          .from('biz_services')
+          .select('service_type, annual_beneficiaries');
 
-        setGrowthData(mockGrowthData);
+        // Group services by type and calculate totals
+        const servicesByType = services?.reduce((acc: any, service) => {
+          const type = service.service_type || 'غير محدد';
+          if (!acc[type]) {
+            acc[type] = { count: 0, total_beneficiaries: 0 };
+          }
+          acc[type].count += 1;
+          acc[type].total_beneficiaries += service.annual_beneficiaries || 0;
+          return acc;
+        }, {});
+
+        const servicesTypeData = Object.entries(servicesByType || {}).map(([type, data]: [string, any]) => ({
+          service_type: type,
+          count: data.count,
+          total_beneficiaries: data.total_beneficiaries
+        }));
+
+        setServicesData(servicesTypeData);
+
+        // Fetch real monthly data from database
+        const { data: monthlyApps } = await supabase
+          .from('app_applications')
+          .select('created_at');
+        
+        const { data: monthlyServices } = await supabase
+          .from('biz_services')
+          .select('created_at');
+          
+        const { data: monthlyProcedures } = await supabase
+          .from('biz_procedures')
+          .select('created_at');
+
+        // Process data to get monthly counts for the last 6 months
+        const last6Months = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthName = date.toLocaleDateString('ar-SA', { month: 'long' });
+          
+          const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+          const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+          
+          const appsCount = monthlyApps?.filter(app => {
+            const appDate = new Date(app.created_at);
+            return appDate >= monthStart && appDate <= monthEnd;
+          }).length || 0;
+          
+          const servicesCount = monthlyServices?.filter(service => {
+            const serviceDate = new Date(service.created_at);
+            return serviceDate >= monthStart && serviceDate <= monthEnd;
+          }).length || 0;
+          
+          const proceduresCount = monthlyProcedures?.filter(procedure => {
+            const procedureDate = new Date(procedure.created_at);
+            return procedureDate >= monthStart && procedureDate <= monthEnd;
+          }).length || 0;
+
+          last6Months.push({
+            month: monthName,
+            applications: appsCount,
+            services: servicesCount,
+            procedures: proceduresCount
+          });
+        }
+
+        setMonthlyData(last6Months);
       } catch (error) {
         console.error('Error fetching charts data:', error);
       } finally {
@@ -95,12 +163,16 @@ const DashboardCharts: React.FC = () => {
   }, []);
 
   const chartConfig = {
-    services: {
-      label: "الخدمات",
+    applications: {
+      label: "التطبيقات",
       color: "hsl(var(--saudi-green-600))",
     },
-    beneficiaries: {
-      label: "المستفيدون",
+    services: {
+      label: "الخدمات",
+      color: "hsl(var(--saudi-green-500))",
+    },
+    procedures: {
+      label: "الإجراءات", 
       color: "hsl(var(--saudi-green-400))",
     },
   };
@@ -244,28 +316,80 @@ const DashboardCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Growth Line Chart */}
+      {/* Services by Type and Beneficiaries Chart */}
       <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300 xl:col-span-1 lg:col-span-2">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <div className="w-2 h-6 bg-gradient-to-b from-saudi-green-500 to-saudi-green-600 rounded-full"></div>
-            نمو الخدمات والمستفيدين
+            أهم أنواع الخدمات
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={growthData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <BarChart data={servicesData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <defs>
-                  <linearGradient id="servicesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--saudi-green-600))" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="hsl(var(--saudi-green-600))" stopOpacity={0.1}/>
-                  </linearGradient>
-                  <linearGradient id="beneficiariesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--saudi-green-400))" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="hsl(var(--saudi-green-400))" stopOpacity={0.1}/>
+                  <linearGradient id="servicesBarGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--saudi-green-500))" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="hsl(var(--saudi-green-600))" stopOpacity={0.8}/>
                   </linearGradient>
                 </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.3} />
+                <XAxis 
+                  dataKey="service_type" 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <ChartTooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
+                          <p className="font-semibold text-foreground mb-2">{label}</p>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground">عدد الخدمات: {data.count}</p>
+                            <p className="text-muted-foreground">إجمالي المستفيدين: {data.total_beneficiaries?.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar 
+                  dataKey="count" 
+                  fill="url(#servicesBarGradient)" 
+                  radius={[4, 4, 0, 0]}
+                  animationDuration={1000}
+                  animationBegin={200}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      {/* Monthly Growth Line Chart */}
+      <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300 lg:col-span-2 xl:col-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+            <div className="w-2 h-6 bg-gradient-to-b from-saudi-green-500 to-saudi-green-600 rounded-full"></div>
+            الإضافات الشهرية (آخر 6 أشهر)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.3} />
                 <XAxis 
                   dataKey="month" 
@@ -292,8 +416,11 @@ const DashboardCharts: React.FC = () => {
                                 className="w-3 h-3 rounded-full" 
                                 style={{ backgroundColor: entry.color }}
                               ></div>
-                              <span className="text-muted-foreground">{entry.name === 'services' ? 'الخدمات' : 'المستفيدون'}: </span>
-                              <span className="font-semibold text-foreground">{entry.value?.toLocaleString()}</span>
+                              <span className="text-muted-foreground">
+                                {entry.dataKey === 'applications' ? 'التطبيقات' : 
+                                 entry.dataKey === 'services' ? 'الخدمات' : 'الإجراءات'}: 
+                              </span>
+                              <span className="font-semibold text-foreground">{entry.value}</span>
                             </div>
                           ))}
                         </div>
@@ -304,7 +431,7 @@ const DashboardCharts: React.FC = () => {
                 />
                 <Line
                   type="monotone"
-                  dataKey="services"
+                  dataKey="applications"
                   stroke="hsl(var(--saudi-green-600))"
                   strokeWidth={3}
                   dot={{ fill: "hsl(var(--saudi-green-600))", strokeWidth: 2, r: 6 }}
@@ -314,13 +441,23 @@ const DashboardCharts: React.FC = () => {
                 />
                 <Line
                   type="monotone"
-                  dataKey="beneficiaries"
+                  dataKey="services"
+                  stroke="hsl(var(--saudi-green-500))"
+                  strokeWidth={3}
+                  dot={{ fill: "hsl(var(--saudi-green-500))", strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, stroke: "hsl(var(--saudi-green-500))", strokeWidth: 2 }}
+                  animationDuration={1500}
+                  animationBegin={600}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="procedures"
                   stroke="hsl(var(--saudi-green-400))"
                   strokeWidth={3}
                   dot={{ fill: "hsl(var(--saudi-green-400))", strokeWidth: 2, r: 6 }}
                   activeDot={{ r: 8, stroke: "hsl(var(--saudi-green-400))", strokeWidth: 2 }}
                   animationDuration={1500}
-                  animationBegin={600}
+                  animationBegin={800}
                 />
               </LineChart>
             </ResponsiveContainer>
