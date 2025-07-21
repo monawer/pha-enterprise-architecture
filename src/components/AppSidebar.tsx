@@ -63,7 +63,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       show: true
     },
         {
-      title: "النموذج الوصفي",
+      title: "النموذج العام",
       icon: Workflow,
       path: "/architecture/metamodel",
       show: true
