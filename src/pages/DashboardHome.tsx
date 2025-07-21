@@ -154,19 +154,20 @@ const DashboardHome: React.FC = () => {
           </div>
         </div>
       </div>
-
+ 
       <div className="max-w-7xl mx-auto px-4 space-y-8">
-        {/* Quick Actions Navbar */}
+        {/* Quick Actions Navbar 
         <div className="mb-8">
           <QuickActions />
-        </div>
+        </div>*/}
 
-        {/* KPI Metrics */}
+        {/* KPI Metrics 
         <DashboardMetrics
           totalComponents={stats.totalApps + stats.totalServices + stats.totalDevices + stats.totalProcedures}
           activeServices={stats.totalServices}
           monthlyGrowth={stats.monthlyGrowth}
         />
+      */}
 
         {/* Charts Section */}
         <div className="mb-8">
