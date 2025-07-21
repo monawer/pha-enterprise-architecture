@@ -1,5 +1,5 @@
 import React from 'react';
-import metamodelSvg from './metamodel.svg';
+import metamodelSvg from './metamodel/metamodel.svg';
 
 const MetamodelDiagram = () => {
   return (
