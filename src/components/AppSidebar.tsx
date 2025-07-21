@@ -118,7 +118,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
     <Sidebar side="right">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center justify-center mb-4 p-4">
-          <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-white shadow-saudi p-2">
+          <div className="w-45 h-25 flex items-center justify-center rounded-xl bg-white shadow-saudi p-2">
             <img 
               src="/lovable-uploads/c9d30792-fb30-4f2b-943c-af6559266144.png" 
               alt="شعار هيئة الصحة العامة" 
