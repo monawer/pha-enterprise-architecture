@@ -110,7 +110,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           )}
           {/* محتوى الصفحة */}
           <main className={`flex-1 overflow-auto ${isMobile ? "mt-14" : ""}`}>
-            <div className="p-4 md:p-6 max-w-7xl mx-auto animate-fade-in-up">
+            <div className="p-4 md:p-6 w-full animate-fade-in-up">
               {children}
             </div>
           </main>
