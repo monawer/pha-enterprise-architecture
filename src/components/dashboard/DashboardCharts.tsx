@@ -244,7 +244,7 @@ const DashboardCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Layers Distribution Bar Chart */}
+{/* Layers Distribution Pie Chart */}
       <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -255,50 +255,59 @@ const DashboardCharts: React.FC = () => {
         <CardContent>
           <ChartContainer config={chartConfig} className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={layersData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--saudi-green-500))" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="hsl(var(--saudi-green-600))" stopOpacity={0.8}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.3} />
-                <XAxis 
-                  dataKey="layer" 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
+              <PieChart>
+                <Pie
+                  data={layersData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={90}
+                  innerRadius={40}
+                  dataKey="count"
+                  label={({ layer, count, percent }) => `${(percent * 100).toFixed(0)}%`}
+                  animationBegin={0}
+                  animationDuration={1000}
+                >
+                  {layersData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'][index % 5]} 
+                      stroke="white" 
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
                 <ChartTooltip 
-                  content={({ active, payload, label }) => {
+                  content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
                         <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
-                          <p className="font-semibold text-foreground">{label}</p>
-                          <p className="text-muted-foreground">المكونات: {payload[0].value}</p>
+                          <p className="font-semibold text-foreground">{data.layer}</p>
+                          <p className="text-muted-foreground">المكونات: {data.count}</p>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Bar 
-                  dataKey="count" 
-                  fill="url(#barGradient)" 
-                  radius={[4, 4, 0, 0]}
-                  animationDuration={1000}
-                  animationBegin={200}
-                />
-              </BarChart>
+              </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
+          <div className="mt-4 space-y-2">
+            {layersData.map((item, index) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'][index % 5] }}
+                  ></div>
+                  <span className="text-muted-foreground">{item.layer}</span>
+                </div>
+                <span className="font-semibold text-foreground">{item.count}</span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -369,7 +378,7 @@ const DashboardCharts: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Services by Owner Department Chart */}
+{/* Services by Owner Department Chart */}
       <Card className="bg-gradient-to-br from-background to-muted/20 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -380,53 +389,59 @@ const DashboardCharts: React.FC = () => {
         <CardContent>
           <ChartContainer config={chartConfig} className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={servicesByOwner} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="ownerBarGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--saudi-green-500))" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="hsl(var(--saudi-green-600))" stopOpacity={0.8}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.3} />
-                <XAxis 
-                  dataKey="owning_department" 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
+              <PieChart>
+                <Pie
+                  data={servicesByOwner}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={90}
+                  innerRadius={40}
+                  dataKey="count"
+                  label={({ owning_department, count, percent }) => `${(percent * 100).toFixed(0)}%`}
+                  animationBegin={0}
+                  animationDuration={1000}
+                >
+                  {servicesByOwner.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={['#059669', '#0891b2', '#7c3aed', '#dc2626', '#ea580c', '#16a34a', '#0284c7', '#9333ea'][index % 8]} 
+                      stroke="white" 
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
                 <ChartTooltip 
-                  content={({ active, payload, label }) => {
+                  content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
                         <div className="bg-background p-3 border border-border rounded-lg shadow-lg">
-                          <p className="font-semibold text-foreground">{label}</p>
-                          <p className="text-muted-foreground">عدد الخدمات: {payload[0].value}</p>
+                          <p className="font-semibold text-foreground">{data.owning_department}</p>
+                          <p className="text-muted-foreground">عدد الخدمات: {data.count}</p>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Bar 
-                  dataKey="count" 
-                  fill="url(#ownerBarGradient)" 
-                  radius={[4, 4, 0, 0]}
-                  animationDuration={1000}
-                  animationBegin={200}
-                />
-              </BarChart>
+              </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
+          <div className="mt-4 space-y-2">
+            {servicesByOwner.slice(0, 6).map((item, index) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: ['#059669', '#0891b2', '#7c3aed', '#dc2626', '#ea580c', '#16a34a'][index % 6] }}
+                  ></div>
+                  <span className="text-muted-foreground">{item.owning_department}</span>
+                </div>
+                <span className="font-semibold text-foreground">{item.count}</span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
