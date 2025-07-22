@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building2, 
@@ -58,6 +59,62 @@ const getTypeIcon = (type: string) => {
   }
 };
 
+// Helper function to get navigation route based on component type and layer
+const getNavigationRoute = (layer: string, type: string, metadata?: Record<string, any>) => {
+  const baseRoute = '/architecture';
+  
+  switch (layer) {
+    case 'business':
+      switch (type) {
+        case 'service':
+          return `${baseRoute}/business/services`;
+        case 'capability':
+          return `${baseRoute}/business/capabilities`;
+        case 'procedure':
+          return `${baseRoute}/business/procedures`;
+        case 'policy':
+          return `${baseRoute}/business/policies`;
+        case 'business-owner':
+          return `${baseRoute}/business/business-owners`;
+        default:
+          return `${baseRoute}/business`;
+      }
+    case 'application':
+      switch (type) {
+        case 'application':
+          return `${baseRoute}/applications/apps`;
+        case 'database':
+          return `${baseRoute}/applications/databases`;
+        default:
+          return `${baseRoute}/applications`;
+      }
+    case 'technology':
+      switch (type) {
+        case 'server':
+          return `${baseRoute}/technology/virtual-servers`;
+        case 'device':
+          return `${baseRoute}/technology/network-devices`;
+        case 'network':
+          return `${baseRoute}/technology/networks`;
+        default:
+          return `${baseRoute}/technology`;
+      }
+    case 'data':
+      switch (type) {
+        case 'data-entity':
+          return `${baseRoute}/data/data-entities`;
+        case 'storage':
+          return `${baseRoute}/data/data-storage`;
+        default:
+          return `${baseRoute}/data`;
+      }
+    case 'security':
+      return `${baseRoute}/security/security-devices`;
+    default:
+      return baseRoute;
+  }
+};
+
 interface ArchiMateNodeProps {
   data: {
     label: string;
@@ -70,11 +127,22 @@ interface ArchiMateNodeProps {
 }
 
 export const ArchiMateNode: React.FC<ArchiMateNodeProps> = memo(({ data }) => {
+  const navigate = useNavigate();
   const Icon = getTypeIcon(data.type);
   const layerColorClass = getLayerColor(data.layer);
 
+  const handleNodeClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const route = getNavigationRoute(data.layer, data.type, data.metadata);
+    navigate(route);
+  }, [navigate, data.layer, data.type, data.metadata]);
+
   return (
-    <div className={`p-3 rounded-lg border-2 min-w-[150px] shadow-sm hover:shadow-md transition-shadow ${layerColorClass}`}>
+    <div 
+      className={`p-3 rounded-lg border-2 min-w-[150px] shadow-sm hover:shadow-lg transition-all cursor-pointer select-none ${layerColorClass}`}
+      onClick={handleNodeClick}
+      title={`انقر للانتقال إلى ${data.label}`}
+    >
       <Handle
         type="target"
         position={Position.Top}
