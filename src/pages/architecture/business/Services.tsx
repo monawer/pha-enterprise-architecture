@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,6 +66,9 @@ interface Service {
 type ViewMode = 'cards' | 'list' | 'table';
 
 const Services = () => {
+  const [searchParams] = useSearchParams();
+  const viewId = searchParams.get('view');
+  
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,6 +89,22 @@ const Services = () => {
   useEffect(() => {
     fetchServices();
   }, []);
+
+  // Effect to handle view parameter and scroll to specific service
+  useEffect(() => {
+    if (viewId && services.length > 0) {
+      const targetService = services.find(service => service.id === viewId);
+      if (targetService) {
+        // Open details modal for the specific service
+        setServiceDetails(targetService);
+        setIsDetailsModalOpen(true);
+        toast({
+          title: "تم العثور على الخدمة",
+          description: `تم فتح تفاصيل خدمة "${targetService.service_name}"`,
+        });
+      }
+    }
+  }, [viewId, services, toast]);
 
   const fetchServices = async () => {
     try {

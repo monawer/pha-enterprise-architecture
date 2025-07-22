@@ -59,59 +59,86 @@ const getTypeIcon = (type: string) => {
   }
 };
 
-// Helper function to get navigation route based on component type and layer
-const getNavigationRoute = (layer: string, type: string, metadata?: Record<string, any>) => {
-  const baseRoute = '/architecture';
+// Helper function to get navigation route based on component data
+const getNavigationRoute = (data: any) => {
+  const { metadata } = data;
   
-  switch (layer) {
-    case 'business':
-      switch (type) {
-        case 'service':
-          return `${baseRoute}/business/services`;
-        case 'capability':
-          return `${baseRoute}/business/capabilities`;
-        case 'procedure':
-          return `${baseRoute}/business/procedures`;
-        case 'policy':
-          return `${baseRoute}/business/policies`;
-        case 'business-owner':
-          return `${baseRoute}/business/business-owners`;
-        default:
-          return `${baseRoute}/business`;
-      }
-    case 'application':
-      switch (type) {
-        case 'application':
-          return `${baseRoute}/applications/apps`;
-        case 'database':
-          return `${baseRoute}/applications/databases`;
-        default:
-          return `${baseRoute}/applications`;
-      }
-    case 'technology':
-      switch (type) {
-        case 'server':
-          return `${baseRoute}/technology/virtual-servers`;
-        case 'device':
-          return `${baseRoute}/technology/network-devices`;
-        case 'network':
-          return `${baseRoute}/technology/networks`;
-        default:
-          return `${baseRoute}/technology`;
-      }
-    case 'data':
-      switch (type) {
-        case 'data-entity':
-          return `${baseRoute}/data/data-entities`;
-        case 'storage':
-          return `${baseRoute}/data/data-storage`;
-        default:
-          return `${baseRoute}/data`;
-      }
-    case 'security':
-      return `${baseRoute}/security/security-devices`;
+  if (!metadata || !metadata.id) {
+    return null;
+  }
+
+  // Determine the route based on the metadata content
+  // Check for specific entity types based on table structure
+  
+  // Business layer entities
+  if (metadata.service_name || metadata.service_code) {
+    return `/architecture/business/services?view=${metadata.id}`;
+  }
+  if (metadata.capability_name || metadata.task_code) {
+    return `/architecture/business/capabilities?view=${metadata.id}`;
+  }
+  if (metadata.procedure_name || metadata.procedure_code) {
+    return `/architecture/business/procedures?view=${metadata.id}`;
+  }
+  if (metadata.policy_name || metadata.policy_code) {
+    return `/architecture/business/policies?view=${metadata.id}`;
+  }
+  if (metadata.title && metadata.job_description) {
+    return `/architecture/business/business-owners?view=${metadata.id}`;
+  }
+  if (metadata.form_name || metadata.form_code) {
+    return `/architecture/business/forms?view=${metadata.id}`;
+  }
+  if (metadata.branch_name || metadata.branch_code) {
+    return `/architecture/business/branches?view=${metadata.id}`;
+  }
+  
+  // Application layer entities
+  if (metadata.app_type || metadata.development_type || metadata.authentication_type) {
+    return `/architecture/applications/apps?view=${metadata.id}`;
+  }
+  if (metadata.database_name || metadata.database_environment_type) {
+    return `/architecture/applications/databases?view=${metadata.id}`;
+  }
+  if (metadata.connection_type || metadata.integration_platform) {
+    return `/architecture/applications/technical-links?view=${metadata.id}`;
+  }
+  
+  // Data layer entities
+  if (metadata.entity_name_ar || metadata.entity_name_en || metadata.data_classification) {
+    return `/architecture/data/data-entities?view=${metadata.id}`;
+  }
+  if (metadata.type && metadata.structure) {
+    return `/architecture/data/data-storage?view=${metadata.id}`;
+  }
+  
+  // Technology layer entities
+  if (metadata.host_name && metadata.network_segment) {
+    return `/architecture/technology/network-devices?view=${metadata.id}`;
+  }
+  if (metadata.host_name && metadata.manufacturer) {
+    return `/architecture/technology/virtual-servers?view=${metadata.id}`;
+  }
+  
+  // Security layer entities
+  if (metadata.function || metadata.firmware_version) {
+    return `/architecture/security/security-devices?view=${metadata.id}`;
+  }
+  
+  // Default fallback - go to the layer page
+  switch (data.layer) {
+    case 'BIZ':
+      return '/architecture/business';
+    case 'APP':
+      return '/architecture/applications';
+    case 'TECH':
+      return '/architecture/technology';
+    case 'DATA':
+      return '/architecture/data';
+    case 'SEC':
+      return '/architecture/security';
     default:
-      return baseRoute;
+      return '/architecture';
   }
 };
 
@@ -133,9 +160,11 @@ export const ArchiMateNode: React.FC<ArchiMateNodeProps> = memo(({ data }) => {
 
   const handleNodeClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    const route = getNavigationRoute(data.layer, data.type, data.metadata);
-    navigate(route);
-  }, [navigate, data.layer, data.type, data.metadata]);
+    const route = getNavigationRoute(data);
+    if (route) {
+      navigate(route);
+    }
+  }, [navigate, data]);
 
   return (
     <div 
