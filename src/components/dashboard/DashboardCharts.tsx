@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -49,9 +48,9 @@ const DashboardCharts: React.FC = () => {
           .from('app_applications')
           .select('app_type');
 
-        // Count applications by type
+        // Count applications by type with data cleaning
         const typeCounts = apps?.reduce((acc: any, app) => {
-          const type = app.app_type || 'غير محدد';
+          const type = (app.app_type || 'غير محدد').trim();
           acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {});
@@ -84,14 +83,16 @@ const DashboardCharts: React.FC = () => {
 
         setLayersData(layersResults);
 
-        // Fetch services by beneficiary type
+        // Fetch services by beneficiary type with improved data cleaning
         const { data: servicesBeneficiary } = await supabase
           .from('biz_services')
           .select('beneficiary_type');
 
         const beneficiaryGroups = servicesBeneficiary?.reduce((acc: any, service) => {
-          const type = service.beneficiary_type || 'غير محدد';
-          acc[type] = (acc[type] || 0) + 1;
+          // Clean and normalize the beneficiary type
+          const rawType = service.beneficiary_type || 'غير محدد';
+          const cleanType = rawType.trim().replace(/\s+/g, ' '); // Remove extra spaces and normalize
+          acc[cleanType] = (acc[cleanType] || 0) + 1;
           return acc;
         }, {});
 
@@ -102,13 +103,13 @@ const DashboardCharts: React.FC = () => {
 
         setServicesByBeneficiary(servicesByBeneficiaryData);
 
-        // Fetch services by owning department
+        // Fetch services by owning department with data cleaning
         const { data: servicesOwner } = await supabase
           .from('biz_services')
           .select('owning_department');
 
         const ownerGroups = servicesOwner?.reduce((acc: any, service) => {
-          const dept = service.owning_department || 'غير محدد';
+          const dept = (service.owning_department || 'غير محدد').trim();
           acc[dept] = (acc[dept] || 0) + 1;
           return acc;
         }, {});
