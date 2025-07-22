@@ -74,9 +74,19 @@ const CapabilityForm: React.FC<CapabilityFormProps> = ({
           description: "تم تحديث القدرة بنجاح",
         });
       } else {
+        // تنظيف البيانات: تحويل القيم الفارغة إلى null
+        const cleanedData = {
+          ...formData,
+          component_id: formData.component_id?.trim() || null,
+          task_code: formData.task_code?.trim() || null,
+          capability_description: formData.capability_description?.trim() || null,
+          capability_owner: formData.capability_owner?.trim() || null,
+          capability_classification: formData.capability_classification?.trim() || null,
+        };
+
         const { error } = await supabase
           .from('biz_capabilities')
-          .insert([formData]);
+          .insert([cleanedData]);
 
         if (error) throw error;
         
