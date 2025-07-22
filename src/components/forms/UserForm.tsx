@@ -79,19 +79,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
 
         if (authError) throw authError;
 
-        if (authData.user) {
-          // إدراج بيانات إضافية في جدول user_profiles
-          const { error: profileError } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: authData.user.id,
-              full_name: formData.full_name,
-              department: formData.department || null,
-              is_active: formData.is_active,
-            });
-
-          if (profileError) throw profileError;
-        }
 
         toast({
           title: "تم بنجاح",
