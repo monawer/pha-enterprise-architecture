@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,6 +111,35 @@ const UsersPage = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`هل أنت متأكد من حذف المستخدم "${userName}"؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ is_active: false })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم إلغاء تفعيل المستخدم بنجاح",
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deactivating user:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إلغاء تفعيل المستخدم",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -213,13 +241,15 @@ const UsersPage = () => {
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => console.log('Delete user:', user.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {user.is_active && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id, user.full_name)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -234,4 +264,3 @@ const UsersPage = () => {
 };
 
 export default UsersPage;
-

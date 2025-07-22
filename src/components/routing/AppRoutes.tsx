@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Auth from "../../pages/Auth";
@@ -40,6 +39,8 @@ import MainLayout from "../layout/MainLayout";
 import NotFound from "../../pages/NotFound";
 import ReferenceTableManager from "../admin/ReferenceTableManager";
 import { referenceTableRoutes } from "../../config/referenceTableRoutes";
+import NewUser from "../../pages/admin/NewUser";
+import EditUser from "../../pages/admin/EditUser";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -203,6 +204,16 @@ const AppRoutes: React.FC = () => {
       <Route path="/admin/users" element={
         <MainLayout>
           <Users />
+        </MainLayout>
+      } />
+      <Route path="/admin/users/new" element={
+        <MainLayout>
+          <NewUser />
+        </MainLayout>
+      } />
+      <Route path="/admin/users/:id" element={
+        <MainLayout>
+          <EditUser />
         </MainLayout>
       } />
       <Route path="/admin/references" element={
