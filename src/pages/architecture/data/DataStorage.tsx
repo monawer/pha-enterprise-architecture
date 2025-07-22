@@ -44,6 +44,9 @@ const DataStorage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [storageToDelete, setStorageToDelete] = useState<DataStorage | null>(null);
+  // Mobile drawer state - moved to top to avoid hooks order violation
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerContent, setDrawerContent] = useState<React.ReactNode>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -131,9 +134,6 @@ const DataStorage = () => {
     );
   }
 
-  // متغيرات خاصة لدروار الجوال
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<React.ReactNode>(null);
 
   const openDrawer = (node: React.ReactNode) => {
     setDrawerContent(node);
